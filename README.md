@@ -29,11 +29,12 @@ $ npm start
 6. Open 'App.js', modify ComponentDidMount() to match a specific Flask API route. Feel free to test the fetched information to understand how the information is retrieved.
 7. Go back to your opened React client tab on your browser from steps 3 and 4. See the new info?
 
-RECAP: Flask API connects to MySQL DB, offers petinent data through specific 'routes'. React client fetches data from Flask API by accessing these predefined 'routes'.
+### Summary
+Flask API connects to MySQL DB, offers petinent data through specific 'routes'. React client fetches data from Flask API by accessing these predefined 'routes'.
 
-Resources:
-https://medium.com/python-pandemonium/build-simple-restful-api-with-python-and-flask-part-1-fae9ff66a706
-https://developersoapbox.com/basic-web-api-using-flask-and-mysql/
-https://flask-cors.readthedocs.io/en/latest/
-https://reactjs.org/docs/create-a-new-react-app.html
-https://blog.hellojs.org/fetching-api-data-with-react-js-460fe8bbf8f2
+## Resources
+1. https://medium.com/python-pandemonium/build-simple-restful-api-with-python-and-flask-part-1-fae9ff66a706
+2. https://developersoapbox.com/basic-web-api-using-flask-and-mysql/
+3. https://flask-cors.readthedocs.io/en/latest/
+4. https://reactjs.org/docs/create-a-new-react-app.html
+5. https://blog.hellojs.org/fetching-api-data-with-react-js-460fe8bbf8f2
