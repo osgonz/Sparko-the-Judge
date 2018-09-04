@@ -6,10 +6,16 @@
 2. Make sure you have 'pip' installed. Using Python 3.6 for now, but we can switch to another version.
 3. Open your terminal, and execute:
 ```
-$ pip install -U Flask flask-mysql flask-cors
+$ pip install -U Flask flask-mysql flask-cors python-dotenv
 ```
 4. Make sure you have local MySQL installed.
-5. Open 'app.py', modify MySQL configurations to the database of your choosing.
+5. Create a `.env` file in the Flask API directory setting the following environment variables with the MySQL configuration of your liking:
+```
+MYSQL_DATABASE_USER=example
+MYSQL_DATABASE_PASSWORD=example
+MYSQL_DATABASE_DB=example
+MYSQL_DATABASE_HOST=example
+```
 6. Modify and/or create Routes in your Flask API. See resources at the end for more info.
 7. Execute in terminal:
 ```
