@@ -1,1 +1,22 @@
+:root {
+    --primary-color:#0B2027;
+    --accent-color:#FCFCFC;
+    --background-color: ##d9d9d9;
+}
+
 @import url('https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic');
+
+body{
+    line-height: 1.6;
+    letter-spacing: .05em;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+}
+
+.header-bar {
+    background-color: var(--primary-color) !important;
+    color: var(--accent-color) !important;
+}
+
+.header-button {
+    color: inherit !important;
+}
