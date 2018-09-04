@@ -8,7 +8,7 @@ class App extends Component {
     };
 
     componentDidMount(){
-        fetch('http://127.0.0.1:5000/users/1').then(results => {
+        fetch('http://127.0.0.1:5000/users').then(results => {
             return results.json();
         }).then(data => {
             console.log(data.Users[0].email);
