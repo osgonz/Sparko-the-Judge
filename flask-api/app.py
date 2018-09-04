@@ -40,7 +40,7 @@ def get_user(id):
     if False:
         return jsonify({'Users': [{'error': 'ACCESS DENIED'}]})
     cur = mysql.connect().cursor()
-    cur.execute('SELECT * FROM users WHERE id = ' + id)
+    cur.execute("SELECT * FROM users WHERE username = '" + id + "'")
     r = [dict((cur.description[i][0], value)
               for i, value in enumerate(row)) for row in cur.fetchall()]
     return jsonify({'Users' : r})
