@@ -18,10 +18,15 @@ const styles = {
     },
 };
 
+
+// Header component embodies the site's navigation bar
+// Props: isLogged (boolean) and isAdmin (boolean)
 class Header extends Component {
     render() {
         const { classes } = this.props;
-        
+
+        // If logged in, show the pertinent buttons for admins and regular users
+        // If not logged in, just show a 'log in' button
         const headerButtons = this.props.isLogged ? (
             <div className="header-bar">
                 <Link to='/contests' style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -29,6 +34,13 @@ class Header extends Component {
                         Contests
                     </Button>
                 </Link>
+                {this.props.isAdmin &&
+                    <Link to='/users' style={{textDecoration: 'none', color: 'inherit'}}>
+                        <Button className="header-button">
+                            Users
+                        </Button>
+                    </Link>
+                }
                 <Link to='/profile' style={{ textDecoration: 'none', color: 'inherit' }}>
                     <Button className="header-button">
                         Profile
