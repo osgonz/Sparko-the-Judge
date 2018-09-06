@@ -10,7 +10,7 @@ USE CoProManager;
 --      1 -> Regular user
 CREATE TABLE Users (
 	userID INT NOT NULL AUTO_INCREMENT,
-	username VARCHAR(64) NOT NULL,
+	username VARCHAR(64) UNIQUE NOT NULL,
     fname VARCHAR(32) NOT NULL,
     lname VARCHAR(32) NOT NULL,
 	password VARCHAR(255) NOT NULL,
