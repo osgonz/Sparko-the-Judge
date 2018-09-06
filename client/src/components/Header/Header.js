@@ -52,9 +52,11 @@ class Header extends Component {
             </div>
         ) : (
             <div>
-                <Button className="header-button">
-                    Log In
-                </Button>
+                <Link to='/login' style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <Button className="header-button">
+                        Log In
+                    </Button>
+                </Link>
             </div>
         );
 

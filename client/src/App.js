@@ -23,11 +23,11 @@ class App extends Component {
     return (
       <div className="App">
           <Header
-              isLogged={true}
+              isLogged={false}
               isAdmin={false}
           />
           <Main
-              isLogged={true}
+              isLogged={false}
               isAdmin={false}
           />
           { /*
