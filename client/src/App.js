@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 
 import Header from './components/Header/Header'
+import Main from './Main'
 import './style/style.css';
 
 class App extends Component {
@@ -22,14 +23,21 @@ class App extends Component {
     return (
       <div className="App">
           <Header
-              isLogged={true}
+              isLogged={false}
+              isAdmin={false}
           />
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
+          <Main
+              isLogged={false}
+              isAdmin={false}
+          />
+          { /*
+          <p className="App-intro">
+              To get started, edit <code>src/App.js</code> and save to reload.
+          </p>
           <p>
               {this.state.data}
           </p>
+          */ }
       </div>
     );
   }

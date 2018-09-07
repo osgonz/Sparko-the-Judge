@@ -20,3 +20,13 @@ body{
 .header-button {
     color: inherit !important;
 }
+
+.error-title{
+    margin: 1% 2%;
+    font-size: 2rem;
+    font-weight: 500;
+}
+
+.error-text {
+    margin: 1% 2%;
+}
