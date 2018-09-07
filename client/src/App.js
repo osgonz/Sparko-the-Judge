@@ -6,7 +6,9 @@ import './style/style.css';
 
 class App extends Component {
     state = {
-       data: 'NO INFO FROM API'
+        isLogged: null,
+        isAdmin: null,
+        data: 'NO INFO FROM API'
     };
 
     componentDidMount(){
@@ -23,12 +25,12 @@ class App extends Component {
     return (
       <div className="App">
           <Header
-              isLogged={false}
-              isAdmin={false}
+              isLogged={this.state.isLogged}
+              isAdmin={this.state.isAdmin}
           />
           <Main
-              isLogged={false}
-              isAdmin={false}
+              isLogged={this.state.isLogged}
+              isAdmin={this.state.isAdmin}
           />
           { /*
           <p className="App-intro">
