@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, withRouter } from 'react-router-dom';
 
 import { withStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
-import Button from '@material-ui/core/Button';
 import IconButton from "@material-ui/core/IconButton/IconButton";
 import Menu from "@material-ui/core/Menu/Menu";
 import MenuItem from "@material-ui/core/MenuItem/MenuItem";
@@ -45,6 +44,14 @@ class Header extends Component {
         });
     };
 
+    handleLogout = () => {
+        this.handleMenuToggleClose();
+        // Call handleLogout() inherited from App.js
+        this.props.handleLogout();
+        // Redirect to homepage after logout (use PROMISES)
+        this.props.history.push("/");
+    }
+
     render() {
         const { classes } = this.props;
 
@@ -57,7 +64,7 @@ class Header extends Component {
                 <NavLink to='/profile' style={{ textDecoration: 'none', color: 'inherit' }}>
                     <MenuItem className="header-user-menu-item" onClick={this.handleMenuToggleClose}>PROFILE</MenuItem>
                 </NavLink>
-                <MenuItem className="header-user-menu-item" onClick={this.handleMenuToggleClose}>LOG OUT</MenuItem>
+                <MenuItem className="header-user-menu-item" onClick={this.handleLogout}>LOG OUT</MenuItem>
             </div>
         ) : (
             <div className="header-user-menu">
@@ -133,4 +140,4 @@ class Header extends Component {
     }
 }
 
-export default withStyles(styles)(Header);
+export default withRouter(withStyles(styles)(Header));
