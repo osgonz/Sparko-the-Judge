@@ -18,6 +18,8 @@ class Login extends Component {
             password: ''
         }
         this.handleLogin = this.handleLogin.bind(this)
+        this.loginChange = this.loginChange.bind(this)
+        this.passwordChange = this.passwordChange.bind(this)
     }
 
     handleLogin () {
@@ -30,15 +32,15 @@ class Login extends Component {
         .then(response => console.log(this.state.userId))
         .catch((error) => {
               console.log(error);
-            });
+        });
     }
 
-    loginChange (user) {
-        this.setState({username: user})
+    loginChange (event) {
+        this.setState({username: event.target.value})
     }
 
-    passwordChange (password) {
-        this.setState({password: password})
+    passwordChange (event) {
+        this.setState({password: event.target.value})
     }
 
     render() {
@@ -52,45 +54,45 @@ class Login extends Component {
                   title="Login"
                 />
                 <CardContent>
-                           <TextField
-                             id="login"
-                             label="Username"
-                             margin="none"
-                             style = {{width: '90%'}}
-                             onChange={this.loginChange.bind(this)}
-                           />
-                           <br/>
-                           <TextField
-                             id="password"
-                             type="password"
-                             label="Password"
-                             margin="none"
-                             style = {{width: '90%'}}
-                             onChange={this.passwordChange.bind(this)}
-                           />
-                           <br/>
-                           <br/>
-                           <Button
-                             variant="contained"
-                             margin="normal"
-                             color="primary"
-                             type="submit"
-                             style= {{width: '30%', backgroundColor: "#0F2027", titleColor: "#FFFFFF"}}
-                             onClick={this.handleLogin.bind()}
-                           >
-                              Login
-                           </Button>
-                           <br/>
-                           <br/>
-                           <Button
-                             variant="contained"
-                             margin="normal"
-                             color="primary"
-                             type="submit"
-                             style= {{width: '30%', backgroundColor: "#0F2027", titleColor: "#FFFFFF"}}
-                           >
-                              Create Account
-                           </Button>
+                    <TextField
+                        id="login"
+                        label="Username"
+                        margin="none"
+                        style = {{width: '90%'}}
+                        onChange={this.loginChange}
+                    />
+                    <br/>
+                    <TextField
+                        id="password"
+                        type="password"
+                        label="Password"
+                        margin="none"
+                        style = {{width: '90%'}}
+                        onChange={this.passwordChange}
+                    />
+                    <br/>
+                    <br/>
+                    <Button
+                        variant="contained"
+                        margin="normal"
+                        color="primary"
+                        type="submit"
+                        style= {{width: '30%', backgroundColor: "#0F2027", titleColor: "#FFFFFF"}}
+                        onClick={this.handleLogin.bind()}
+                    >
+                    Login
+                    </Button>
+                    <br/>
+                    <br/>
+                    <Button
+                        variant="contained"
+                        margin="normal"
+                        color="primary"
+                        type="submit"
+                        style= {{width: '30%', backgroundColor: "#0F2027", titleColor: "#FFFFFF"}}
+                    >
+                    Create Account
+                    </Button>
                 </CardContent>
             </Card>
             </center>
