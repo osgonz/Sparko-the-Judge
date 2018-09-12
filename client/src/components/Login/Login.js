@@ -6,74 +6,93 @@ import TextField from '@material-ui/core/TextField';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CardContent from '@material-ui/core/CardContent';
-
-
-var bgColors = { "Default": "#81b71a",
-                    "Blue": "#00B1E1",
-                    "Cyan": "#37BC9B",
-                    "Green": "#8CC152",
-                    "Red": "#E9573F",
-                    "Yellow": "#F6BB42",
-};
-
-const cardStyle = {
-    raised: true,
-    width: '25%',
-};
-
-const textFieldStyle = {
-    width: '90%',
-}
-
-const buttonStyle = {
-    width: '30%',
-    backgroundColor: "#0F2027",
-    titleColor: "#FFFFFF"
-}
-
-const headerStyle = {
-    titleColor: "inherit",
-    color: "inherit"
-}
-
+import axios from 'axios'
 
 class Login extends Component {
+
+    constructor(props) {
+        super(props)
+        this.state = {
+            userId: '',
+            username: '',
+            password: ''
+        }
+        this.handleLogin = this.handleLogin.bind(this)
+        this.loginChange = this.loginChange.bind(this)
+        this.passwordChange = this.passwordChange.bind(this)
+    }
+
+    handleLogin () {
+        const { username, password } = this.state;
+        axios.post('http://127.0.0.1:5000/AuthenticateUser',{
+            username: username,
+            password: password
+        })
+        .then(response => this.setState({userId: response.data.UserId}))
+        .then(response => console.log(this.state.userId))
+        .catch((error) => {
+              console.log(error);
+        });
+    }
+
+    loginChange (event) {
+        this.setState({username: event.target.value})
+    }
+
+    passwordChange (event) {
+        this.setState({password: event.target.value})
+    }
+
     render() {
         const { classes } = this.props;
 
         return (
             <center>
-            <Card style={cardStyle} >
+            <Card style={{raised: true, width: '25%'}} >
                 <CardHeader
-                  style={headerStyle}
+                  style={{titleColor: "inherit", color: "inherit"}}
                   title="Login"
                 />
                 <CardContent>
-                   <form noValidate autoComplete="off">
-                           <TextField
-                             id="login"
-                             label="Username"
-                             margin="none"
-                             style = {textFieldStyle}
-                           />
-                           <br/>
-                           <TextField
-                             id="password"
-                             label="Password"
-                             margin="none"
-                             style = {textFieldStyle}
-                           />
-                           <br/>
-                           <br/>
-                           <Button
-                             variant="contained"
-                             margin="normal"
-                             color="primary"
-                             style= {buttonStyle}
-                           >
-                              Login
-                           </Button>
-                   </form>
+                    <TextField
+                        id="login"
+                        label="Username"
+                        margin="none"
+                        style = {{width: '90%'}}
+                        onChange={this.loginChange}
+                    />
+                    <br/>
+                    <TextField
+                        id="password"
+                        type="password"
+                        label="Password"
+                        margin="none"
+                        style = {{width: '90%'}}
+                        onChange={this.passwordChange}
+                    />
+                    <br/>
+                    <br/>
+                    <Button
+                        variant="contained"
+                        margin="normal"
+                        color="primary"
+                        type="submit"
+                        style= {{width: '30%', backgroundColor: "#0F2027", titleColor: "#FFFFFF"}}
+                        onClick={this.handleLogin.bind()}
+                    >
+                    Login
+                    </Button>
+                    <br/>
+                    <br/>
+                    <Button
+                        variant="contained"
+                        margin="normal"
+                        color="primary"
+                        type="submit"
+                        style= {{width: '30%', backgroundColor: "#0F2027", titleColor: "#FFFFFF"}}
+                    >
+                    Create Account
+                    </Button>
                 </CardContent>
             </Card>
             </center>
