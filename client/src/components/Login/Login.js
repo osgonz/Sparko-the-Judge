@@ -17,6 +17,7 @@ class Login extends Component {
             username: '',
             password: ''
         }
+
         this.handleLogin = this.handleLogin.bind(this)
         this.loginChange = this.loginChange.bind(this)
         this.passwordChange = this.passwordChange.bind(this)
@@ -29,7 +30,10 @@ class Login extends Component {
             password: password
         })
         .then(response => this.setState({userId: response.data.UserId}))
-        .then(response => console.log(this.state.userId))
+        .then(response => {
+            this.props.loginChanged(this.state.userId != '')
+            console.log(this.state.userId)
+        })
         .catch((error) => {
               console.log(error);
         });
@@ -48,7 +52,7 @@ class Login extends Component {
 
         return (
             <center>
-            <Card style={{raised: true, width: '25%'}} >
+            <Card style={{raised: true, width: '25%', margin: '50px'}} >
                 <CardHeader
                   style={{titleColor: "inherit", color: "inherit"}}
                   title="Login"

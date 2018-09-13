@@ -5,22 +5,24 @@ import Main from './Main'
 import './style/style.css';
 
 class App extends Component {
+
+    loginChanged = val => {
+      this.setState({
+        isLogged: val
+      });
+    }
+
     state = {
         isLogged: null,
         isAdmin: null,
+        loginChanged: this.loginChanged,
         data: 'NO INFO FROM API'
     };
 
     componentDidMount(){
-        fetch('http://127.0.0.1:5000/users').then(results => {
-            return results.json();
-        }).then(data => {
-            console.log(data.Users[0].email);
-            this.setState({data: data.Users[0].email});
-        }).catch(error => {
-            console.error("Error fetching data from Flask API: ", error);
-        });
+      this.loginChanged = this.loginChanged.bind(this)
     };
+
   render() {
     return (
       <div className="App">
@@ -31,6 +33,7 @@ class App extends Component {
           <Main
               isLogged={this.state.isLogged}
               isAdmin={this.state.isAdmin}
+              loginChanged={this.state.loginChanged}
           />
           { /*
           <p className="App-intro">
