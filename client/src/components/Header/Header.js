@@ -1,9 +1,13 @@
+/*******************************************************************************/
+/*                                E X P O R T S                                */
+/*******************************************************************************/
+/*--------------------------------- R E A C T ---------------------------------*/
 import React, { Component } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 
+/*--------------------------- M A T E R I A L   U I ---------------------------*/
 import { withStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
-import Button from '@material-ui/core/Button';
 import IconButton from "@material-ui/core/IconButton/IconButton";
 import Menu from "@material-ui/core/Menu/Menu";
 import MenuItem from "@material-ui/core/MenuItem/MenuItem";
@@ -14,7 +18,9 @@ import Person from '@material-ui/icons/Person';
 import FitnessCenter from '@material-ui/icons/FitnessCenter';
 import Group from '@material-ui/icons/Group';
 
+/*---------------------------- C O M P O N E N T S ----------------------------*/
 import '../../style/style.css';
+/*******************************************************************************/
 
 const styles = {
     header: {
