@@ -1,4 +1,5 @@
 import os
+import bcrypt
 from flask import Flask, jsonify
 from flaskext.mysql import MySQL
 from flask_cors import CORS, cross_origin
@@ -41,7 +42,7 @@ class CreateUser(Resource):
             args = parser.parse_args()
 
             _userName = args['username']
-            _userPassword = args['password']
+            _userPassword = bcrypt.hashpw(args['password'].encode('utf8'), bcrypt.gensalt())
             _userFName = args['fname']
             _userLName = args['lname']
             _userEmail = args['email']
@@ -74,12 +75,14 @@ class AuthenticateUser(Resource):
             _userName = args['username']
             _userPassword = args['password']
 
-            cursor.callproc('spAuthentication',(_userName,_userPassword))
+            cursor.callproc('spAuthentication', (_userName,))
             data = cursor.fetchall()
 
             if(len(data)>0):
-                if(str(data[0][4])==_userPassword):
-                    return {'status':200,'UserId':str(data[0][0])}
+                hashed_password = data[0][4]
+                if bcrypt.checkpw(_userPassword.encode('utf8'), hashed_password.encode('utf8')):
+                    user_id = data[0][0]
+                    return {'status':200,'UserId':str(user_id)}
                 else:
                     return {'status':100,'message':'Authentication failure'}
 

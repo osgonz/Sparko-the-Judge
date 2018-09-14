@@ -38,9 +38,9 @@ DELIMITER //
 
 Drop Procedure spAuthentication;
 
-CREATE Procedure spAuthentication (IN p_username varchar(64),IN p_password varchar(255))
+CREATE Procedure spAuthentication (IN p_username varchar(64))
 BEGIN
-    SELECT * from Users where p_username = username and p_password = password;
+    SELECT * from Users where p_username = username;
 END //
 
 DELIMITER //
