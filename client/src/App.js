@@ -45,6 +45,7 @@ class App extends Component {
             <Main
                 isLogged={this.state.isLogged}
                 isAdmin={this.state.isAdmin}
+                loginChanged={this.state.loginChanged}
             />
             { /*
             <p className="App-intro">

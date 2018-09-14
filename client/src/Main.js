@@ -21,6 +21,12 @@ class Main extends Component {
             );
         }
 
+        const LoginRedirect = (props) => {
+            return (
+                <Redirect to='/login'/>
+            );
+        }
+
         // Replace Error404 component with the correct one once a specific page is developed
         return(
             <Switch>
@@ -32,7 +38,7 @@ class Main extends Component {
                 { /* If logged, show Contests page; otherwise show Login page */ }
                 <Route path='/contests' render= {this.props.isLogged ? Error404 : Error404} />
                 { /* If logged, show Profile page; otherwise show Login page */ }
-                <Route exact path='/profile' render= {this.props.isLogged ? Error404 : Error404} />
+                <Route exact path='/profile' render= {this.props.isLogged ? Error404 : LoginRedirect} />
                 { /* If logged, show Login page; otherwise show Home page */ }
                 <Route exact path='/login' render= {this.props.isLogged ? ProfileRedirect : LoginComponent} />
                 { /* If logged, show Home page; otherwise show Sign Up page */ }

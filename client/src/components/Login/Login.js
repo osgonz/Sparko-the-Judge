@@ -15,7 +15,8 @@ class Login extends Component {
         this.state = {
             userId: '',
             username: '',
-            password: ''
+            password: '',
+            attemptedLogin: false
         }
 
         this.handleLogin = this.handleLogin.bind(this)
@@ -25,11 +26,16 @@ class Login extends Component {
 
     handleLogin () {
         const { username, password } = this.state;
+        this.setState({attemptedLogin: true})
         axios.post('http://127.0.0.1:5000/AuthenticateUser',{
             username: username,
             password: password
         })
-        .then(response => this.setState({userId: response.data.UserId}))
+        .then(response => {
+            if (response.data.status == 200){
+                this.setState({userId: response.data.UserId})
+            }
+        })
         .then(response => {
             this.props.loginChanged(this.state.userId != '')
             console.log(this.state.userId)
@@ -62,6 +68,8 @@ class Login extends Component {
                         id="login"
                         label="Username"
                         margin="none"
+                        error={this.state.username === "" && this.state.attemptedLogin}
+                        helperText={this.state.username === "" && this.state.attemptedLogin ? "Username is required" : ""}
                         style = {{width: '90%'}}
                         onChange={this.loginChange}
                     />
@@ -71,6 +79,8 @@ class Login extends Component {
                         type="password"
                         label="Password"
                         margin="none"
+                        error={this.state.password === "" && this.state.attemptedLogin}
+                        helperText={this.state.password === "" && this.state.attemptedLogin ? "Password is required" : ""}
                         style = {{width: '90%'}}
                         onChange={this.passwordChange}
                     />
