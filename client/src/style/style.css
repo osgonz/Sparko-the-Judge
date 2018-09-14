@@ -12,6 +12,12 @@ body{
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
 }
 
+.main-container {
+    margin: 1% 3%;
+    padding: 2% 2%;
+    height: 100%;
+    border-radius: 5px;
+}
 
 .header-user-menu:focus {
     outline: none;
