@@ -35,7 +35,7 @@ var AppTheme = createMuiTheme({
 		},
 	},
 	typography: {
-		fontFamily: 		"Roboto",
+		fontFamily: ["Roboto", "Helvetica", "Arial", 'sans-serif'],
 		fontSize: 			14,
 		fontWeightLight: 	300,
 		fontWeightRegular: 	400,
