@@ -3,6 +3,7 @@ import { Switch, Route, Redirect } from 'react-router-dom'
 
 import Error404 from './components/Error404/Error404';
 import Login from './components/Login/Login';
+import SignUp from './components/SignUp/SignUp';
 
 // Main component serves as our main switch and container for general site content
 // Props: isLogged (boolean) and isAdmin (boolean)
@@ -12,6 +13,12 @@ class Main extends Component {
         const LoginComponent = (props) => {
             return (
                 <Login loginChanged={this.props.loginChanged}/>
+            );
+        }
+
+        const SignUpComponent = (props) => {
+            return (
+                <SignUp loginChanged={this.props.loginChanged}/>
             );
         }
 
@@ -42,7 +49,7 @@ class Main extends Component {
                 { /* If logged, show Login page; otherwise show Home page */ }
                 <Route exact path='/login' render= {this.props.isLogged ? ProfileRedirect : LoginComponent} />
                 { /* If logged, show Home page; otherwise show Sign Up page */ }
-                <Route exact path='/signup' render= {this.props.isLogged ? Error404 : Error404} />
+                <Route exact path='/signup' render= {this.props.isLogged ? ProfileRedirect : SignUpComponent} />
 
                 { /* Otherwise show 404 page */ }
                 <Route component= {Error404} />
