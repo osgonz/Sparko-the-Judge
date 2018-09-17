@@ -1,11 +1,10 @@
 import React, { Component } from "react";
-import PropTypes from 'prop-types';
-import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CardContent from '@material-ui/core/CardContent';
+import Snackbar from '@material-ui/core/Snackbar';
 import axios from 'axios'
 
 class Login extends Component {
@@ -16,10 +15,13 @@ class Login extends Component {
             userId: '',
             username: '',
             password: '',
-            attemptedLogin: false
+            attemptedLogin: false,
+            openSnackbar: false,
+            snackbarMessage: '',
         }
 
         this.handleLogin = this.handleLogin.bind(this)
+        this.handleClose = this.handleClose.bind(this)
         this.loginChange = this.loginChange.bind(this)
         this.passwordChange = this.passwordChange.bind(this)
     }
@@ -32,17 +34,23 @@ class Login extends Component {
             password: password
         })
         .then(response => {
-            if (response.data.status == 200){
+            if (response.data.status === 200){
                 this.setState({userId: response.data.UserId})
+            }
+            else if (response.data.status === 100){
+                this.setState({openSnackbar: true, snackbarMessage: response.data.message})
             }
         })
         .then(response => {
-            this.props.loginChanged(this.state.userId != '')
-            console.log(this.state.userId)
+            this.props.loginChanged(this.state.userId !== '')
         })
         .catch((error) => {
               console.log(error);
         });
+    }
+
+    handleClose() {
+        this.setState({openSnackbar: false})
     }
 
     loginChange (event) {
@@ -54,8 +62,6 @@ class Login extends Component {
     }
 
     render() {
-        const { classes } = this.props;
-
         return (
             <center>
             <Card style={{raised: true, width: '25%', margin: '50px'}} >
@@ -109,6 +115,15 @@ class Login extends Component {
                     </Button>
                 </CardContent>
             </Card>
+            <Snackbar
+                open={this.state.openSnackbar}
+                onClose={this.handleClose}
+                autoHideDuration={4000}
+                ContentProps={{
+                  'aria-describedby': 'message-id',
+                }}
+                message={<span id="message-id">{this.state.snackbarMessage}</span>}
+            />
             </center>
         );
       }
