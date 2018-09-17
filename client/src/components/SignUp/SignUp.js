@@ -56,7 +56,7 @@ class SignUp extends Component {
             if(response.data.statusCode == 1000)
             {
                 //Display error message
-                this.setState({openSnackbar: true, snackbarMessage: response.data.message})
+                this.setState({openSnackbar: true, snackbarMessage: response.data.Message})
             }
 
         })
