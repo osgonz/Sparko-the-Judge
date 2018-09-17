@@ -10,6 +10,11 @@ BEGIN
 IF(SELECT exists (SELECT 1 from Users where p_username = username)) THEN
     SELECT 'User already exists';
 ELSE
+IF(SELECT exists (SELECT 1 from Users where p_email = email)) THEN
+		
+SELECT 'Email already exists';
+	
+END IF;
 INSERT into Users
 (
     username,
