@@ -47,13 +47,13 @@ class SignUp extends Component {
         })
         .then(response => {
 
-            if(response.data.statusCode == 200)
+            if(response.data.StatusCode == 200)
             {
                 //changes user to profile if login is successful
                 this.props.loginChanged(this.state.userId != '')
             }
 
-            if(response.data.statusCode == 1000)
+            if(response.data.StatusCode == 1000)
             {
                 //Display error message
                 this.setState({openSnackbar: true, snackbarMessage: response.data.Message})
