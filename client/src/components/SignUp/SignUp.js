@@ -6,6 +6,7 @@ import TextField from '@material-ui/core/TextField';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CardContent from '@material-ui/core/CardContent';
+import Snackbar from '@material-ui/core/Snackbar';
 import axios from 'axios'
 
 class SignUp extends Component {
@@ -18,21 +19,22 @@ class SignUp extends Component {
             fname: '',
             lname: '',
             email: '',
-            country: '',
+            //country: '',
             attemptedRegister: false
         }
 
         this.handleSignUp = this.handleSignUp.bind(this)
+        this.handleClose = this.handleClose.bind(this)
         this.usernameChange = this.usernameChange.bind(this)
         this.passwordChange = this.passwordChange.bind(this)
         this.firstNameChange = this.firstNameChange.bind(this)
         this.lastNameChange = this.lastNameChange.bind(this)
         this.emailChange = this.emailChange.bind(this)
-        this.countryChange = this.countryChange.bind(this)
+        //this.countryChange = this.countryChange.bind(this)
     }
 
     handleSignUp () {
-        const { username, password, fname, lname, email, country } = this.state;
+        const { username, password, fname, lname, email /*country*/ } = this.state;
         this.setState({attemptedRegister: true})
         axios.post('http://127.0.0.1:5000/CreateUser',{
             username: username,
@@ -40,7 +42,7 @@ class SignUp extends Component {
             fname: fname,
             lname: lname,
             email: email,
-            country: country,
+            //country: country,
             usertype: 1
         })
         .then(response => {
@@ -54,7 +56,7 @@ class SignUp extends Component {
             if(response.data.statusCode == 1000)
             {
                 //Display error message
-
+                this.setState({openSnackbar: true, snackbarMessage: response.data.message})
             }
 
         })
@@ -83,9 +85,27 @@ class SignUp extends Component {
         this.setState({email: event.target.value})
     }
 
+    handleClose() {
+        this.setState({openSnackbar: false})
+    }
+
+    /*
     countryChange (event) {
         this.setState({country: event.target.value})
     }
+
+    <br/>
+    <TextField
+        id="country"
+        label="Country"
+        margin="none"
+        error={this.state.country === "" && this.state.attemptedRegister}
+        helperText={this.state.country === "" && this.state.attemptedRegister ? "Country is required" : ""}
+        style = {{width: '90%'}}
+        onChange={this.countryChange}
+    />
+
+                    */
 
     //Tried getting a country dropdown but the style doesn't go with the rest of the card.
     //Source of dropdown: https://www.npmjs.com/package/react-country-region-selector-material-ui#es6
@@ -152,16 +172,6 @@ class SignUp extends Component {
                         onChange={this.emailChange}
                     />
                     <br/>
-                    <TextField
-                        id="country"
-                        label="Country"
-                        margin="none"
-                        error={this.state.country === "" && this.state.attemptedRegister}
-                        helperText={this.state.country === "" && this.state.attemptedRegister ? "Country is required" : ""}
-                        style = {{width: '90%'}}
-                        onChange={this.countryChange}
-                    />
-                    <br/>
                     <br/>
                     <Button
                         variant="contained"
@@ -175,6 +185,15 @@ class SignUp extends Component {
                     </Button>
                 </CardContent>
             </Card>
+            <Snackbar
+                open={this.state.openSnackbar}
+                onClose={this.handleClose}
+                autoHideDuration={4000}
+                ContentProps={{
+                    'aria-describedby': 'message-id',
+                }}
+                message={<span id="message-id">{this.state.snackbarMessage}</span>}
+            />
             </center>
         );
       }
