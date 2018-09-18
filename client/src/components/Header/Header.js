@@ -3,7 +3,7 @@
 /*******************************************************************************/
 /*--------------------------------- R E A C T ---------------------------------*/
 import React, { Component } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, withRouter } from 'react-router-dom';
 
 /*--------------------------- M A T E R I A L   U I ---------------------------*/
 import { withStyles } from '@material-ui/core/styles';
@@ -21,6 +21,8 @@ import Group from '@material-ui/icons/Group';
 /*---------------------------- C O M P O N E N T S ----------------------------*/
 import '../../style/style.css';
 /*******************************************************************************/
+import axios from 'axios'
+
 
 const styles = {
     header: {
@@ -51,6 +53,19 @@ class Header extends Component {
         });
     };
 
+    handleLogout = () => {
+		if (this.props.isLogged) {
+			axios.get('http://127.0.0.1:5000/Logout', {withCredentials: true})
+			.then(response => {
+				this.handleMenuToggleClose();
+				// Call handleLogout() inherited from App.js
+				this.props.handleLogout();
+				// Redirect to homepage after logout (use PROMISES)
+				this.props.history.push("/");
+			});
+		}
+    }
+
     render() {
         const { classes } = this.props;
 
@@ -63,7 +78,7 @@ class Header extends Component {
                 <NavLink to='/profile' style={{ textDecoration: 'none', color: 'inherit' }}>
                     <MenuItem className="header-user-menu-item" onClick={this.handleMenuToggleClose}>PROFILE</MenuItem>
                 </NavLink>
-                <MenuItem className="header-user-menu-item" onClick={this.handleMenuToggleClose}>LOG OUT</MenuItem>
+                <MenuItem className="header-user-menu-item" onClick={this.handleLogout}>LOG OUT</MenuItem>
             </div>
         ) : (
             <div className="header-user-menu">
@@ -139,4 +154,4 @@ class Header extends Component {
     }
 }
 
-export default withStyles(styles)(Header);
+export default withRouter(withStyles(styles)(Header));

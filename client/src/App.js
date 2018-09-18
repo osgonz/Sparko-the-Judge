@@ -46,6 +46,15 @@ class App extends Component {
 		this.loginChanged = this.loginChanged.bind(this)
     };
 
+    handleLogout() {
+        if(this.state.isLogged) {
+            this.setState({
+                isLogged: null,
+                isAdmin: null,
+            });
+        }
+    }
+
 	render() {
 		if (this.state.hasVerifiedSession)
 			return (
@@ -54,6 +63,7 @@ class App extends Component {
 					<Header
 						isLogged={this.state.isLogged}
 						isAdmin={this.state.isAdmin}
+            handleLogout={this.handleLogout.bind(this)}
 					/>
 					<Main
 						isLogged={this.state.isLogged}
