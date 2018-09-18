@@ -34,35 +34,34 @@ class SignUp extends Component {
     }
 
     handleSignUp () {
-        const { username, password, fname, lname, email /*country*/ } = this.state;
-        this.setState({attemptedRegister: true})
-        axios.post('http://127.0.0.1:5000/CreateUser',{
-            username: username,
-            password: password,
-            fname: fname,
-            lname: lname,
-            email: email,
-            //country: country,
-            usertype: 1
-        })
-        .then(response => {
+            const {username, password, fname, lname, email /*country*/} = this.state;
+            this.setState({attemptedRegister: true})
+        if(this.state.username !== "" && this.state.password !=="" && this.state.fname !== "" && this.state.lname !== "" && this.state.email !== "") {
+            axios.post('http://127.0.0.1:5000/CreateUser', {
+                username: username,
+                password: password,
+                fname: fname,
+                lname: lname,
+                email: email,
+                //country: country,
+                usertype: 1
+            })
+                .then(response => {
+                    if (response.data.status == 200) {
+                        //changes user to profile if login is successful
+                        this.props.loginChanged(this.state.userId != '')
+                    }
 
-            if(response.data.StatusCode == 200)
-            {
-                //changes user to profile if login is successful
-                this.props.loginChanged(this.state.userId != '')
-            }
-
-            if(response.data.StatusCode == 1000)
-            {
-                //Display error message
-                this.setState({openSnackbar: true, snackbarMessage: response.data.Message})
-            }
-
-        })
-        .catch((error) => {
-              console.log(error);
-        });
+                    if (response.data.status == 1000) {
+                        //Display error message
+                        this.setState({openSnackbar: true, snackbarMessage: response.data.message})
+                    }
+                    console.log(response)
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        }
     }
 
     usernameChange (event) {
@@ -116,7 +115,7 @@ class SignUp extends Component {
             <center>
             <Card style={{raised: true, width: '25%', margin: '50px'}} >
                 <CardHeader
-                  style={{titleColor: "inherit", color: "inherit"}}
+                  //style={{titleColor: "inherit", color: "inherit"}}
                   title="Register"
                 />
                 <CardContent>
