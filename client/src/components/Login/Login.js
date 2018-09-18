@@ -100,12 +100,12 @@ class Login extends Component {
                             variant="contained"
                             color="primary"
                             type="submit"
-                            style={{display:'block', width:'100%'}}
+                            style={{display:'block', width:'100%', margin:'3% 0%'}}
                             onClick={this.handleLogin.bind()}
                         >
                         Log in
                         </Button>
-                        <br/>
+                        
                         <Button
                             variant="outlined"
                             color="primary"
