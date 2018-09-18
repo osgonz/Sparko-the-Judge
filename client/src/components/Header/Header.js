@@ -86,7 +86,7 @@ class Header extends Component {
                     <MenuItem className="header-user-menu-item" onClick={this.handleMenuToggleClose}>LOG IN</MenuItem>
                 </NavLink>
                 <NavLink to='/signup' style={{ textDecoration: 'none', color: 'inherit' }}>
-                    <MenuItem className="header-user-menu-item" onClick={this.handleMenuToggleClose}>REGISTER</MenuItem>
+                    <MenuItem className="header-user-menu-item" onClick={this.handleMenuToggleClose}>SIGN UP</MenuItem>
                 </NavLink>
             </div>
         );

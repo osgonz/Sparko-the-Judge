@@ -118,7 +118,7 @@ class SignUp extends Component {
             <Card style={{raised: true, width: '25%', margin: '50px'}} >
                 <CardHeader
                   //style={{titleColor: "inherit", color: "inherit"}}
-                  title="Register"
+                  title="Sign up"
                 />
                 <CardContent>
                     <TextField
@@ -179,7 +179,7 @@ class SignUp extends Component {
                         margin="normal"
                         color="primary"
                         type="submit"
-                        style= {{width: '30%', backgroundColor: "#0F2027", titleColor: "#FFFFFF"}}
+                        style={{display:'block', width:'100%'}}
                         onClick={this.handleSignUp.bind()}
                     >
                     Sign Up

@@ -70,7 +70,7 @@ class Login extends Component {
             <Card style={{raised: true, width: '25%', margin: '50px'}} >
                 <CardHeader
                   style={{titleColor: "inherit", color: "inherit"}}
-                  title="Login"
+                  title="Log in"
                 />
                 <CardContent>
                     <TextField
@@ -95,27 +95,26 @@ class Login extends Component {
                     />
                     <br/>
                     <br/>
-                    <Button
-                        variant="contained"
-                        margin="normal"
-                        color="primary"
-                        type="submit"
-                        style= {{width: '30%', backgroundColor: "#0F2027", titleColor: "#FFFFFF"}}
-                        onClick={this.handleLogin.bind()}
-                    >
-                    Login
-                    </Button>
-                    <br/>
-                    <br/>
-                    <Button
-                        variant="contained"
-                        margin="normal"
-                        color="primary"
-                        type="submit"
-                        style= {{width: '30%', backgroundColor: "#0F2027", titleColor: "#FFFFFF"}}
-                    >
-                    Create Account
-                    </Button>
+                    
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            type="submit"
+                            style={{display:'block', width:'100%'}}
+                            onClick={this.handleLogin.bind()}
+                        >
+                        Log in
+                        </Button>
+                        <br/>
+                        <Button
+                            variant="outlined"
+                            color="primary"
+                            type="submit"
+                            style={{display:'block', width:'100%'}}
+                        >
+                        Sign up
+                        </Button>
+                    
                 </CardContent>
             </Card>
             <Snackbar
