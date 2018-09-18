@@ -1,6 +1,6 @@
 import os
 import bcrypt
-from flask import Flask, jsonify
+from flask import Flask, jsonify, session
 from flaskext.mysql import MySQL
 from flask_cors import CORS, cross_origin
 from flask_restful import Resource, Api, reqparse
@@ -9,10 +9,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-cors = CORS(app)
+cors = CORS(app, supports_credentials=True)
 mysql = MySQL()
 api = Api(app)
 parser = reqparse.RequestParser()
+
 
 # CORS configurations
 app.config['CORS_HEADERS'] = 'Content-Type'
@@ -53,6 +54,7 @@ class CreateUser(Resource):
 
             if len(data) is 0:
                 conn.commit()
+                session['loggedUser'] = _userName
                 return {'StatusCode':'200','Message': 'User creation success'}
             else:
                 return {'StatusCode':'1000','Message': str(data[0])}
@@ -82,6 +84,7 @@ class AuthenticateUser(Resource):
                 hashed_password = data[0][4]
                 if bcrypt.checkpw(_userPassword.encode('utf8'), hashed_password.encode('utf8')):
                     user_id = data[0][0]
+                    session['loggedUser'] = _userName
                     return {'status':200,'UserId':str(user_id)}
                 else:
                     return {'status':100,'message':'Authentication failure'}
@@ -94,6 +97,15 @@ api.add_resource(AuthenticateUser, '/AuthenticateUser')
 @app.route('/')
 def hello():
     return 'Hello world!'
+
+@app.route('/GetActiveSession')
+def get():
+    return session.get('loggedUser', 'Session not found')
+
+@app.route('/SetActiveSession')
+def set():
+    session['loggedUser'] = 'username'
+    return 'done'
 
 if __name__ == '__main__':
     app.run(debug=True)

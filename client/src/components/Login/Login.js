@@ -27,22 +27,24 @@ class Login extends Component {
     handleLogin () {
         const { username, password } = this.state;
         this.setState({attemptedLogin: true})
-        axios.post('http://127.0.0.1:5000/AuthenticateUser',{
-            username: username,
-            password: password
-        })
-        .then(response => {
-            if (response.data.status == 200){
-                this.setState({userId: response.data.UserId})
-            }
-        })
-        .then(response => {
-            this.props.loginChanged(this.state.userId != '')
-            console.log(this.state.userId)
-        })
-        .catch((error) => {
-              console.log(error);
-        });
+		if (username != '' && password != '') {
+			axios.post('http://127.0.0.1:5000/AuthenticateUser',{
+				username: username,
+				password: password
+			}, {withCredentials: true})
+			.then(response => {
+				if (response.data.status == 200){
+					this.setState({userId: response.data.UserId})
+				}
+			})
+			.then(response => {
+				this.props.loginChanged(this.state.userId != '')
+				console.log(this.state.userId)
+			})
+			.catch((error) => {
+				  console.log(error);
+			});
+		}
     }
 
     loginChange (event) {
