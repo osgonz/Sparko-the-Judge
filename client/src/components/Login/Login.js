@@ -36,13 +36,15 @@ class Login extends Component {
 				password: password
 			}, {withCredentials: true})
 			.then(response => {
-				if (response.data.status == 200){
+				if (response.data.status === 200){
 					this.setState({userId: response.data.UserId})
+				}
+				else if (response.data.status === 100){
+					this.setState({openSnackbar: true, snackbarMessage: response.data.message})
 				}
 			})
 			.then(response => {
 				this.props.loginChanged(this.state.userId != '')
-				console.log(this.state.userId)
 			})
 			.catch((error) => {
 				  console.log(error);
