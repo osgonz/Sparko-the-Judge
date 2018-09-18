@@ -60,7 +60,7 @@ class CreateUser(Resource):
                 session['loggedUser'] = _userName
                 return {'StatusCode':'200','Message': 'User creation success'}
             else:
-                return {'StatusCode':'1000','Message': str(data[0])}
+                return {'StatusCode':'1000','Message': data[0][0]}
 
         except Exception as e:
             return {'error': str(e)}
