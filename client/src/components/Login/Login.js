@@ -1,11 +1,10 @@
 import React, { Component } from "react";
-import PropTypes from 'prop-types';
-import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CardContent from '@material-ui/core/CardContent';
+import Snackbar from '@material-ui/core/Snackbar';
 import axios from 'axios'
 
 class Login extends Component {
@@ -16,10 +15,13 @@ class Login extends Component {
             userId: '',
             username: '',
             password: '',
-            attemptedLogin: false
+            attemptedLogin: false,
+            openSnackbar: false,
+            snackbarMessage: '',
         }
 
         this.handleLogin = this.handleLogin.bind(this)
+        this.handleClose = this.handleClose.bind(this)
         this.loginChange = this.loginChange.bind(this)
         this.passwordChange = this.passwordChange.bind(this)
     }
@@ -27,6 +29,7 @@ class Login extends Component {
     handleLogin () {
         const { username, password } = this.state;
         this.setState({attemptedLogin: true})
+
 		if (username != '' && password != '') {
 			axios.post('http://127.0.0.1:5000/AuthenticateUser',{
 				username: username,
@@ -47,6 +50,10 @@ class Login extends Component {
 		}
     }
 
+    handleClose() {
+        this.setState({openSnackbar: false})
+    }
+
     loginChange (event) {
         this.setState({username: event.target.value})
     }
@@ -56,8 +63,6 @@ class Login extends Component {
     }
 
     render() {
-        const { classes } = this.props;
-
         return (
             <center>
             <Card style={{raised: true, width: '25%', margin: '50px'}} >
@@ -111,6 +116,15 @@ class Login extends Component {
                     </Button>
                 </CardContent>
             </Card>
+            <Snackbar
+                open={this.state.openSnackbar}
+                onClose={this.handleClose}
+                autoHideDuration={4000}
+                ContentProps={{
+                  'aria-describedby': 'message-id',
+                }}
+                message={<span id="message-id">{this.state.snackbarMessage}</span>}
+            />
             </center>
         );
       }
