@@ -20,7 +20,9 @@ class SignUp extends Component {
             lname: '',
             email: '',
             //country: '',
-            attemptedRegister: false
+            attemptedRegister: false,
+            openSnackbar: false,
+            snackbarMessage: ''
         }
 
         this.handleSignUp = this.handleSignUp.bind(this)
@@ -45,16 +47,16 @@ class SignUp extends Component {
                 email: email,
                 //country: country,
                 usertype: 1
-            })
+            },{withCredentials: true})
                 .then(response => {
-                    if (response.data.status == 200) {
+                    if (response.data.StatusCode == 200) {
                         //changes user to profile if login is successful
                         this.props.loginChanged(this.state.userId != '')
                     }
 
-                    if (response.data.status == 1000) {
+                    if (response.data.StatusCode == 1000) {
                         //Display error message
-                        this.setState({openSnackbar: true, snackbarMessage: response.data.message})
+                        this.setState({openSnackbar: true, snackbarMessage: response.data.Message})
                     }
                     console.log(response)
                 })

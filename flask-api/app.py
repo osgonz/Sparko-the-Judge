@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-cors = CORS(app)
+cors = CORS(app, supports_credentials=True)
 mysql = MySQL()
 api = Api(app)
 parser = reqparse.RequestParser()
@@ -55,7 +55,7 @@ class CreateUser(Resource):
                 conn.commit()
                 return {'StatusCode':'200','Message': 'User creation success'}
             else:
-                return {'StatusCode':'1000','Message': str(data[0])}
+                return {'StatusCode':'1000','Message': data[0][0]}
 
         except Exception as e:
             return {'error': str(e)}

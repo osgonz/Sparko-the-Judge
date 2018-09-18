@@ -5,34 +5,31 @@ Drop Procedure spCreateUser;
 
 USE CoProManager;
 
-CREATE PROCEDURE spCreateUser (IN p_username varchar(64),IN password varchar(255), IN fname varchar(32), IN lname varchar(32),IN email varchar(64), IN usertype INT)
+CREATE PROCEDURE spCreateUser (IN p_username varchar(64),IN password varchar(255), IN fname varchar(32), IN lname varchar(32),IN p_email varchar(64), IN usertype INT)
 BEGIN
-IF(SELECT exists (SELECT 1 from Users where p_username = username)) THEN
+IF(SELECT exists (SELECT * from Users where p_username = username)) THEN
     SELECT 'User already exists';
+ELSEIF(SELECT exists (SELECT * from Users where p_email = email)) THEN
+    SELECT 'Email already exists';
 ELSE
-IF(SELECT exists (SELECT 1 from Users where p_email = email)) THEN
-		
-SELECT 'Email already exists';
-	
-END IF;
-INSERT into Users
-(
-    username,
-    password,
-    fname,
-    lname,
-    email,
-    usertype
-)
-VALUES
-(
-    p_username,
-    password,
-    fname,
-    lname,
-    email,
-    usertype
-);
+    INSERT into Users
+    (
+        username,
+        password,
+        fname,
+        lname,
+        email,
+        usertype
+    )
+    VALUES
+    (
+        p_username,
+        password,
+        fname,
+        lname,
+        p_email,
+        usertype
+    );
 END IF;
 
 END //
