@@ -48,8 +48,6 @@ class App extends Component {
 
     handleLogout() {
         if(this.state.isLogged) {
-            /* Once the back-end routine is developed, call it here.
-             * If routine returns a success message, proceed with the state change */
             this.setState({
                 isLogged: null,
                 isAdmin: null,

@@ -21,6 +21,8 @@ import Group from '@material-ui/icons/Group';
 /*---------------------------- C O M P O N E N T S ----------------------------*/
 import '../../style/style.css';
 /*******************************************************************************/
+import axios from 'axios'
+
 
 const styles = {
     header: {
@@ -52,11 +54,16 @@ class Header extends Component {
     };
 
     handleLogout = () => {
-        this.handleMenuToggleClose();
-        // Call handleLogout() inherited from App.js
-        this.props.handleLogout();
-        // Redirect to homepage after logout (use PROMISES)
-        this.props.history.push("/");
+		if (this.props.isLogged) {
+			axios.get('http://127.0.0.1:5000/Logout', {withCredentials: true})
+			.then(response => {
+				this.handleMenuToggleClose();
+				// Call handleLogout() inherited from App.js
+				this.props.handleLogout();
+				// Redirect to homepage after logout (use PROMISES)
+				this.props.history.push("/");
+			});
+		}
     }
 
     render() {

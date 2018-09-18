@@ -24,6 +24,9 @@ app.config['MYSQL_DATABASE_PASSWORD'] = os.getenv('MYSQL_DATABASE_PASSWORD')
 app.config['MYSQL_DATABASE_DB'] = os.getenv('MYSQL_DATABASE_DB')
 app.config['MYSQL_DATABASE_HOST'] = os.getenv('MYSQL_DATABASE_HOST')
 
+# Session configurations
+app.config['SECRET_KEY'] = 'My secret placeholder string'
+
 mysql.init_app(app)
 conn = mysql.connect()
 cursor = conn.cursor()
@@ -106,6 +109,11 @@ def get():
 def set():
     session['loggedUser'] = 'username'
     return 'done'
+
+@app.route('/Logout')
+def logout():
+    session.pop('loggedUser', None)
+    return 'You were logged out'
 
 if __name__ == '__main__':
     app.run(debug=True)
