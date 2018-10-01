@@ -11,7 +11,6 @@ import About from './components/About/About';
 import Login from './components/Login/Login';
 import SignUp from './components/SignUp/SignUp';
 
-import Grid from '@material-ui/core/Grid';
 /*******************************************************************************/
 
 // Main component serves as our main switch and container for general site content

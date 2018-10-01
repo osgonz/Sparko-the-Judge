@@ -1,6 +1,4 @@
 import React, { Component } from "react";
-import PropTypes from 'prop-types';
-import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Card from '@material-ui/core/Card';
@@ -49,12 +47,12 @@ class SignUp extends Component {
                 usertype: 1
             },{withCredentials: true})
                 .then(response => {
-                    if (response.data.StatusCode == 200) {
+                    if (response.data.StatusCode === 200) {
                         //changes user to profile if login is successful
-                        this.props.loginChanged(this.state.userId != '')
+                        this.props.loginChanged(this.state.userId !== '')
                     }
 
-                    if (response.data.StatusCode == 1000) {
+                    if (response.data.StatusCode === 1000) {
                         //Display error message
                         this.setState({openSnackbar: true, snackbarMessage: response.data.Message})
                     }

@@ -35,7 +35,7 @@ class App extends Component {
 		axios.get('http://127.0.0.1:5000/GetActiveSession', {withCredentials: true})
         .then(response => {
             console.log(response.data);
-			if (response.data != 'Session not found')
+			if (response.data !== 'Session not found')
 				this.setState({
 					isLogged: true,
 				});
