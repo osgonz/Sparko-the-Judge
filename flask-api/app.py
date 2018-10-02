@@ -105,8 +105,6 @@ class EditUser(Resource):
             parser.add_argument('lname', type=str, help='Last name')
             parser.add_argument('email', type=str, help='Email')
             parser.add_argument('country', type=str, help='Country')
-            parser.add_argument('username_UVA', type=str, help='Username for UVA Online Judge')
-            parser.add_argument('username_ICPC', type=str, help='Username for ICPC Live Archive Online Judge')
 
             args = parser.parse_args()
 
@@ -116,18 +114,42 @@ class EditUser(Resource):
             _lname = args['lname']
             _email = args['email']
             _country = args['country'] if args['country'] != 0 else None
-            _usernameUVA = args['username_UVA'] if args['username_UVA'] != '' else None
-            _usernameICPC = args['username_ICPC'] if args['username_ICPC'] != '' else None
 
             assert _username != SESSION_NOT_FOUND, 'No session found'
 
-            cursor.callproc('spEdituser', (_username, _newUsername, _fname, _lname, _email, _country, _usernameUVA, _usernameICPC))
+            cursor.callproc('spEdituser', (_username, _newUsername, _fname, _lname, _email, _country))
             data = cursor.fetchall()
 
             if(len(data) == 0):
                 conn.commit()
                 session['loggedUser'] = _newUsername
                 return {'status': 200, 'message': 'User edit succesful'}
+            else:
+                return {'status': 100, 'message': data[0][0]}
+        except Exception as e:
+            return {'error': str(e)}
+
+class EditUserJudgesUsernames(Resource):
+    def post(self):
+        try:
+            # Parse request arguments
+            parser.add_argument('username_UVA', type=str, help='Username for UVA Online Judge')
+            parser.add_argument('username_ICPC', type=str, help='Username for ICPC Live Archive Online Judge')
+
+            args = parser.parse_args()
+
+            _username = session.get('loggedUser', SESSION_NOT_FOUND)
+            _usernameUVA = args['username_UVA'] if args['username_UVA'] != '' else None
+            _usernameICPC = args['username_ICPC'] if args['username_ICPC'] != '' else None
+
+            assert _username != SESSION_NOT_FOUND, 'No session found'
+
+            cursor.callproc('spEditJudgesUsernames', (_username, _usernameUVA, _usernameICPC))
+            data = cursor.fetchall()
+
+            if(len(data) == 0):
+                conn.commit()
+                return {'status': 200, 'message': 'Online judges edit succesful'}
             else:
                 return {'status': 100, 'message': data[0][0]}
         except Exception as e:
@@ -192,6 +214,7 @@ class EditPassword(Resource):
 
 api.add_resource(CreateUser, '/CreateUser')
 api.add_resource(AuthenticateUser, '/AuthenticateUser')
+api.add_resource(EditUserJudgesUsernames, '/EditUserJudgesUsernames')
 api.add_resource(GetUser, '/GetUser')
 api.add_resource(EditUser, '/EditUser')
 api.add_resource(EditPassword, '/EditPassword')

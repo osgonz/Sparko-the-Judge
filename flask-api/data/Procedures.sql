@@ -45,32 +45,47 @@ BEGIN
     SELECT * from Users where p_username = username;
 END //
 
--- Register judges usernames
+-- Edit user information
 
 DELIMITER //
 
 Drop Procedure If Exists spEditUser;
 
-CREATE Procedure spEditUser (IN p_curr_username varchar(64), IN p_new_username varchar(64), IN p_fname varchar(32), IN p_lname varchar(32), IN p_email varchar(64), IN p_country INT, IN p_username_uva varchar(64), IN p_username_icpc varchar(64))
+CREATE Procedure spEditUser (IN p_curr_username varchar(64), IN p_new_username varchar(64), IN p_fname varchar(32), IN p_lname varchar(32), IN p_email varchar(64), IN p_country INT)
 BEGIN
 IF(SELECT exists (SELECT username from Users where p_new_username = username) AND p_curr_username != p_new_username) THEN
     SELECT CONCAT(p_new_username, ' already registered');
 ELSEIF(p_curr_username != (SELECT username from Users where p_email = email)) THEN
     SELECT CONCAT(p_email, ' already registered');
-ELSEIF(p_curr_username != (SELECT username from Users where p_username_uva = iduva)) THEN
-    SELECT CONCAT(p_username_uva, ' already registered');
-ELSEIF(p_curr_username != (SELECT username from Users where p_username_icpc = idicpc)) THEN
-    SELECT CONCAT(p_username_icpc, ' already registered');
 ELSE
     UPDATE Users
     SET username = p_new_username,
         fname = p_fname,
         lname = p_lname,
         email = p_email,
-        country = p_country,
-        iduva = p_username_uva,
-        idicpc = p_username_icpc
+        country = p_country
     WHERE p_curr_username = username;
+END IF;
+
+END //
+
+-- Edit user online judges usernames
+
+DELIMITER //
+
+Drop Procedure If Exists spEditJudgesUsernames;
+
+CREATE Procedure spEditJudgesUsernames (IN p_username varchar(64), IN p_username_uva varchar(64), IN p_username_icpc varchar(64))
+BEGIN
+IF(p_username != (SELECT username from Users where p_username_uva = iduva)) THEN
+    SELECT CONCAT(p_username_uva, ' already registered (UVA)');
+ELSEIF(p_username != (SELECT username from Users where p_username_icpc = idicpc)) THEN
+    SELECT CONCAT(p_username_icpc, ' already registered (ICPC Live Archive)');
+ELSE
+    UPDATE Users
+    SET iduva = p_username_uva,
+        idicpc = p_username_icpc
+    WHERE p_username = username;
 END IF;
 
 END //
