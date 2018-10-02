@@ -6,6 +6,8 @@ from flask_cors import CORS, cross_origin
 from flask_restful import Resource, Api, reqparse
 from dotenv import load_dotenv
 
+SESSION_NOT_FOUND = 'Session not found'
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -65,8 +67,6 @@ class CreateUser(Resource):
         except Exception as e:
             return {'error': str(e)}
 
-api.add_resource(CreateUser, '/CreateUser')
-
 class AuthenticateUser(Resource):
     def post(self):
         try:
@@ -95,7 +95,106 @@ class AuthenticateUser(Resource):
         except Exception as e:
             return {'error': str(e)}
 
+class EditUser(Resource):
+    def post(self):
+        try:
+            # Parse request arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('new_username', type=str, help='Username')
+            parser.add_argument('fname', type=str, help='First name')
+            parser.add_argument('lname', type=str, help='Last name')
+            parser.add_argument('email', type=str, help='Email')
+            parser.add_argument('country', type=str, help='Country')
+            parser.add_argument('username_UVA', type=str, help='Username for UVA Online Judge')
+            parser.add_argument('username_ICPC', type=str, help='Username for ICPC Live Archive Online Judge')
+
+            args = parser.parse_args()
+
+            _username = session.get('loggedUser', SESSION_NOT_FOUND)
+            _newUsername = args['new_username']
+            _fname = args['fname']
+            _lname = args['lname']
+            _email = args['email']
+            _country = args['country'] if args['country'] != 0 else None
+            _usernameUVA = args['username_UVA'] if args['username_UVA'] != '' else None
+            _usernameICPC = args['username_ICPC'] if args['username_ICPC'] != '' else None
+
+            assert _username != SESSION_NOT_FOUND, 'No session found'
+
+            cursor.callproc('spEdituser', (_username, _newUsername, _fname, _lname, _email, _country, _usernameUVA, _usernameICPC))
+            data = cursor.fetchall()
+
+            if(len(data) == 0):
+                conn.commit()
+                session['loggedUser'] = _newUsername
+                return {'status': 200, 'message': 'User edit succesful'}
+            else:
+                return {'status': 100, 'message': data[0][0]}
+        except Exception as e:
+            return {'error': str(e)}
+
+class GetUser(Resource):
+    def post(self):
+        try:
+            _username = session.get('loggedUser', SESSION_NOT_FOUND)
+
+            cursor.callproc('spAuthentication', (_username,))
+            data = cursor.fetchall()
+
+            if(len(data) > 0):
+                _fname, _lname, _email, _country, _username_uva, _username_icpc = data[0][2], data[0][3], data[0][5], data[0][7], data[0][8], data[0][9]
+                return {
+                    'status': 200,
+                    'username': _username,
+                    'fname': _fname,
+                    'lname': _lname,
+                    'email': _email,
+                    'country': _country,
+                    'username_uva': _username_uva,
+                    'username_icpc': _username_icpc,
+                }
+            else:
+                return {'status': 100, 'message': 'User not found'}
+        except Exception as e:
+            return {'error': str(e)}
+
+class EditPassword(Resource):
+    def post(self):
+        try:
+            # Parse request arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('newPassword', type=str, help='User')
+            parser.add_argument('password', type=str, help='User')
+
+            args = parser.parse_args()
+
+            _username = session.get('loggedUser', SESSION_NOT_FOUND)
+            _password = args['password']
+            _newPassword = bcrypt.hashpw(args['newPassword'].encode('utf8'), bcrypt.gensalt())
+
+            assert _username != SESSION_NOT_FOUND, 'No session found'
+
+            cursor.callproc('spAuthentication', (_username,))
+            data = cursor.fetchall()
+            hashed_password = data[0][4]
+            if bcrypt.checkpw(_password.encode('utf8'), hashed_password.encode('utf8')):
+                cursor.callproc('spEditPassword', (_username, _newPassword))
+                data = cursor.fetchall()
+                if(len(data) == 0):
+                    conn.commit()
+                    return {'status': 200, 'message': 'Password edit succesful'}
+                else:
+                    return {'status': 100, 'message': data[0][0]}
+            else:
+                return {'status':100,'message':'Incorrect password'}
+        except Exception as e:
+            raise e
+
+api.add_resource(CreateUser, '/CreateUser')
 api.add_resource(AuthenticateUser, '/AuthenticateUser')
+api.add_resource(GetUser, '/GetUser')
+api.add_resource(EditUser, '/EditUser')
+api.add_resource(EditPassword, '/EditPassword')
 
 @app.route('/')
 def hello():
@@ -103,7 +202,7 @@ def hello():
 
 @app.route('/GetActiveSession')
 def get():
-    return session.get('loggedUser', 'Session not found')
+    return session.get('loggedUser', SESSION_NOT_FOUND)
 
 @app.route('/SetActiveSession')
 def set():
