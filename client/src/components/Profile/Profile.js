@@ -2,6 +2,10 @@ import React, { Component } from "react";
 import ReactDOM from 'react-dom';
 import Divider from '@material-ui/core/Divider';
 import TextField from '@material-ui/core/TextField';
+import MenuItem from '@material-ui/core/MenuItem';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
+import InputLabel from '@material-ui/core/InputLabel';
 import Button from '@material-ui/core/Button';
 import EditIcon from '@material-ui/icons/Edit';
 import Snackbar from '@material-ui/core/Snackbar';
@@ -20,6 +24,8 @@ class Profile extends Component {
         password: 'random_123123',
         new_password: '',
         country: '',
+        countryInt: 0,
+        countries: [{value: '', display: '(Select your Country)'}],
         iduva: '',
         idicpc: '',
         openSnackbar: false,
@@ -36,19 +42,23 @@ class Profile extends Component {
     this.handleUsernameInfoUpdate = this.handleUsernameInfoUpdate.bind(this)
     this.handlePasswordUpdate = this.handlePasswordUpdate.bind(this)
     this.handleClose = this.handleClose.bind(this)
+    this.getData = this.getData.bind(this)
   }
 
   componentDidMount() {
+    this.getData()
+  }
+
+  getData () {
     const { userId, username } = this.state;
 
 		axios.post('http://127.0.0.1:5000/GetUser',{}, {withCredentials: true})
 		.then(response => {
 			if (response.data.status === 200){
-        console.log(response)
-				this.setState({username: response.data.username, fname: response.data.fname, lname: response.data.lname, email: response.data.email, country: response.data.country, iduva: response.data.username_uva, idicpc: response.data.username_icpc})
+        let _countries = response.data.countries.map((country, index)=>{return {value:index, display:country}})
+				this.setState({username: response.data.username, fname: response.data.fname, lname: response.data.lname, email: response.data.email, country: response.data.country, iduva: response.data.username_uva, idicpc: response.data.username_icpc, countries: [{value: '', display: '(Select your Country)'}].concat(_countries) })
 			}
 			else if (response.data.status === 100){
-        console.log(this.state)
 				this.setState({openSnackbar: true, snackbarMessage: response.data.message})
 			}
 		})
@@ -66,7 +76,7 @@ class Profile extends Component {
   }
 
   handleEditingPassword () {
-    this.setState({isEditingPassword: !this.state.isEditingPassword, password:''})
+    this.setState({isEditingPassword: !this.state.isEditingPassword, password:'random_123123'})
   }
 
   handleClose () {
@@ -74,15 +84,16 @@ class Profile extends Component {
   }
 
   handlePersonalInfoUpdate () {
-    const {username, fname, lname, email, country} = this.state;
+    const {username, fname, lname, email, countryInt, country} = this.state;
     axios.post('http://127.0.0.1:5000/EditUser',{
       new_username: username,
       fname: fname,
       lname: lname,
       email: email,
-      country: country
+      country: countryInt
     }, {withCredentials: true})
 		.then(response => {
+      console.log(response.data)
 			if (response.data.status === 200){
         this.setState({openSnackbar:true, snackbarMessage:response.data.message, isEditingPersonalInfo:false})
 			}
@@ -191,15 +202,21 @@ class Profile extends Component {
               onChange={(e) => this.setState({username: e.target.value})}
               disabled={!isEditingPersonalInfo}
             />
-            <TextField
-              id="outlined-country"
-              label="Country"
-              value={this.state.country}
-              margin="normal"
-              style={{marginLeft: '3%'}}
-              onChange={(e) => this.setState({country: e.target.value})}
-              disabled={!isEditingPersonalInfo}
-            />
+            <FormControl className='FormControl' style={{minWidth: '15%', margin:'1.5% 3% 1%'}}>
+              <InputLabel htmlFor="country-simple">Country</InputLabel>
+              <Select
+                value={this.state.country}
+                label="Country"
+                disabled={!isEditingPersonalInfo}
+                onChange={(e) => this.setState({country: e.target.value, countryInt: e.target.value})}
+                inputProps={{
+                  name: 'country',
+                  id: 'country-simple',
+                }}
+              >
+                {this.state.countries.map((_country) => <MenuItem value={_country.value}>{_country.display}</MenuItem>)}
+              </Select>
+            </FormControl>
           </div>
           {isEditingPersonalInfo ? (
             <div className="Buttons">

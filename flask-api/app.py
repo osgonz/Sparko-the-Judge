@@ -162,9 +162,14 @@ class GetUser(Resource):
 
             cursor.callproc('spAuthentication', (_username,))
             data = cursor.fetchall()
+            cursor.callproc('spGetCountries')
+            data2 = cursor.fetchall()
+            _countries = []
 
-            if(len(data) > 0):
+            if(len(data) > 0 and len(data2) > 0):
                 _fname, _lname, _email, _country, _username_uva, _username_icpc = data[0][2], data[0][3], data[0][5], data[0][7], data[0][8], data[0][9]
+                for country in data2:
+                    _countries.append(country[0])
                 return {
                     'status': 200,
                     'username': _username,
@@ -172,6 +177,7 @@ class GetUser(Resource):
                     'lname': _lname,
                     'email': _email,
                     'country': _country,
+                    'countries': _countries,
                     'username_uva': _username_uva,
                     'username_icpc': _username_icpc,
                 }

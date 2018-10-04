@@ -103,3 +103,14 @@ SET password = p_new_password
 WHERE username = p_username;
 
 END //
+
+-- Get Countries
+
+DELIMITER //
+
+Drop Procedure If Exists spGetCountries;
+
+CREATE Procedure spGetCountries ()
+BEGIN
+    SELECT country_name from Countries;
+END //
