@@ -17,20 +17,24 @@ class Profile extends Component {
         lname: '',
         email: '',
         username: '',
-        password: '',
+        password: 'random_123123',
+        new_password: '',
         country: '',
         iduva: '',
         idicpc: '',
         openSnackbar: false,
         snackbarMessage: '',
         isEditingPersonalInfo: false,
-        isEditingUsernameInfo: false
+        isEditingUsernameInfo: false,
+        isEditingPassword: false
     }
 
     this.handleEditingPersonalInfo = this.handleEditingPersonalInfo.bind(this)
     this.handleEditingUsernameInfo = this.handleEditingUsernameInfo.bind(this)
+    this.handleEditingPassword = this.handleEditingPassword.bind(this)
     this.handlePersonalInfoUpdate = this.handlePersonalInfoUpdate.bind(this)
     this.handleUsernameInfoUpdate = this.handleUsernameInfoUpdate.bind(this)
+    this.handlePasswordUpdate = this.handlePasswordUpdate.bind(this)
     this.handleClose = this.handleClose.bind(this)
   }
 
@@ -61,6 +65,10 @@ class Profile extends Component {
     this.setState({isEditingUsernameInfo: !this.state.isEditingUsernameInfo})
   }
 
+  handleEditingPassword () {
+    this.setState({isEditingPassword: !this.state.isEditingPassword, password:''})
+  }
+
   handleClose () {
     this.setState({openSnackbar: false})
   }
@@ -76,7 +84,7 @@ class Profile extends Component {
     }, {withCredentials: true})
 		.then(response => {
 			if (response.data.status === 200){
-        this.setState({openSnackbar:true, snackbarMessage:"Saved Changes", isEditingPersonalInfo:false})
+        this.setState({openSnackbar:true, snackbarMessage:response.data.message, isEditingPersonalInfo:false})
 			}
 			else if (response.data.status === 100){
 				this.setState({openSnackbar: true, snackbarMessage: response.data.message})
@@ -96,7 +104,26 @@ class Profile extends Component {
     }, {withCredentials: true})
 		.then(response => {
 			if (response.data.status === 200){
-        this.setState({openSnackbar:true, snackbarMessage:"Saved Changes", isEditingUsernameInfo:false})
+        this.setState({openSnackbar:true, snackbarMessage:response.data.message, isEditingUsernameInfo:false})
+			}
+			else if (response.data.status === 100){
+				this.setState({openSnackbar: true, snackbarMessage: response.data.message})
+			}
+		})
+		.catch((error) => {
+				console.log(error);
+		});
+  }
+
+  handlePasswordUpdate () {
+    const {password, new_password} = this.state;
+    axios.post('http://127.0.0.1:5000/EditPassword',{
+      newPassword: new_password,
+      password: password
+    }, {withCredentials: true})
+		.then(response => {
+			if (response.data.status === 200){
+        this.setState({openSnackbar:true, snackbarMessage:response.data.message, isEditingPassword:false})
 			}
 			else if (response.data.status === 100){
 				this.setState({openSnackbar: true, snackbarMessage: response.data.message})
@@ -108,8 +135,7 @@ class Profile extends Component {
   }
   
   render() {
-    const isEditingPersonalInfo = this.state.isEditingPersonalInfo;
-    const isEditingUsernameInfo = this.state.isEditingUsernameInfo;
+    const {isEditingPersonalInfo,isEditingUsernameInfo,isEditingPassword}  = this.state;
     return (
       <center>
         <div className='Header'>
@@ -166,16 +192,6 @@ class Profile extends Component {
               disabled={!isEditingPersonalInfo}
             />
             <TextField
-              id="outlined-password"
-              type='password'
-              label="Password"
-              value={this.state.password}
-              margin="normal"
-              style={{marginLeft: '3%'}}
-              onChange={(e) => this.setState({password: e.target.value})}
-              disabled={!isEditingPersonalInfo}
-            />
-            <TextField
               id="outlined-country"
               label="Country"
               value={this.state.country}
@@ -205,6 +221,63 @@ class Profile extends Component {
           )}
           <Divider />
         </div>
+        {/*-------- Password Information ---------*/}
+        <div className='UsernameInformation'>
+          <div className='lineContent'>
+            <h3 className="subheader">Password</h3>
+            {!isEditingPassword ? (
+              <Button variant="fab" mini color="primary" aria-label="Edit" onClick={this.handleEditingPassword} style={{margin:'1% 1%'}}>
+                <EditIcon />
+              </Button>) : (
+                <div></div>
+              )
+            }
+          </div>
+          <div className='lineContent' style={{marginTop:'-10'}}>
+            <TextField
+              id="outlined-password"
+              type='password'
+              label="Current Password"
+              value={this.state.password}
+              margin="normal"
+              onChange={(e) => this.setState({password: e.target.value})}
+              disabled={!isEditingPassword}
+            />
+            {isEditingPassword ? (
+              <TextField
+              id="outlined-newpassword"
+              type='password'
+              label="New Password"
+              value={this.state.new_password}
+              margin="normal"
+              style={{marginLeft: '3%'}}
+              onChange={(e) => this.setState({new_password: e.target.value})}
+              disabled={!isEditingPassword}
+            />
+            ) : (
+              <div></div>
+          )}
+          </div>
+          {isEditingPassword ? (
+            <div className="Buttons">
+              <Button
+                onClick={this.handleEditingPassword}
+                variant="outlined"
+                color="primary"
+                style={{margin:'0% 0% 1%'}}
+              >Cancel</Button>
+              <Button
+                onClick={this.handlePasswordUpdate.bind()}
+                variant="contained"
+                color="primary"
+                style={{margin:'0% 1% 1%'}}
+              >Save</Button>
+            </div>
+          ) : (
+            <br/>
+          )}
+        </div>
+        <Divider />
         {/*-------- Username Information ---------*/}
         <div className='UsernameInformation'>
           <div className='lineContent'>
