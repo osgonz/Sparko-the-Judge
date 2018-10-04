@@ -32,3 +32,17 @@ body{
 .error-text {
     margin: 1% 2%;
 }
+
+.Header {
+    display: flex;
+    margin-left: 45%;
+}
+
+.lineContent {
+    display: flex;
+    margin-left: 30%;
+}
+
+.Buttons {
+    margin-top: 3%;
+}
