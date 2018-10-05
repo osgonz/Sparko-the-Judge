@@ -37,7 +37,7 @@ class Login extends Component {
 			}, {withCredentials: true})
 			.then(response => {
 				if (response.data.status === 200){
-					this.setState({userId: response.data.UserId})
+					this.setState({userId: response.data.UserId, username: response.data.Username})
 				}
 				else if (response.data.status === 100){
 					this.setState({openSnackbar: true, snackbarMessage: response.data.message})
