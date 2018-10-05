@@ -10,6 +10,7 @@ import Error404 from './components/Error404/Error404';
 import About from './components/About/About';
 import Login from './components/Login/Login';
 import SignUp from './components/SignUp/SignUp';
+import ContestDetails from './components/Contests/ContestDetails';
 
 import Grid from '@material-ui/core/Grid';
 /*******************************************************************************/
@@ -28,6 +29,15 @@ class Main extends Component {
         const SignUpComponent = (props) => {
             return (
                 <SignUp loginChanged={this.props.loginChanged}/>
+            );
+        }
+
+        const ContestDetailsComponent = (props) => {
+            return (
+                <ContestDetails
+                    isLogged = {this.props.isLogged}
+                    isAdmin = {this.props.isAdmin}
+                />
             );
         }
 
@@ -53,7 +63,9 @@ class Main extends Component {
                         <Route path='/users' render={Error404}/>
                     }
                     { /* If logged, show Contests page; otherwise show Login page */ }
-                    <Route path='/contests' render= {this.props.isLogged ? Error404 : Error404} />
+                    <Route exact path='/contests' render= {this.props.isLogged ? Error404 : LoginRedirect} />
+                    { /* If logged, show Contest Details; otherwise show Login page */ }
+                    <Route path='/contests/:id' render= {this.props.isLogged ? ContestDetailsComponent : LoginRedirect} />
                     { /* If logged, show Profile page; otherwise show Login page */ }
                     <Route exact path='/profile' render= {this.props.isLogged ? Error404 : LoginRedirect} />
                     { /* If logged, show Login page; otherwise show Home page */ }
