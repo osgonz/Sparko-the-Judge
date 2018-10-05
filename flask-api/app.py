@@ -26,6 +26,7 @@ app.config['MYSQL_DATABASE_PASSWORD'] = os.getenv('MYSQL_DATABASE_PASSWORD')
 app.config['MYSQL_DATABASE_DB'] = os.getenv('MYSQL_DATABASE_DB')
 app.config['MYSQL_DATABASE_HOST'] = os.getenv('MYSQL_DATABASE_HOST')
 
+
 # Session configurations
 app.config['SECRET_KEY'] = 'My secret placeholder string'
 
@@ -243,5 +244,37 @@ def logout():
     session.pop('loggedUser', None)
     return 'You were logged out'
 
+@app.route('/GetUserList/<userType>')
+def getUserList(userType):
+    if userType == '0':
+        sql = '''SELECT userID AS id, username, CONCAT(fname, " ",lname) AS fullName, usertype AS userType, iduva AS uvaUsername, idicpc AS icpcUsername 
+                FROM users'''
+    else:
+        sql = '''SELECT userID AS id, username, CONCAT(fname, " ",lname) AS fullName, usertype AS userType, iduva AS uvaUsername, idicpc AS icpcUsername 
+                FROM users
+                WHERE usertype = 1'''
+
+    cursor.execute(sql)
+    
+    r = [dict((cursor.description[i][0], value)
+            for i, value in enumerate(row)) for row in cursor.fetchall()]
+    return jsonify({'status': 'SUCCESS',
+                    'userList': r})
+
+@app.route('/BanUser/<bannedUser>')
+def banUser(bannedUser):
+    sql = '''UPDATE users
+            SET users.usertype = 2
+            WHERE users.userID = %s''' % (bannedUser)
+    
+    cursor.execute(sql)
+    conn.commit()
+    return bannedUser
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+

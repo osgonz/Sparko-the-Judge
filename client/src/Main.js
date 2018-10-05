@@ -5,14 +5,17 @@
 import React, { Component } from 'react';
 import { Switch, Route, Redirect } from 'react-router-dom'
 
+/*--------------------------- M A T E R I A L   U I ---------------------------*/
+
+
 /*---------------------------- C O M P O N E N T S ----------------------------*/
 import Error404 from './components/Error404/Error404';
 import About from './components/About/About';
 import Login from './components/Login/Login';
 import SignUp from './components/SignUp/SignUp';
 import Profile from './components/Profile/Profile';
+import Users from './components/Users/Users';
 
-import Grid from '@material-ui/core/Grid';
 /*******************************************************************************/
 
 // Main component serves as our main switch and container for general site content
@@ -38,6 +41,12 @@ class Main extends Component {
             )
         }
 
+        const UsersComponent = (props) => {
+            return (
+                <Users isAdmin={true}/>
+            );
+        }
+
         const ProfileRedirect = (props) => {
             return (
                 <Redirect to='/profile'/>
@@ -54,10 +63,10 @@ class Main extends Component {
         return(
             <div className="main-container">
                 <Switch>
-                    <Route exact path='/' component= {About} />
+                    <Route exact path='/' component= {UsersComponent} />
                     { /* If logged and admin, show Users page */ }
                     { this.props.isLogged && this.props.isAdmin &&
-                        <Route path='/users' render={Error404}/>
+                        <Route path='/users' render= {UsersComponent}/>
                     }
                     { /* If logged, show Contests page; otherwise show Login page */ }
                     <Route path='/contests' render= {this.props.isLogged ? Error404 : Error404} />
