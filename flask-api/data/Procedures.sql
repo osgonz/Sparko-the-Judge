@@ -114,3 +114,44 @@ CREATE Procedure spGetCountries ()
 BEGIN
     SELECT country_name from Countries;
 END //
+
+-- Get Contest Problems information
+
+DELIMITER //
+
+Drop Procedure If Exists spGetContestProblems;
+
+CREATE PROCEDURE spGetContestProblems (IN p_contestID INT)
+BEGIN
+	SELECT P.* FROM ContestProblem CP, Problems P WHERE CP.problemID = P.problemID AND CP.contestID = p_contestID;
+END //
+
+-- Get User's Submissions in Contest
+
+DELIMITER //
+
+Drop Procedure If Exists spGetUserSubmissionsInContest;
+
+CREATE PROCEDURE spGetUserSubmissionsInContest (IN p_userID INT, IN p_contestID INT)
+BEGIN
+	SELECT U.username, P.problemName, P.judge, P.url, S.result, S.language, S.submissionTime
+	FROM Submission S, Problems P, Users U
+	WHERE S.contestID = p_contestID AND S.submitter = p_userID AND S.submitter = U.userID AND S.problemID = P.problemID
+	ORDER BY S.submissionTime DESC;
+	
+END //
+
+-- Get Contest Standings
+
+DELIMITER //
+
+Drop Procedure If Exists spGetContestStandings;
+
+CREATE PROCEDURE spGetContestStandings (IN p_contestID INT)
+BEGIN
+	SELECT CU.standing, U.username, U.country, CU.score
+	FROM ContestUser CU, Users U
+	WHERE CU.contestID = p_contestID AND CU.userID = U.userID
+	ORDER BY CU.standing;
+	
+END //
