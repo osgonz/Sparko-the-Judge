@@ -23,10 +23,21 @@ body{
     outline: none;
 }
 
-.error-title, .contest-title{
+.error-title{
     margin: 1% 2%;
     font-size: 2rem;
     font-weight: 500;
+}
+
+.contest-title {
+    margin: 1% 2%;
+    font-size: 2rem;
+    font-weight: 500;
+}
+
+.contest-header {
+    display: flex;
+    align-items: center;
 }
 
 .error-text {
