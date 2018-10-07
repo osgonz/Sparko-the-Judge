@@ -14,6 +14,7 @@ import '../../style/style.css';
 import axios from 'axios'
 
 import StandingsTab from './StandingsTab';
+import ProblemsTab from './ProblemsTab';
 
 const styles = {
     root: {
@@ -32,7 +33,7 @@ function TabContainer(props) {
 class ContestDetails extends Component {
     state = {
         tabValue: 0,
-        data: []
+        problemsData: []
     };
 
     componentDidMount(){
@@ -40,7 +41,7 @@ class ContestDetails extends Component {
             contest_id: this.props.match.params.id
         }).then(response => {
             if (response.data.status == 200){
-                this.setState({ data: response.data.problemList });
+                this.setState({ problemsData: response.data.problemList });
             }
         });
     };
@@ -86,11 +87,15 @@ class ContestDetails extends Component {
                     <TabContainer>
                         <StandingsTab
                             contest_id={this.props.match.params.id}
-                            problemList={this.state.data}
+                            problemList={this.state.problemsData}
                         />
                     </TabContainer>}
                     {this.state.tabValue === 1 &&
-                    <TabContainer>Item Two</TabContainer>}
+                    <TabContainer>
+                        <ProblemsTab
+                            data={this.state.problemsData}
+                        />
+                    </TabContainer>}
                     {this.state.tabValue === 2 &&
                     <TabContainer>Item Three</TabContainer>}
                 </Paper>

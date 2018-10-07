@@ -11,7 +11,6 @@ import TablePagination from "@material-ui/core/TablePagination/TablePagination";
 import TableRow from "@material-ui/core/TableRow/TableRow";
 
 import '../../style/style.css';
-import axios from 'axios'
 
 import ContestTabHeader, {getSorting, stableSort} from './ContestTabHeader';
 
@@ -29,29 +28,17 @@ const styles = theme => ({
 });
 
 let rows = [
-    { id: 'standing', numeric: true, disablePadding: true, label: 'Rank' },
-    { id: 'username', numeric: false, disablePadding: false, label: 'Username' },
-    { id: 'country_name', numeric: false, disablePadding: false, label: 'Country' },
-    { id: 'score', numeric: true, disablePadding: false, label: 'Score' },
+    { id: 'local_id', numeric: true, disablePadding: true, label: 'No.' },
+    { id: 'problemName', numeric: false, disablePadding: false, label: 'Problem Name' },
+    { id: 'judge', numeric: false, disablePadding: false, label: 'Judge' },
 ];
 
-class StandingsTab extends Component {
+class ProblemsTab extends Component {
     state = {
         order: 'asc',
-        orderBy: 'standing',
-        data: [],
+        orderBy: 'local_id',
         page: 0,
         rowsPerPage: 10,
-    };
-
-    componentDidMount(){
-        axios.post('http://127.0.0.1:5000/GetContestStandings', {
-            contest_id: this.props.contest_id
-        }).then(response => {
-            if (response.data.status == 200){
-                this.setState({ data: response.data.standingsList });
-            }
-        });
     };
 
     handleRequestSort = (event, property) => {
@@ -74,15 +61,9 @@ class StandingsTab extends Component {
     };
 
     render() {
-        const { classes, problemList } = this.props;
-        const { data, order, orderBy, rowsPerPage, page } = this.state;
+        const { classes, data } = this.props;
+        const { order, orderBy, rowsPerPage, page } = this.state;
         const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
-
-        const problemCant = problemList.length;
-        let newRows = rows.slice();
-        for (let i=1; i <= problemCant; i++) {
-            newRows.push({ id: 'P' + i, numeric: true, disablePadding: false, label: 'P' + i});
-        }
 
         return (
             <Paper className={classes.root}>
@@ -91,32 +72,24 @@ class StandingsTab extends Component {
                         <ContestTabHeader
                             order={order}
                             orderBy={orderBy}
-                            rows={newRows}
+                            rows={rows}
                             onRequestSort={this.handleRequestSort}
                         />
                         <TableBody>
                             {stableSort(data, getSorting(order, orderBy))
                                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                .map(n => {
+                                .map((n, index) => {
                                     return (
                                         <TableRow
                                             hover
                                             tabIndex={-1}
-                                            key={n.userID}
+                                            key={index+1}
                                         >
                                             <TableCell component="th" scope="row" padding="none" numeric={rows[0].numeric}>
-                                                {n.standing}
+                                                {index+1}
                                             </TableCell>
-                                            <TableCell numeric={rows[1].numeric}>{n.username}</TableCell>
-                                            <TableCell numeric={rows[2].numeric}>
-                                                {n.country_name? n.country_name : 'N/A'}
-                                            </TableCell>
-                                            <TableCell numeric={rows[3].numeric}>{n.score}</TableCell>
-                                            { problemList.map(problem => {
-                                              return (
-                                                  <TableCell key={problem.problemID} numeric={true}>0</TableCell>
-                                              );
-                                            })}
+                                            <TableCell numeric={rows[1].numeric}><a href={n.url} target="_blank">{n.problemName}</a></TableCell>
+                                            <TableCell numeric={rows[2].numeric}>{n.judge}</TableCell>
                                         </TableRow>
                                     );
                                 })}
@@ -147,8 +120,8 @@ class StandingsTab extends Component {
     }
 }
 
-StandingsTab.propTypes = {
+ProblemsTab.propTypes = {
     classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(StandingsTab);
+export default withStyles(styles)(ProblemsTab);
