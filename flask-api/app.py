@@ -31,12 +31,14 @@ app.config['MYSQL_DATABASE_HOST'] = os.getenv('MYSQL_DATABASE_HOST')
 app.config['SECRET_KEY'] = 'My secret placeholder string'
 
 mysql.init_app(app)
-conn = mysql.connect()
-cursor = conn.cursor()
 
 class CreateUser(Resource):
     def post(self):
         try:
+            # Opem MySQL connection
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
             # Parse the arguments
             parser = reqparse.RequestParser()
             parser.add_argument('username', type=str, help='Username address to create user')
@@ -61,16 +63,26 @@ class CreateUser(Resource):
             if len(data) is 0:
                 conn.commit()
                 session['loggedUser'] = _userName
+                cursor.close()
+                conn.close()
                 return {'StatusCode':'200','Message': 'User creation success'}
             else:
+                cursor.close()
+                conn.close()
                 return {'StatusCode':'1000','Message': data[0][0]}
 
         except Exception as e:
+            cursor.close()
+            conn.close()
             return {'error': str(e)}
 
 class AuthenticateUser(Resource):
     def post(self):
         try:
+            # Opem MySQL connection
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
             # Parse the arguments
             parser = reqparse.RequestParser()
             parser.add_argument('username', type=str, help='Username address to create user')
@@ -89,16 +101,26 @@ class AuthenticateUser(Resource):
                 if bcrypt.checkpw(_userPassword.encode('utf8'), hashed_password.encode('utf8')):
                     user_id = data[0][0]
                     session['loggedUser'] = _userName
+                    cursor.close()
+                    conn.close()
                     return {'status':200,'UserId':str(user_id)}
                 else:
+                    cursor.close()
+                    conn.close()
                     return {'status':100,'message':'Authentication failure'}
 
         except Exception as e:
+            cursor.close()
+            conn.close()
             return {'error': str(e)}
 
 class EditUser(Resource):
     def post(self):
         try:
+            # Opem MySQL connection
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
             # Parse request arguments
             parser = reqparse.RequestParser()
             parser.add_argument('new_username', type=str, help='Username')
@@ -124,15 +146,25 @@ class EditUser(Resource):
             if(len(data) == 0):
                 conn.commit()
                 session['loggedUser'] = _newUsername
+                cursor.close()
+                conn.close()
                 return {'status': 200, 'message': 'User edit succesful'}
             else:
+                cursor.close()
+                conn.close()
                 return {'status': 100, 'message': data[0][0]}
         except Exception as e:
+            cursor.close()
+            conn.close()
             return {'error': str(e)}
 
 class EditUserJudgesUsernames(Resource):
     def post(self):
         try:
+            # Opem MySQL connection
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
             # Parse request arguments
             parser.add_argument('username_UVA', type=str, help='Username for UVA Online Judge')
             parser.add_argument('username_ICPC', type=str, help='Username for ICPC Live Archive Online Judge')
@@ -150,15 +182,25 @@ class EditUserJudgesUsernames(Resource):
 
             if(len(data) == 0):
                 conn.commit()
+                cursor.close()
+                conn.close()
                 return {'status': 200, 'message': 'Online judges edit succesful'}
             else:
+                cursor.close()
+                conn.close()
                 return {'status': 100, 'message': data[0][0]}
         except Exception as e:
+            cursor.close()
+            conn.close()
             return {'error': str(e)}
 
 class GetUser(Resource):
     def post(self):
         try:
+            # Opem MySQL connection
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
             _username = session.get('loggedUser', SESSION_NOT_FOUND)
 
             cursor.callproc('spAuthentication', (_username,))
@@ -171,6 +213,8 @@ class GetUser(Resource):
                 _fname, _lname, _email, _country, _username_uva, _username_icpc = data[0][2], data[0][3], data[0][5], data[0][7], data[0][8], data[0][9]
                 for country in data2:
                     _countries.append(country[0])
+                cursor.close()
+                conn.close()
                 return {
                     'status': 200,
                     'username': _username,
@@ -183,13 +227,21 @@ class GetUser(Resource):
                     'username_icpc': _username_icpc,
                 }
             else:
+                cursor.close()
+                conn.close()
                 return {'status': 100, 'message': 'User not found'}
         except Exception as e:
+            cursor.close()
+            conn.close()
             return {'error': str(e)}
 
 class EditPassword(Resource):
     def post(self):
         try:
+            # Opem MySQL connection
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
             # Parse request arguments
             parser = reqparse.RequestParser()
             parser.add_argument('newPassword', type=str, help='User')
@@ -211,17 +263,29 @@ class EditPassword(Resource):
                 data = cursor.fetchall()
                 if(len(data) == 0):
                     conn.commit()
+                    cursor.close()
+                    conn.close()
                     return {'status': 200, 'message': 'Password edit succesful'}
                 else:
+                    cursor.close()
+                    conn.close()
                     return {'status': 100, 'message': data[0][0]}
             else:
-                return {'status':100,'message':'Incorrect password'}
+                cursor.close()
+                conn.close()
+                return {'status': 100, 'message': 'Incorrect password'}
         except Exception as e:
+            cursor.close()
+            conn.close()
             raise e
 
 class GetContestProblems(Resource):
     def post(self):
         try:
+            # Opem MySQL connection
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
             # Parse request arguments
             parser = reqparse.RequestParser()
             parser.add_argument('contest_id', type=int, help='Contest identifier number')
@@ -233,15 +297,23 @@ class GetContestProblems(Resource):
             cursor.callproc('spGetContestProblems', (_contest,))
             data = [dict((cursor.description[i][0], value)
                         for i, value in enumerate(row)) for row in cursor.fetchall()]
+            cursor.close()
+            conn.close()
             return jsonify({'status': 200,
                             'problemList': data})
             _
         except Exception as e:
+            cursor.close()
+            conn.close()
             raise e
 
 class GetContestStandings(Resource):
     def post(self):
         try:
+            # Opem MySQL connection
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
             # Parse request arguments
             parser = reqparse.RequestParser()
             parser.add_argument('contest_id', type=int, help='Contest identifier number')
@@ -253,15 +325,23 @@ class GetContestStandings(Resource):
             cursor.callproc('spGetContestStandings', (_contest,))
             data = [dict((cursor.description[i][0], value)
                         for i, value in enumerate(row)) for row in cursor.fetchall()]
+            cursor.close()
+            conn.close()
             return jsonify({'status': 200,
                             'standingsList': data})
             _
         except Exception as e:
+            cursor.close()
+            conn.close()
             raise e
 
 class GetSubmissionsInContest(Resource):
     def post(self):
         try:
+            # Opem MySQL connection
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
             # Parse request arguments
             parser = reqparse.RequestParser()
             parser.add_argument('contest_id', type=int, help='Contest identifier number')
@@ -273,15 +353,23 @@ class GetSubmissionsInContest(Resource):
             cursor.callproc('spGetSubmissionsInContest', (_contest,))
             data = [dict((cursor.description[i][0], value)
                         for i, value in enumerate(row)) for row in cursor.fetchall()]
+            cursor.close()
+            conn.close()
             return jsonify({'status': 200,
                             'submissionsList': data})
             _
         except Exception as e:
+            cursor.close()
+            conn.close()
             raise e
 
 class GetUserSubmissionsInContest(Resource):
     def post(self):
         try:
+            # Opem MySQL connection
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
             # Parse request arguments
             parser = reqparse.RequestParser()
             parser.add_argument('contest_id', type=int, help='Contest identifier number')
@@ -293,10 +381,14 @@ class GetUserSubmissionsInContest(Resource):
             cursor.callproc('spGetUserSubmissionsInContest', (_contest,))
             data = [dict((cursor.description[i][0], value)
                         for i, value in enumerate(row)) for row in cursor.fetchall()]
+            cursor.close()
+            conn.close()
             return jsonify({'status': 200,
                             'userSubmissionsList': data})
             _
         except Exception as e:
+            cursor.close()
+            conn.close()
             raise e
 
 api.add_resource(CreateUser, '/CreateUser')
@@ -330,6 +422,10 @@ def logout():
 
 @app.route('/GetUserList/<userType>')
 def getUserList(userType):
+    # Opem MySQL connection
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
     if userType == '0':
         sql = '''SELECT userID AS id, username, CONCAT(fname, " ",lname) AS fullName, usertype AS userType, iduva AS uvaUsername, idicpc AS icpcUsername 
                 FROM users'''
@@ -342,17 +438,25 @@ def getUserList(userType):
     
     r = [dict((cursor.description[i][0], value)
             for i, value in enumerate(row)) for row in cursor.fetchall()]
+    cursor.close()
+    conn.close()
     return jsonify({'status': 'SUCCESS',
                     'userList': r})
 
 @app.route('/BanUser/<bannedUser>')
 def banUser(bannedUser):
+    # Opem MySQL connection
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
     sql = '''UPDATE users
             SET users.usertype = 2
             WHERE users.userID = %s''' % (bannedUser)
     
     cursor.execute(sql)
     conn.commit()
+    cursor.close()
+    conn.close()
     return bannedUser
 
 

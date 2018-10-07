@@ -37,7 +37,7 @@ class ContestDetails extends Component {
 
     componentDidMount(){
         axios.post('http://127.0.0.1:5000/GetContestProblems', {
-            contest_id: this.props.contest_id
+            contest_id: this.props.match.params.id
         }).then(response => {
             if (response.data.status == 200){
                 this.setState({ data: response.data.problemList });
