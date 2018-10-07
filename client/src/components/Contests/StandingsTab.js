@@ -74,17 +74,17 @@ class StandingsTab extends Component {
     };
 
     render() {
-        const { classes } = this.props;
+        const { classes, problemList } = this.props;
         const { data, order, orderBy, rowsPerPage, page } = this.state;
         const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
-        /*
-        const problemCant = this.props.problemList.length;
-        let newRows = rows.splice();
-        for (let i=0; i < problemCant; i++) {
+
+        const problemCant = problemList.length;
+        console.log(rows);
+        let newRows = rows.slice();
+        for (let i=1; i <= problemCant; i++) {
             newRows.push({ id: 'P' + i, numeric: true, disablePadding: false, label: 'P' + i});
-            console.log(i);
         }
-        console.log("Wowser");*/
+        console.log(newRows);
 
         return (
             <Paper className={classes.root}>
@@ -93,7 +93,7 @@ class StandingsTab extends Component {
                         <ContestTabHeader
                             order={order}
                             orderBy={orderBy}
-                            rows={rows}
+                            rows={newRows}
                             onRequestSort={this.handleRequestSort}
                         />
                         <TableBody>
@@ -114,6 +114,11 @@ class StandingsTab extends Component {
                                                 {n.country_name? n.country_name : 'N/A'}
                                             </TableCell>
                                             <TableCell numeric={rows[3].numeric}>{n.score}</TableCell>
+                                            { problemList.map(problem => {
+                                              return (
+                                                  <TableCell key={problem.problemID} numeric={true}>0</TableCell>
+                                              );
+                                            })}
                                         </TableRow>
                                     );
                                 })}
