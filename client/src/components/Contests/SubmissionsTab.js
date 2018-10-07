@@ -104,6 +104,46 @@ class SubmissionsTab extends Component {
                             {stableSort(data, getSorting(order, orderBy))
                                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 .map((n, index) => {
+                                    let result = '';
+                                    switch(n.result) {
+                                        case 10:
+                                            result = 'Submission error';
+                                            break;
+                                        case 15:
+                                            result = "Can't be judged";
+                                            break;
+                                        case 20:
+                                            result = 'In queue';
+                                            break;
+                                        case 30:
+                                            result = 'Compile error';
+                                            break;
+                                        case 35:
+                                            result = 'Restricted function';
+                                            break;
+                                        case 40:
+                                            result = 'Runtime error';
+                                            break;
+                                        case 45:
+                                            result = 'Output limit';
+                                            break;
+                                        case 50:
+                                            result = 'Time limit';
+                                            break;
+                                        case 60:
+                                            result = 'Memory limit';
+                                            break;
+                                        case 70:
+                                            result = 'Wrong answer';
+                                            break;
+                                        case 80:
+                                            result = 'PresentationE';
+                                            break;
+                                        case 90:
+                                            result = 'Accepted';
+                                            break;
+                                    }
+
                                     return (
                                         <TableRow
                                             hover
@@ -115,7 +155,9 @@ class SubmissionsTab extends Component {
                                             </TableCell>
                                             <TableCell numeric={rows[1].numeric}><a href={n.url} target="_blank">{n.problemName}</a></TableCell>
                                             <TableCell numeric={rows[1].numeric}>{n.judge}</TableCell>
-                                            <TableCell numeric={rows[1].numeric}>{n.result}</TableCell>
+                                            <TableCell numeric={rows[1].numeric}>
+                                                {result}
+                                            </TableCell>
                                             <TableCell numeric={rows[1].numeric}>{n.language}</TableCell>
                                             <TableCell numeric={rows[1].numeric}>{n.submissionTime}</TableCell>
                                         </TableRow>
