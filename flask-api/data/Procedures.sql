@@ -164,8 +164,9 @@ Drop Procedure If Exists spGetContestStandings;
 
 CREATE PROCEDURE spGetContestStandings (IN p_contestID INT)
 BEGIN
-	SELECT CU.standing, U.username, U.country, CU.score
+	SELECT CU.userID, CU.standing, U.username, C.country_name, CU.score
 	FROM ContestUser CU, Users U
+  LEFT OUTER JOIN Countries C ON U.country = C.id
 	WHERE CU.contestID = p_contestID AND CU.userID = U.userID
 	ORDER BY CU.standing;
 	

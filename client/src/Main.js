@@ -41,6 +41,7 @@ class Main extends Component {
                 <ContestDetails
                     isLogged = {this.props.isLogged}
                     isAdmin = {this.props.isAdmin}
+                    {...props}
                 />
             );
         }

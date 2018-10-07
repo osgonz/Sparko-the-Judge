@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 
-import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 
 import Button from '@material-ui/core/Button';
@@ -12,6 +11,9 @@ import Typography from '@material-ui/core/Typography';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 import '../../style/style.css';
+import axios from 'axios'
+
+import StandingsTab from './StandingsTab';
 
 const styles = {
     root: {
@@ -30,6 +32,17 @@ function TabContainer(props) {
 class ContestDetails extends Component {
     state = {
         tabValue: 0,
+        data: []
+    };
+
+    componentDidMount(){
+        axios.post('http://127.0.0.1:5000/GetContestProblems', {
+            contest_id: this.props.contest_id
+        }).then(response => {
+            if (response.data.status == 200){
+                this.setState({ data: response.data.problemList });
+            }
+        });
     };
 
     handleChange = (event, value) => {
@@ -69,9 +82,17 @@ class ContestDetails extends Component {
                         <Tab label="Problem List" />
                         <Tab label="Submissions" />
                     </Tabs>
-                    {this.state.tabValue === 0 && <TabContainer>Item One</TabContainer>}
-                    {this.state.tabValue === 1 && <TabContainer>Item Two</TabContainer>}
-                    {this.state.tabValue === 2 && <TabContainer>Item Three</TabContainer>}
+                    {this.state.tabValue === 0 &&
+                    <TabContainer>
+                        <StandingsTab
+                            contest_id={this.props.match.params.id}
+                            problemList={this.state.data}
+                        />
+                    </TabContainer>}
+                    {this.state.tabValue === 1 &&
+                    <TabContainer>Item Two</TabContainer>}
+                    {this.state.tabValue === 2 &&
+                    <TabContainer>Item Three</TabContainer>}
                 </Paper>
             </div>
         );
