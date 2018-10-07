@@ -312,6 +312,52 @@ class IsLoggedUserContestOwner(Resource):
         except Exception as e:
             raise e
 
+class GetContestInfo(Resource):
+    def post(self):
+        try:
+            # Opem MySQL connection
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            # Parse request arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('contest_id', type=int, help='Contest identifier number')
+
+            args = parser.parse_args()
+
+            _contest = args['contest_id']
+
+            username = session.get('loggedUser', SESSION_NOT_FOUND)
+
+            if username != 'Session not found':
+                cursor.callproc('spGetUserID', (username,))
+                userData = cursor.fetchall()
+                _userID = userData[0][0]
+
+                if _userID:
+                    cursor.callproc('spGetContestUserUsername', (_userID, _contest,))
+                    validData = cursor.fetchall()
+
+                    cursor.callproc('spGetContestInformation', (_contest,))
+                    data = [dict((cursor.description[i][0], value)
+                                 for i, value in enumerate(row)) for row in cursor.fetchall()]
+                    cursor.close()
+                    conn.close()
+                    return jsonify({'status': 200,
+                                    'contestInfo': data[0],
+                                    'isParticipant': len(validData) > 0})
+                else:
+                    cursor.close()
+                    conn.close()
+                    return jsonify ({'status': 100, 'message': 'User not found'})
+            else:
+                cursor.close()
+                conn.close()
+                return jsonify({'status': 100, 'message': 'Session not found'})
+            _
+        except Exception as e:
+            raise e
+
 class GetContestProblems(Resource):
     def post(self):
         try:
@@ -451,6 +497,7 @@ api.add_resource(GetContestStandings, '/GetContestStandings')
 api.add_resource(GetSubmissionsInContest, '/GetSubmissionsInContest')
 api.add_resource(GetUserSubmissionsInContest, '/GetUserSubmissionsInContest')
 api.add_resource(IsLoggedUserContestOwner, '/IsLoggedUserContestOwner')
+api.add_resource(GetContestInfo, '/GetContestInfo')
 
 @app.route('/')
 def hello():

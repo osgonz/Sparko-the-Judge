@@ -16,6 +16,8 @@ import axios from 'axios'
 import StandingsTab from './StandingsTab';
 import ProblemsTab from './ProblemsTab';
 import SubmissionsTab from './SubmissionsTab';
+import Error404 from '../Error404/Error404';
+
 
 const styles = {
     root: {
@@ -34,11 +36,36 @@ function TabContainer(props) {
 class ContestDetails extends Component {
     state = {
         tabValue: 0,
+        contestName: null,
+        description: null,
+        startDate: null,
+        endDate: null,
+        status: null,
         problemsData: [],
-        isOwner: null
+        isOwner: null,
+        isParticipant: null,
+        isValidated: null
     };
 
     componentDidMount(){
+        axios.post('http://127.0.0.1:5000/GetContestInfo', {
+            contest_id: this.props.match.params.id
+        }, {withCredentials: true}).then(response => {
+            if (response.data.status == 200){
+                this.setState({
+                    contestName: response.data.contestInfo.contestName,
+                    description: response.data.contestInfo.description,
+                    startDate: response.data.contestInfo.startDate,
+                    endDate: response.data.contestInfo.endDate,
+                    status: response.data.contestInfo.status,
+                    isParticipant: response.data.isParticipant,
+                    isValidated: true
+                });
+            } else {
+                this.setState({ isValidated: true })
+            }
+        });
+
         axios.post('http://127.0.0.1:5000/IsLoggedUserContestOwner', {
             contest_id: this.props.match.params.id
         }, {withCredentials: true}).then(response => {
@@ -65,58 +92,68 @@ class ContestDetails extends Component {
     render()
     {
         const { classes } = this.props;
+        const { isOwner, isParticipant, isValidated, contestName, problemsData, tabValue } = this.state;
 
-        return (
-            <div>
-                <div className="contest-header">
-                    <h1 className="contest-title">Mi primer concurso</h1>
-                    {(this.props.isAdmin || this.state.isOwner) &&
-                    <Button variant="fab" mini color="primary" aria-label="Edit" style={{margin: '0.5% 0.5%'}}>
-                        <EditIcon/>
-                    </Button>
-                    }
-                    {(this.props.isAdmin || this.state.isOwner) &&
-                    <Button variant="fab" mini color="primary" aria-label="Delete" style={{margin:'0.5% 0.5%'}}>
-                        <DeleteIcon />
-                    </Button>
-                    }
-                </div>
-                <Paper className={classes.root}>
-                    <Tabs
-                        value={this.state.tabValue}
-                        onChange={this.handleChange}
-                        indicatorColor="primary"
-                        textColor="primary"
-                        centered
-                    >
-                        <Tab label="Standings" />
-                        <Tab label="Problem List" />
-                        <Tab label="Submissions" />
-                    </Tabs>
-                    {this.state.tabValue === 0 &&
-                    <TabContainer>
-                        <StandingsTab
-                            contest_id={this.props.match.params.id}
-                            problemList={this.state.problemsData}
-                        />
-                    </TabContainer>}
-                    {this.state.tabValue === 1 &&
-                    <TabContainer>
-                        <ProblemsTab
-                            data={this.state.problemsData}
-                        />
-                    </TabContainer>}
-                    {this.state.tabValue === 2 &&
-                    <TabContainer>
-                        <SubmissionsTab
-                            contest_id={this.props.match.params.id}
-                            isAdmin={this.props.isAdmin}
-                            isOwner={this.state.isOwner}
-                        />
-                    </TabContainer>}
-                </Paper>
-            </div>
-        );
+        if (isValidated)
+            if (isOwner || isParticipant)
+                return (
+                    <div>
+                        <div className="contest-header">
+                            <h1 className="contest-title">{contestName}</h1>
+                            {(this.props.isAdmin || isOwner) &&
+                            <Button variant="fab" mini color="primary" aria-label="Edit" style={{margin: '0.5% 0.5%'}}>
+                                <EditIcon/>
+                            </Button>
+                            }
+                            {(this.props.isAdmin || isOwner) &&
+                            <Button variant="fab" mini color="primary" aria-label="Delete" style={{margin:'0.5% 0.5%'}}>
+                                <DeleteIcon />
+                            </Button>
+                            }
+                        </div>
+                        <Paper className={classes.root}>
+                            <Tabs
+                                value={tabValue}
+                                onChange={this.handleChange}
+                                indicatorColor="primary"
+                                textColor="primary"
+                                centered
+                            >
+                                <Tab label="Standings" />
+                                <Tab label="Problem List" />
+                                <Tab label="Submissions" />
+                            </Tabs>
+                            {tabValue === 0 &&
+                            <TabContainer>
+                                <StandingsTab
+                                    contest_id={this.props.match.params.id}
+                                    problemList={problemsData}
+                                />
+                            </TabContainer>}
+                            {tabValue === 1 &&
+                            <TabContainer>
+                                <ProblemsTab
+                                    data={problemsData}
+                                />
+                            </TabContainer>}
+                            {this.state.tabValue === 2 &&
+                            <TabContainer>
+                                <SubmissionsTab
+                                    contest_id={this.props.match.params.id}
+                                    isAdmin={this.props.isAdmin}
+                                    isOwner={isOwner}
+                                />
+                            </TabContainer>}
+                        </Paper>
+                    </div>
+                );
+            else
+                return (
+                  <Error404 />
+                );
+        else {
+            return null;
+        }
     }
 }
 

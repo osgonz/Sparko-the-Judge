@@ -199,3 +199,31 @@ BEGIN
 	WHERE U.username = p_username;
 
 END //
+
+-- Get Contest Information
+
+DELIMITER //
+
+Drop Procedure If Exists spGetContestInformation;
+
+CREATE PROCEDURE spGetContestInformation (IN p_contestID INT)
+BEGIN
+	SELECT *
+  FROM Contest
+  WHERE contestID = p_contestID;
+
+END //
+
+-- Get Contest User's Username
+
+DELIMITER //
+
+Drop Procedure If Exists spGetContestUserUsername;
+
+CREATE PROCEDURE spGetContestUserUsername (IN p_userID INT, IN p_contestID INT)
+BEGIN
+	SELECT U.username
+  FROM ContestUser CU, Users U
+  WHERE CU.contestID = p_contestID AND CU.userID = p_userID AND CU.userID = U.userID;
+
+END //
