@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 
 import Button from '@material-ui/core/Button';
+import Chip from '@material-ui/core/Chip';
 import Paper from '@material-ui/core/Paper';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
@@ -17,6 +18,8 @@ import StandingsTab from './StandingsTab';
 import ProblemsTab from './ProblemsTab';
 import SubmissionsTab from './SubmissionsTab';
 import Error404 from '../Error404/Error404';
+import Avatar from "@material-ui/core/Avatar/Avatar";
+import AdminIcon from "@material-ui/core/SvgIcon/SvgIcon";
 
 
 const styles = {
@@ -89,16 +92,34 @@ class ContestDetails extends Component {
         });
     };
 
+    handleStatusCode = status => {
+        switch(status) {
+            case 0:
+                return (
+                    <Chip label="Upcoming" color="secondary" />
+                );
+            case 1:
+                return (
+                    <Chip label="Ongoing" color="primary" />
+                );
+            case 2:
+                return (
+                    <Chip label="Finished" />
+                );
+        }
+    }
+
     render()
     {
         const { classes } = this.props;
-        const { isOwner, isParticipant, isValidated, contestName, problemsData, tabValue } = this.state;
+        const { isOwner, isParticipant, isValidated, contestName, description, status, problemsData, tabValue } = this.state;
 
         if (isValidated)
             if (isOwner || isParticipant)
                 return (
                     <div>
                         <div className="contest-header">
+                            { this.handleStatusCode(status) }
                             <h1 className="contest-title">{contestName}</h1>
                             {(this.props.isAdmin || isOwner) &&
                             <Button variant="fab" mini color="primary" aria-label="Edit" style={{margin: '0.5% 0.5%'}}>
@@ -111,6 +132,7 @@ class ContestDetails extends Component {
                             </Button>
                             }
                         </div>
+                        <p className="contest-desc">{description}</p>
                         <Paper className={classes.root}>
                             <Tabs
                                 value={tabValue}
