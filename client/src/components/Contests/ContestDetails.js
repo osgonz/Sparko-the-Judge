@@ -15,6 +15,7 @@ import axios from 'axios'
 
 import StandingsTab from './StandingsTab';
 import ProblemsTab from './ProblemsTab';
+import SubmissionsTab from './SubmissionsTab';
 
 const styles = {
     root: {
@@ -33,10 +34,19 @@ function TabContainer(props) {
 class ContestDetails extends Component {
     state = {
         tabValue: 0,
-        problemsData: []
+        problemsData: [],
+        isOwner: null
     };
 
     componentDidMount(){
+        axios.post('http://127.0.0.1:5000/IsLoggedUserContestOwner', {
+            contest_id: this.props.match.params.id
+        }, {withCredentials: true}).then(response => {
+            if (response.data.status == 200){
+                this.setState({ isOwner: true });
+            }
+        });
+
         axios.post('http://127.0.0.1:5000/GetContestProblems', {
             contest_id: this.props.match.params.id
         }).then(response => {
@@ -60,12 +70,12 @@ class ContestDetails extends Component {
             <div>
                 <div className="contest-header">
                     <h1 className="contest-title">Mi primer concurso</h1>
-                    {!this.props.isAdmin &&
+                    {(this.props.isAdmin || this.state.isOwner) &&
                     <Button variant="fab" mini color="primary" aria-label="Edit" style={{margin: '0.5% 0.5%'}}>
                         <EditIcon/>
                     </Button>
                     }
-                    {!this.props.isAdmin &&
+                    {(this.props.isAdmin || this.state.isOwner) &&
                     <Button variant="fab" mini color="primary" aria-label="Delete" style={{margin:'0.5% 0.5%'}}>
                         <DeleteIcon />
                     </Button>
@@ -97,7 +107,13 @@ class ContestDetails extends Component {
                         />
                     </TabContainer>}
                     {this.state.tabValue === 2 &&
-                    <TabContainer>Item Three</TabContainer>}
+                    <TabContainer>
+                        <SubmissionsTab
+                            contest_id={this.props.match.params.id}
+                            isAdmin={this.props.isAdmin}
+                            isOwner={this.state.isOwner}
+                        />
+                    </TabContainer>}
                 </Paper>
             </div>
         );

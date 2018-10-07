@@ -171,3 +171,31 @@ BEGIN
 	ORDER BY CU.standing;
 	
 END //
+
+-- Get Contest Owner
+
+DELIMITER //
+
+Drop Procedure If Exists spGetContestOwner;
+
+CREATE PROCEDURE spGetContestOwner (IN p_contestID INT)
+BEGIN
+	SELECT U.username
+	FROM Contest C, Users U
+	WHERE C.contestID = p_contestID AND C.ownerID = U.userID;
+
+END //
+
+-- Get User ID
+
+DELIMITER //
+
+Drop Procedure If Exists spGetUserID;
+
+CREATE PROCEDURE spGetUserID (IN p_username VARCHAR(64))
+BEGIN
+	SELECT U.userID
+	FROM Users U
+	WHERE U.username = p_username;
+
+END //

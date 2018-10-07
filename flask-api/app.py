@@ -279,6 +279,39 @@ class EditPassword(Resource):
             conn.close()
             raise e
 
+class IsLoggedUserContestOwner(Resource):
+    def post(self):
+        try:
+            # Opem MySQL connection
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            # Parse request arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('contest_id', type=int, help='Contest identifier number')
+
+            args = parser.parse_args()
+
+            _contest = args['contest_id']
+
+            username = session.get('loggedUser', SESSION_NOT_FOUND)
+
+            cursor.callproc('spGetContestOwner', (_contest,))
+            ownerData = cursor.fetchall()
+            _owner = ownerData[0][0]
+
+            if username == _owner:
+                cursor.close()
+                conn.close()
+                return jsonify({'status': 200})
+            else:
+                cursor.close()
+                conn.close()
+                return jsonify({'status': 100, 'message': 'User not owner'})
+            _
+        except Exception as e:
+            raise e
+
 class GetContestProblems(Resource):
     def post(self):
         try:
@@ -378,13 +411,29 @@ class GetUserSubmissionsInContest(Resource):
 
             _contest = args['contest_id']
 
-            cursor.callproc('spGetUserSubmissionsInContest', (_contest,))
-            data = [dict((cursor.description[i][0], value)
-                        for i, value in enumerate(row)) for row in cursor.fetchall()]
-            cursor.close()
-            conn.close()
-            return jsonify({'status': 200,
-                            'userSubmissionsList': data})
+            username = session.get('loggedUser', 'Session not found')
+
+            if username != 'Session not found':
+                cursor.callproc('spGetUserID', (username,))
+                userData = cursor.fetchall()
+                _userID = userData[0][0]
+
+                if _userID:
+                    cursor.callproc('spGetUserSubmissionsInContest', (_userID, _contest,))
+                    data = [dict((cursor.description[i][0], value)
+                                 for i, value in enumerate(row)) for row in cursor.fetchall()]
+                    cursor.close()
+                    conn.close()
+                    return jsonify({'status': 200,
+                                    'userSubmissionsList': data})
+                else:
+                    cursor.close()
+                    conn.close()
+                    return jsonify ({'status': 100, 'message': 'User not found'})
+            else:
+                cursor.close()
+                conn.close()
+                return jsonify({'status': 100, 'message': 'Session not found'})
             _
         except Exception as e:
             cursor.close()
@@ -401,6 +450,7 @@ api.add_resource(GetContestProblems, '/GetContestProblems')
 api.add_resource(GetContestStandings, '/GetContestStandings')
 api.add_resource(GetSubmissionsInContest, '/GetSubmissionsInContest')
 api.add_resource(GetUserSubmissionsInContest, '/GetUserSubmissionsInContest')
+api.add_resource(IsLoggedUserContestOwner, '/IsLoggedUserContestOwner')
 
 @app.route('/')
 def hello():
