@@ -141,6 +141,21 @@ BEGIN
 	
 END //
 
+-- Get All Submissions in Contest
+
+DELIMITER //
+
+Drop Procedure If Exists spGetSubmissionsInContest;
+
+CREATE PROCEDURE spGetSubmissionsInContest (IN p_contestID INT)
+BEGIN
+	SELECT U.username, P.problemName, P.judge, P.url, S.result, S.language, S.submissionTime
+	FROM Submission S, Problems P, Users U
+	WHERE S.contestID = p_contestID AND S.submitter = U.userID AND S.problemID = P.problemID
+	ORDER BY S.submissionTime DESC;
+
+END //
+
 -- Get Contest Standings
 
 DELIMITER //

@@ -219,12 +219,96 @@ class EditPassword(Resource):
         except Exception as e:
             raise e
 
+class GetContestProblems(Resource):
+    def post(self):
+        try:
+            # Parse request arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('contest_id', type=int, help='Contest identifier number')
+
+            args = parser.parse_args()
+
+            _contest = args['contest_id']
+
+            cursor.callproc('spGetContestProblems', (_contest,))
+            data = [dict((cursor.description[i][0], value)
+                        for i, value in enumerate(row)) for row in cursor.fetchall()]
+            return jsonify({'status': 200,
+                            'problemList': data})
+            _
+        except Exception as e:
+            raise e
+
+class GetContestStandings(Resource):
+    def post(self):
+        try:
+            # Parse request arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('contest_id', type=int, help='Contest identifier number')
+
+            args = parser.parse_args()
+
+            _contest = args['contest_id']
+
+            cursor.callproc('spGetContestStandings', (_contest,))
+            data = [dict((cursor.description[i][0], value)
+                        for i, value in enumerate(row)) for row in cursor.fetchall()]
+            return jsonify({'status': 200,
+                            'standingsList': data})
+            _
+        except Exception as e:
+            raise e
+
+class GetSubmissionsInContest(Resource):
+    def post(self):
+        try:
+            # Parse request arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('contest_id', type=int, help='Contest identifier number')
+
+            args = parser.parse_args()
+
+            _contest = args['contest_id']
+
+            cursor.callproc('spGetSubmissionsInContest', (_contest,))
+            data = [dict((cursor.description[i][0], value)
+                        for i, value in enumerate(row)) for row in cursor.fetchall()]
+            return jsonify({'status': 200,
+                            'submissionsList': data})
+            _
+        except Exception as e:
+            raise e
+
+class GetUserSubmissionsInContest(Resource):
+    def post(self):
+        try:
+            # Parse request arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('contest_id', type=int, help='Contest identifier number')
+
+            args = parser.parse_args()
+
+            _contest = args['contest_id']
+
+            cursor.callproc('spGetUserSubmissionsInContest', (_contest,))
+            data = [dict((cursor.description[i][0], value)
+                        for i, value in enumerate(row)) for row in cursor.fetchall()]
+            return jsonify({'status': 200,
+                            'userSubmissionsList': data})
+            _
+        except Exception as e:
+            raise e
+
 api.add_resource(CreateUser, '/CreateUser')
 api.add_resource(AuthenticateUser, '/AuthenticateUser')
 api.add_resource(EditUserJudgesUsernames, '/EditUserJudgesUsernames')
 api.add_resource(GetUser, '/GetUser')
 api.add_resource(EditUser, '/EditUser')
 api.add_resource(EditPassword, '/EditPassword')
+api.add_resource(GetContestProblems, '/GetContestProblems')
+api.add_resource(GetContestStandings, '/GetContestStandings')
+api.add_resource(GetSubmissionsInContest, '/GetSubmissionsInContest')
+api.add_resource(GetUserSubmissionsInContest, '/GetUserSubmissionsInContest')
 
 @app.route('/')
 def hello():
