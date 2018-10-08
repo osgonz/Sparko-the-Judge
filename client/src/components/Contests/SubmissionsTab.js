@@ -11,7 +11,6 @@ import TablePagination from "@material-ui/core/TablePagination/TablePagination";
 import TableRow from "@material-ui/core/TableRow/TableRow";
 
 import '../../style/style.css';
-import axios from 'axios'
 
 import ContestTabHeader, {getSorting, stableSort} from './ContestTabHeader';
 
@@ -41,29 +40,8 @@ class SubmissionsTab extends Component {
     state = {
         order: 'desc',
         orderBy: 'submissionTime',
-        data: [],
         page: 0,
         rowsPerPage: 10,
-    };
-
-    componentDidMount(){
-        if (this.props.isAdmin || this.props.isOwner) {
-            axios.post('http://127.0.0.1:5000/GetSubmissionsInContest', {
-                contest_id: this.props.contest_id
-            }).then(response => {
-                if (response.data.status == 200){
-                    this.setState({ data: response.data.submissionsList });
-                }
-            });
-        } else {
-            axios.post('http://127.0.0.1:5000/GetUserSubmissionsInContest', {
-                contest_id: this.props.contest_id
-            }, {withCredentials: true}).then(response => {
-                if (response.data.status == 200){
-                    this.setState({ data: response.data.userSubmissionsList });
-                }
-            });
-        }
     };
 
     handleRequestSort = (event, property) => {
@@ -127,8 +105,8 @@ class SubmissionsTab extends Component {
     }
 
     render() {
-        const { classes } = this.props;
-        const { data, order, orderBy, rowsPerPage, page } = this.state;
+        const { classes, data } = this.props;
+        const { order, orderBy, rowsPerPage, page } = this.state;
         const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
 
         return (

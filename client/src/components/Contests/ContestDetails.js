@@ -18,8 +18,6 @@ import StandingsTab from './StandingsTab';
 import ProblemsTab from './ProblemsTab';
 import SubmissionsTab from './SubmissionsTab';
 import Error404 from '../Error404/Error404';
-import Avatar from "@material-ui/core/Avatar/Avatar";
-import AdminIcon from "@material-ui/core/SvgIcon/SvgIcon";
 
 
 const styles = {
@@ -45,6 +43,8 @@ class ContestDetails extends Component {
         endDate: null,
         status: null,
         problemsData: [],
+        submissionsData: [],
+        scoreData: [],
         isOwner: null,
         isParticipant: null,
         isValidated: null
@@ -75,6 +75,24 @@ class ContestDetails extends Component {
             if (response.data.status == 200){
                 this.setState({ isOwner: true });
             }
+        }).then( () => {
+            if (this.props.isAdmin || this.state.isOwner) {
+                axios.post('http://127.0.0.1:5000/GetSubmissionsInContest', {
+                    contest_id: this.props.match.params.id
+                }).then(response => {
+                    if (response.data.status == 200){
+                        this.setState({ submissionsData: response.data.submissionsList });
+                    }
+                });
+            } else {
+                axios.post('http://127.0.0.1:5000/GetUserSubmissionsInContest', {
+                    contest_id: this.props.match.params.id
+                }, {withCredentials: true}).then(response => {
+                    if (response.data.status == 200){
+                        this.setState({ submissionsData: response.data.userSubmissionsList });
+                    }
+                });
+            }
         });
 
         axios.post('http://127.0.0.1:5000/GetContestProblems', {
@@ -82,6 +100,17 @@ class ContestDetails extends Component {
         }).then(response => {
             if (response.data.status == 200){
                 this.setState({ problemsData: response.data.problemList });
+                let problemIDList = [];
+                console.log(this.state.problemsData);
+                this.state.problemsData.forEach(problem => {
+                    problemIDList.push(problem.problemID.toString());
+                });
+                axios.post('http://127.0.0.1:5000/GetContestScoresPerProblem', {
+                    contest_id: this.props.match.params.id,
+                    problem_id_list: problemIDList
+                }).then(response => {
+                    this.setState({ scoreData: response.data.scoreList });
+                });
             }
         });
     };
@@ -112,7 +141,7 @@ class ContestDetails extends Component {
     render()
     {
         const { classes } = this.props;
-        const { isOwner, isParticipant, isValidated, contestName, description, status, problemsData, tabValue } = this.state;
+        const { isOwner, isParticipant, isValidated, contestName, description, status, problemsData, submissionsData, scoreData, tabValue } = this.state;
 
         if (isValidated)
             if (isOwner || isParticipant)
@@ -150,6 +179,7 @@ class ContestDetails extends Component {
                                 <StandingsTab
                                     contest_id={this.props.match.params.id}
                                     problemList={problemsData}
+                                    scores={scoreData}
                                 />
                             </TabContainer>}
                             {tabValue === 1 &&
@@ -161,9 +191,7 @@ class ContestDetails extends Component {
                             {this.state.tabValue === 2 &&
                             <TabContainer>
                                 <SubmissionsTab
-                                    contest_id={this.props.match.params.id}
-                                    isAdmin={this.props.isAdmin}
-                                    isOwner={isOwner}
+                                    data={submissionsData}
                                 />
                             </TabContainer>}
                         </Paper>

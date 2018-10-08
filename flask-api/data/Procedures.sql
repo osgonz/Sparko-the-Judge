@@ -227,3 +227,34 @@ BEGIN
   WHERE CU.contestID = p_contestID AND CU.userID = p_userID AND CU.userID = U.userID;
 
 END //
+
+-- Get Contest Scores Per Problem
+
+DELIMITER //
+
+Drop Procedure If Exists spGetContestScoresPerProblem;
+
+CREATE PROCEDURE spGetContestScoresPerProblem (IN p_problemID INT, IN p_contestID INT)
+BEGIN
+  SELECT SU.username, SU.result, SU.submissionCount, TIMESTAMPDIFF(SECOND, C.startDate, SU.submissionTime) as TimeDifference
+  FROM (
+      SELECT C.contestID, C.startDate
+      FROM Contest C
+      WHERE C.contestID = p_contestID
+  ) C, (
+      SELECT U.userID, S.contestID, U.username, COUNT(S.submissionID) AS submissionCount, MAX(S.result) AS result, MAX(S.submissionTime) AS submissionTime
+      FROM (
+          SELECT CU.userID, U.username
+          FROM ContestUser CU, Users U
+          WHERE CU.contestID = p_contestID AND CU.userID = U.userID
+      ) U, (
+          SELECT S.contestID, S.submissionID, S.result, S.submissionTime, S.submitter
+          FROM submission S
+          WHERE S.contestID = p_contestID AND S.problemID = p_problemID
+      ) S
+      WHERE U.userID = S.submitter
+      GROUP BY U.userID
+  ) SU
+  WHERE SU.contestID = C.contestID
+  ORDER BY SU.userID, SU.submissionTime DESC;
+END //

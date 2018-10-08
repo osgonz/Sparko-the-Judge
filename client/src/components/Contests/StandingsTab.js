@@ -73,16 +73,23 @@ class StandingsTab extends Component {
         this.setState({ rowsPerPage: event.target.value });
     };
 
+    handleScoreDisplay = entryDict => {
+        if (entryDict.result == '90')
+            return entryDict.submissionCount + '/' + entryDict.TimeDifference;
+        return entryDict.submissionCount + '/--';
+    }
+
     render() {
-        const { classes, problemList } = this.props;
+        const { classes, problemList, scores } = this.props;
         const { data, order, orderBy, rowsPerPage, page } = this.state;
         const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
 
         const problemCant = problemList.length;
         let newRows = rows.slice();
         for (let i=1; i <= problemCant; i++) {
-            newRows.push({ id: 'P' + i, numeric: true, disablePadding: false, label: 'P' + i});
+            newRows.push({ id: 'P' + i, numeric: false, disablePadding: false, label: 'P' + i});
         }
+        console.log(scores);
 
         return (
             <Paper className={classes.root}>
@@ -112,9 +119,15 @@ class StandingsTab extends Component {
                                                 {n.country_name? n.country_name : 'N/A'}
                                             </TableCell>
                                             <TableCell numeric={rows[3].numeric}>{n.score}</TableCell>
-                                            { problemList.map(problem => {
+                                            { problemList.map((problem, index) => {
                                               return (
-                                                  <TableCell key={problem.problemID} numeric={true}>0</TableCell>
+                                                  <TableCell key={problem.problemID} numeric={false}>
+                                                      { scores.length > 0 &&
+                                                      <span>
+                                                          {scores[index][n.username] ? this.handleScoreDisplay(scores[index][n.username]) : '0/--'}
+                                                      </span>
+                                                      }
+                                                  </TableCell>
                                               );
                                             })}
                                         </TableRow>
