@@ -75,7 +75,7 @@ class StandingsTab extends Component {
 
     handleScoreDisplay = entryDict => {
         if (entryDict.result == '90')
-            return entryDict.submissionCount + '/' + entryDict.TimeDifference;
+            return entryDict.submissionCount + '/' + (entryDict.TimeDifference + ((entryDict.submissionCount - 1) * 1200));
         return entryDict.submissionCount + '/--';
     }
 
