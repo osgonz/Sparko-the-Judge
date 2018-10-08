@@ -89,7 +89,7 @@ class ProblemsTab extends Component {
                                                 {index+1}
                                             </TableCell>
                                             <TableCell numeric={rows[1].numeric}><a href={n.url} target="_blank">{n.problemName}</a></TableCell>
-                                            <TableCell numeric={rows[2].numeric}>{n.judge}</TableCell>
+                                            <TableCell numeric={rows[2].numeric}>{this.props.handleJudgeCode(n.judge)}</TableCell>
                                         </TableRow>
                                     );
                                 })}

@@ -89,7 +89,6 @@ class StandingsTab extends Component {
         for (let i=1; i <= problemCant; i++) {
             newRows.push({ id: 'P' + i, numeric: false, disablePadding: false, label: 'P' + i});
         }
-        console.log(scores);
 
         return (
             <Paper className={classes.root}>

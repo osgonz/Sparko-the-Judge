@@ -67,40 +67,28 @@ class SubmissionsTab extends Component {
         switch(code) {
             case 10:
                 return 'Submission error';
-                break;
             case 15:
                 return "Can't be judged";
-                break;
             case 20:
                 return 'In queue';
-                break;
             case 30:
                 return 'Compile error';
-                break;
             case 35:
                 return 'Restricted function';
-                break;
             case 40:
                 return 'Runtime error';
-                break;
             case 45:
                 return 'Output limit';
-                break;
             case 50:
                 return 'Time limit';
-                break;
             case 60:
                 return 'Memory limit';
-                break;
             case 70:
                 return 'Wrong answer';
-                break;
             case 80:
                 return 'PresentationE';
-                break;
             case 90:
                 return 'Accepted';
-                break;
         }
     }
 
@@ -108,6 +96,7 @@ class SubmissionsTab extends Component {
         const { classes, data } = this.props;
         const { order, orderBy, rowsPerPage, page } = this.state;
         const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
+        console.log(data);
 
         return (
             <Paper className={classes.root}>
@@ -133,7 +122,7 @@ class SubmissionsTab extends Component {
                                                 {n.username}
                                             </TableCell>
                                             <TableCell numeric={rows[1].numeric}><a href={n.url} target="_blank">{n.problemName}</a></TableCell>
-                                            <TableCell numeric={rows[1].numeric}>{n.judge}</TableCell>
+                                            <TableCell numeric={rows[1].numeric}>{this.props.handleJudgeCode(n.judge)}</TableCell>
                                             <TableCell numeric={rows[1].numeric}>{this.handleResultCode(n.result)}</TableCell>
                                             <TableCell numeric={rows[1].numeric}>{n.language}</TableCell>
                                             <TableCell numeric={rows[1].numeric}>{n.submissionTime}</TableCell>

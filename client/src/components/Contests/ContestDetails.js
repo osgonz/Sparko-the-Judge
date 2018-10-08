@@ -101,7 +101,6 @@ class ContestDetails extends Component {
             if (response.data.status == 200){
                 this.setState({ problemsData: response.data.problemList });
                 let problemIDList = [];
-                console.log(this.state.problemsData);
                 this.state.problemsData.forEach(problem => {
                     problemIDList.push(problem.problemID.toString());
                 });
@@ -135,6 +134,15 @@ class ContestDetails extends Component {
                 return (
                     <Chip label="Finished" />
                 );
+        }
+    }
+
+    handleJudgeCode = judge => {
+        switch(judge) {
+            case 0:
+                return 'ICPC Live Archive';
+            case 1:
+                return 'UVa';
         }
     }
 
@@ -186,12 +194,14 @@ class ContestDetails extends Component {
                             <TabContainer>
                                 <ProblemsTab
                                     data={problemsData}
+                                    handleJudgeCode = {this.handleJudgeCode}
                                 />
                             </TabContainer>}
                             {this.state.tabValue === 2 &&
                             <TabContainer>
                                 <SubmissionsTab
                                     data={submissionsData}
+                                    handleJudgeCode = {this.handleJudgeCode}
                                 />
                             </TabContainer>}
                         </Paper>
