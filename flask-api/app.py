@@ -88,11 +88,13 @@ class AuthenticateUser(Resource):
                 hashed_password = data[0][4]
                 if bcrypt.checkpw(_userPassword.encode('utf8'), hashed_password.encode('utf8')):
                     user_id = data[0][0]
+                    user_type = data[0][6]
                     session['loggedUser'] = _userName
-                    return {'status':200,'UserId':str(user_id)}
+                    return {'status':200,'UserId':str(user_id),'userType':user_type}
                 else:
                     return {'status':100,'message':'Authentication failure'}
 
+            return {'status':100,'message':'Authentication failure'}
         except Exception as e:
             return {'error': str(e)}
 
@@ -160,6 +162,7 @@ class GetUser(Resource):
     def post(self):
         try:
             _username = session.get('loggedUser', SESSION_NOT_FOUND)
+            print('Get user', _username)
 
             cursor.callproc('spAuthentication', (_username,))
             data = cursor.fetchall()
@@ -219,12 +222,88 @@ class EditPassword(Resource):
         except Exception as e:
             raise e
 
+class GetUserList(Resource):
+    def post(self):
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('usertype', type=str, help='User type')
+
+            args = parser.parse_args()
+
+            _username = session.get('loggedUser', SESSION_NOT_FOUND)
+            _usertype = args['usertype']
+
+            if _usertype == '0':
+                sql = '''SELECT userID AS id, username, CONCAT(fname, " ",lname) AS fullName, usertype AS userType, iduva AS uvaUsername, idicpc AS icpcUsername 
+                        FROM users WHERE usertype != %s AND username != %s'''
+                data = (_usertype,_username)
+            else:
+                sql = '''SELECT userID AS id, username, CONCAT(fname, " ",lname) AS fullName, usertype AS userType, iduva AS uvaUsername, idicpc AS icpcUsername 
+                        FROM users
+                        WHERE usertype = %s AND username != %s '''
+                data = (_usertype, _username)
+
+            cursor.execute(sql, data)
+
+            r = [dict((cursor.description[i][0], value)
+                    for i, value in enumerate(row)) for row in cursor.fetchall()]
+            return jsonify({'status': 'SUCCESS',
+                            'userList': r})
+
+        except Exception as e:
+            raise e
+
+class BanUsers(Resource):
+    def post(self):
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('usernames', action='append', help='Users to ban')
+            args = parser.parse_args()
+
+            _usersBanned = args['usernames']
+
+            sql = '''UPDATE users
+                    SET usertype = 2
+                    WHERE userID = %s'''
+            for userID in _usersBanned:
+                data = (userID, )
+                cursor.execute(sql, data)
+
+            conn.commit()
+            return jsonify({'status': 'SUCCESS'})
+        except Exception as e:
+            raise e
+
+class UnbanUsers(Resource):
+    def post(self):
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('usernames', action='append', help='Users to unbban')
+            args = parser.parse_args()
+
+            _usersBanned = args['usernames']
+
+            sql = '''UPDATE users
+                    SET usertype = 1
+                    WHERE userID = %s'''
+            for userID in _usersBanned:
+                data = (userID, )
+                cursor.execute(sql, data)
+
+            conn.commit()
+            return jsonify({'status': 'SUCCESS'})
+        except Exception as e:
+            raise e
+
 api.add_resource(CreateUser, '/CreateUser')
 api.add_resource(AuthenticateUser, '/AuthenticateUser')
 api.add_resource(EditUserJudgesUsernames, '/EditUserJudgesUsernames')
 api.add_resource(GetUser, '/GetUser')
 api.add_resource(EditUser, '/EditUser')
 api.add_resource(EditPassword, '/EditPassword')
+api.add_resource(GetUserList, '/GetUserList')
+api.add_resource(BanUsers, '/BanUsers')
+api.add_resource(UnbanUsers, '/UnbanUsers')
 
 @app.route('/')
 def hello():
@@ -232,7 +311,19 @@ def hello():
 
 @app.route('/GetActiveSession')
 def get():
-    return session.get('loggedUser', SESSION_NOT_FOUND)
+    username = session.get('loggedUser', SESSION_NOT_FOUND)
+    try:
+        sql = '''SELECT usertype FROM Users WHERE username = %s'''
+        data = (username,)
+        cursor.execute(sql, data)
+        user = cursor.fetchall()
+        if len(user) > 0:
+            usertype = user[0][0]
+            return jsonify({'username': username, 'usertype': usertype})
+        return jsonify({'error': SESSION_NOT_FOUND})
+    except Exception as e:
+        return jsonify({'error': str(e)})
+    #return username
 
 @app.route('/SetActiveSession')
 def set():
@@ -244,37 +335,5 @@ def logout():
     session.pop('loggedUser', None)
     return 'You were logged out'
 
-@app.route('/GetUserList/<userType>')
-def getUserList(userType):
-    if userType == '0':
-        sql = '''SELECT userID AS id, username, CONCAT(fname, " ",lname) AS fullName, usertype AS userType, iduva AS uvaUsername, idicpc AS icpcUsername 
-                FROM users'''
-    else:
-        sql = '''SELECT userID AS id, username, CONCAT(fname, " ",lname) AS fullName, usertype AS userType, iduva AS uvaUsername, idicpc AS icpcUsername 
-                FROM users
-                WHERE usertype = 1'''
-
-    cursor.execute(sql)
-    
-    r = [dict((cursor.description[i][0], value)
-            for i, value in enumerate(row)) for row in cursor.fetchall()]
-    return jsonify({'status': 'SUCCESS',
-                    'userList': r})
-
-@app.route('/BanUser/<bannedUser>')
-def banUser(bannedUser):
-    sql = '''UPDATE users
-            SET users.usertype = 2
-            WHERE users.userID = %s''' % (bannedUser)
-    
-    cursor.execute(sql)
-    conn.commit()
-    return bannedUser
-
-
-
 if __name__ == '__main__':
     app.run(debug=True)
-
-
-
