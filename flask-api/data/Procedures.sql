@@ -114,3 +114,37 @@ CREATE Procedure spGetCountries ()
 BEGIN
     SELECT country_name from Countries;
 END //
+
+-- Get owned Contests
+
+DELIMITER //
+
+Drop Procedure spGetOwnedContests;
+
+CREATE Procedure spGetOwnedContests (IN p_ownerID INT)
+BEGIN
+    SELECT contestName, description, startDate, endDate, status from Contest where p_ownerID = ownerID;
+END //
+
+---- Get invited Contests
+
+DELIMITER //
+
+Drop Procedure spGetInvitedContests;
+
+CREATE Procedure spGetInvitedContests (IN p_userID INT)
+BEGIN
+    SELECT contestName, description, startDate, endDate, status from Contest where contestID = (SELECT contestID from Contestuser where userID = p_userID);
+END //
+
+-- Get userID
+
+DELIMITER //
+
+Drop Procedure spGetUserID;
+
+CREATE procedure spGetUserID (IN p_username varchar(64))
+BEGIN
+	SELECT userID FROM users WHERE username = p_username;
+END //
+

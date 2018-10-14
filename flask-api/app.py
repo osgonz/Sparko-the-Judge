@@ -226,6 +226,112 @@ api.add_resource(GetUser, '/GetUser')
 api.add_resource(EditUser, '/EditUser')
 api.add_resource(EditPassword, '/EditPassword')
 
+class CreateContest(Resource):
+	def post(self):
+		try:
+			# Parse the arguments
+			parser = reqparse.RequestParser()
+			parser.add_argument('contestName', type=str, help='Contest name to create contest')
+			parser.add_argument('description', type=str, help='Contest description to create contest')
+			parser.add_argument('startDate', type=datetime , help='Contest start date to create contest')
+			parser.add_argument('endDate', type=datetime , help='Contest end date to create contest')
+			parser.add_argument('status', type=int, help='Contest status to create contest')
+			parser.add_argument('ownerID', type=int, help='ownerID to create contest')
+
+			args = parser.parse_args()
+
+			_contestName = args['contestName']
+			_contestDescription = args['description']
+			_contestStartDate = args['startDate']
+			_contestEndDate = args['endDate']
+			_contestStatus = args['status']
+			_contestOwnerID = args['ownerID']
+
+			cursor.callproc('spCreateContest',(_contestName,_contestDescription, _contestStartDate, _contestEndDate, _contestStatus, _contestOwnerID))
+			data = cursor.fetchall()
+
+			if len(data) is 0:
+				conn.commit()
+				return {'StatusCode':'200','Message': 'Contest creation success'}
+			else:
+				return {'StatusCode':'1000','Message': str(data[0])}
+		except Exception as e:
+			return {'error': str(e)}
+			
+api.add_resource(CreateContest, '/CreateContest')
+
+class GetUserID(Resource):
+    def post(self):
+        try:
+            # Parse the arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('email', type=str, help='email to find userID')
+
+            args = parser.parse_args()
+
+            _email = args['email']
+
+            cursor.callproc('spUserID', (_email,))
+            data = cursor.fetchall()
+
+            if len(data) > 0:
+                return {'StatusCode':'200','Message': 'UserID found'}
+            else:
+                return {'StatusCode':'1000','Message': str(data[0])}
+
+        except Exception as e:
+            return {'error': str(e)}
+
+api.add_resource(GetUserID, '/GetUserID')
+
+class ViewOwnedContestList(Resource):
+    def post(self):
+        try:
+            # Parse the arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('ownerID', type=int, help='ownerID to find contest')
+
+            args = parser.parse_args()
+
+            _ownerID = args['ownerID']
+
+            cursor.callproc('spGetOwnedContests', (_ownerID,))
+            data = cursor.fetchall()
+            if len(data) >= 0:
+                return jsonify({'StatusCode':'200','ownedContestList': data})
+            else:
+                return {'StatusCode':'1000','Message': str(data[0])}
+
+        except Exception as e:
+            return {'error': str(e)}
+
+api.add_resource(ViewOwnedContestList, '/ViewOwnedContestList')
+
+class ViewInvitedContestList(Resource):
+    def post(self):
+        try:
+			# Parse the arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('userID', type=int, help='userID to find contest')
+
+            args = parser.parse_args()
+
+            _userID = args['userID']
+            print("_userID: ")
+            print(_userID)
+            cursor.callproc('spGetInvitedContests', (_userID,))
+            data = cursor.fetchall()
+            print(data)
+            if len(data) >= 0:
+                return jsonify({'StatusCode':'200','invitedContestList': data})
+            else:
+                return {'StatusCode':'1000','Message': str(data[0])}
+
+        except Exception as e:
+            return {'error': str(e)}
+
+api.add_resource(ViewInvitedContestList, '/ViewInvitedContestList')
+
 @app.route('/')
 def hello():
     return 'Hello world!'
