@@ -16,6 +16,7 @@ import SignUp from './components/SignUp/SignUp';
 import Profile from './components/Profile/Profile';
 import Users from './components/Users/Users';
 import ContestList from './components/ViewContestList/ContestList';
+import CreateContest from './components/CreateContest/CreateContest';
 
 /*******************************************************************************/
 
@@ -48,6 +49,12 @@ class Main extends Component {
             );
         }
 		
+		const CreateContestComponent = (props) => {
+            return (
+                <CreateContest />
+            );
+        }
+		
 		const ContestListComponent = (props) => {
             return (
                 <ContestList
@@ -75,7 +82,7 @@ class Main extends Component {
         return(
             <div className="main-container">
                 <Switch>
-                    <Route exact path='/' component= {ContestListComponent} />
+                    <Route exact path='/' component= {CreateContestComponent} />
                     { /* If logged and admin, show Users page */ }
                     { this.props.isLogged && this.props.isAdmin &&
                         <Route path='/users' render= {UsersComponent}/>

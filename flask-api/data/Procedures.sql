@@ -148,3 +148,30 @@ BEGIN
 	SELECT userID FROM users WHERE username = p_username;
 END //
 
+
+-- Create Contest
+DELIMITER //
+
+Drop Procedure If Exists spCreateContest;
+
+CREATE PROCEDURE spCreateContest (IN contestName varchar(255), IN description varchar(255), IN startDate DATETIME, IN endDate DATETIME, IN status INT, in ownerID INT)
+BEGIN
+    INSERT into contest
+    (
+        contestName,
+        description,
+        startDate,
+        endDate,
+        status,
+        ownerID
+    )
+    VALUES
+    (
+        contestName,
+        description,
+        startDate,
+        endDate,
+        status,
+        ownerID
+    );
+END //

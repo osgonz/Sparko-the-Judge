@@ -233,8 +233,8 @@ class CreateContest(Resource):
 			parser = reqparse.RequestParser()
 			parser.add_argument('contestName', type=str, help='Contest name to create contest')
 			parser.add_argument('description', type=str, help='Contest description to create contest')
-			parser.add_argument('startDate', type=datetime , help='Contest start date to create contest')
-			parser.add_argument('endDate', type=datetime , help='Contest end date to create contest')
+			parser.add_argument('startDate', help='Contest start date to create contest')
+			parser.add_argument('endDate', help='Contest end date to create contest')
 			parser.add_argument('status', type=int, help='Contest status to create contest')
 			parser.add_argument('ownerID', type=int, help='ownerID to create contest')
 
