@@ -21,8 +21,11 @@ import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
 import Checkbox from '@material-ui/core/Checkbox';
 import IconButton from '@material-ui/core/IconButton';
+import Button from '@material-ui/core/Button';
 import Tooltip from '@material-ui/core/Tooltip';
 import DeleteIcon from '@material-ui/icons/Delete';
+import LockOpenIcon from '@material-ui/icons/LockOpen';
+import LockIcon from '@material-ui/icons/Lock';
 import FilterListIcon from '@material-ui/icons/FilterList';
 import { lighten } from '@material-ui/core/styles/colorManipulator';
 
@@ -166,17 +169,24 @@ let EnhancedTableToolbar = props => {
 
     function handleBanUser(event, usersBanned) {
         console.log(usersBanned);
-                
-        for (var i = 0; i < usersBanned.length; i++) {
-            axios.get('http://127.0.0.1:5000/BanUser/' + usersBanned[i])
-            .then(response => {
-                console.log("You just banned " + response.data);
+        axios.post('http://127.0.0.1:5000/BanUsers', {
+          usernames: usersBanned
+        }, {withCredentials: true})
+        .then(response => {
+            console.log("You just banned ", usersBanned);
+            window.location.reload();
+        })
+    }
 
-            })            
-        }
-        window.location.reload();
-        //history.pushState(null, '/');
-        //history.pushState(null, '/users');
+    function handleUnbanUser(event, usersUnbanned) {
+        console.log(usersUnbanned);
+        axios.post('http://127.0.0.1:5000/UnbanUsers', {
+          usernames: usersUnbanned
+        }, {withCredentials: true})
+        .then(response => {
+            console.log("You just unbanned ", usersUnbanned);
+            window.location.reload();
+        })
     }
 
   return (
@@ -200,11 +210,18 @@ let EnhancedTableToolbar = props => {
       <div className={classes.spacer} />
       <div className={classes.actions}>
         {numSelected > 0 ? (
-          <Tooltip title="Ban User">
-            <IconButton aria-label="Delete" onClick={event => handleBanUser(event, props.usersSelected)}>
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>      
+          <div style={{display: "flex"}}>
+            <Tooltip title="Ban Users">
+              <IconButton aria-label="Delete" onClick={event => handleBanUser(event, props.usersSelected)}>
+                <LockIcon />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Unban Users">
+              <IconButton aria-label="Delete" onClick={event => handleUnbanUser(event, props.usersSelected)}>
+                <LockOpenIcon />
+              </IconButton>
+            </Tooltip>
+          </div>
         ) : (
           <Tooltip title="Filter list">
             <IconButton aria-label="Filter list">
@@ -244,32 +261,48 @@ const styles = theme => ({
 /*                                                                             */
 /*******************************************************************************/
 class Users extends Component {
-  state = {
-    order: 'asc',
-    orderBy: 'fullName',
-    selected: [],
-    data: [],
-    page: 0,
-    rowsPerPage: 10,
-  };
+
+  constructor(props) {
+      super(props)
+      this.state = {
+        order: 'asc',
+        orderBy: 'fullName',
+        selected: [],
+        data: [],
+        page: 0,
+        rowsPerPage: 10,
+      }
+  }
 
     componentDidMount(){
-        if(this.props.isAdmin) {
-            axios.get('http://127.0.0.1:5000/GetUserList/0')
-            .then(response => {
-                if (response.data.status == 'SUCCESS'){
-                    this.setState({ data: response.data.userList });                
-                }
-            })
-        } else {
-            axios.get('http://127.0.0.1:5000/GetUserList/1')
-            .then(response => {
-                if (response.data.status == 'SUCCESS'){
-                    this.setState({ data: response.data.userList });                
-                }
-            })
-        }
-    };
+      var username = ''
+        axios.get('http://127.0.0.1:5000/GetActiveSession', {withCredentials: true})
+        .then(response => {
+          if (response.data.username != 'Session not found'){
+            username = response.data
+          }
+        })
+        .then(response => {
+          if(this.props.isAdmin) {
+              axios.post('http://127.0.0.1:5000/GetUserList', {usertype: '0'}, {withCredentials: true})
+              .then(response => {
+                console.log(response)
+                  if (response.data.status == 'SUCCESS'){
+                      this.setState({ data: response.data.userList });
+                  }
+              })
+          }
+          else {
+              axios.post('http://127.0.0.1:5000/GetUserList', {usertype: '1'}, {withCredentials: true})
+              .then(response => {
+                console.log(response)
+                  if (response.data.status == 'SUCCESS'){
+                      this.setState({ data: response.data.userList });
+                  }
+              })
+          }
+        })
+    }
 
   handleRequestSort = (event, property) => {
     const orderBy = property;
@@ -327,19 +360,26 @@ class Users extends Component {
     switch(userType){
         case 0:
             return(
-                <Chip label="Administrator" color="primary" avatar={<Avatar><AdminIcon /></Avatar>} />
+                <Chip style={{cursor: 'pointer'}} label="Administrator" color="primary" avatar={<Avatar><AdminIcon /></Avatar>} />
             );
 
         case 1:
             return(
-                <Chip label="Regual User" avatar={<Avatar><FaceIcon /></Avatar>} />
+                <Chip style={{cursor: 'pointer'}} label="Regular User" avatar={<Avatar><FaceIcon /></Avatar>} />
             );
 
         case 2:
             return(
-                <Chip label="Banned User" color="secondary" avatar={<Avatar><BanIcon /></Avatar>} />
+                <Chip style={{cursor: 'pointer'}} label="Banned User" color="secondary" avatar={<Avatar><BanIcon /></Avatar>} />
             );
     }
+  }
+
+  getTableRowTitle = (isAdmin, username) => {
+    if (isAdmin)
+      return ""
+    else
+      return "Compare with " + username
   }
 
   render() {
@@ -369,19 +409,29 @@ class Users extends Component {
                   return (
                     <TableRow
                       hover
-                      //onClick={event => this.handleClick(event, n.id)}
+                      onClick={event => {
+                          if (this.props.isAdmin){
+                            this.handleClick(event, n.id)
+                          }
+                          else{
+                            console.log("Comparing with " + n.username)
+                          }
+                        }
+                      }
                       role="checkbox"
                       aria-checked={isSelected}
                       tabIndex={-1}
                       key={n.id}
-                      //selected={isSelected}
+                      selected={isSelected}
+                      style={{cursor: 'pointer'}}
+                      title={this.getTableRowTitle(this.props.isAdmin, n.username)}
                     >
-                        <TableCell padding="checkbox">
-                        {   this.props.isAdmin &&    
-                                <Checkbox checked={isSelected} />
-                        }
-                        </TableCell>
-                      
+                      <TableCell padding="checkbox">
+                      {   this.props.isAdmin &&
+                              <Checkbox checked={isSelected} />
+                      }
+                      </TableCell>
+
                       <TableCell component="th" scope="row" padding="none">
                         {n.username}
                       </TableCell>
