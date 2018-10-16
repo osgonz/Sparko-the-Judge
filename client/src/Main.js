@@ -17,6 +17,7 @@ import Profile from './components/Profile/Profile';
 import Users from './components/Users/Users';
 import ContestList from './components/ViewContestList/ContestList';
 import CreateContest from './components/CreateContest/CreateContest';
+import Dummy from './components/Dummy/FormDialog'
 
 /*******************************************************************************/
 
@@ -51,7 +52,7 @@ class Main extends Component {
 		
 		const CreateContestComponent = (props) => {
             return (
-                <CreateContest />
+                <Dummy />
             );
         }
 		

@@ -119,29 +119,29 @@ END //
 
 DELIMITER //
 
-Drop Procedure spGetOwnedContests;
+Drop Procedure If Exists spGetOwnedContests;
 
-CREATE Procedure spGetOwnedContests (IN p_ownerID INT)
+CREATE Procedure spGetOwnedContests (IN p_ownerusername varchar(64))
 BEGIN
-    SELECT contestName, description, startDate, endDate, status from Contest where p_ownerID = ownerID;
+    SELECT contestName, description, startDate, endDate, status from Contest where (SELECT userID FROM Users WHERE username = p_ownerusername) = ownerID;
 END //
 
 ---- Get invited Contests
 
 DELIMITER //
 
-Drop Procedure spGetInvitedContests;
+Drop Procedure If Exists spGetInvitedContests;
 
-CREATE Procedure spGetInvitedContests (IN p_userID INT)
+CREATE Procedure spGetInvitedContests (IN p_username varchar(64))
 BEGIN
-    SELECT contestName, description, startDate, endDate, status from Contest where contestID = (SELECT contestID from Contestuser where userID = p_userID);
+    SELECT contestName, description, startDate, endDate, status from Contest where contestID = (SELECT contestID from Contestuser where userID = (SELECT userID FROM Users WHERE username = p_username));
 END //
 
 -- Get userID
 
 DELIMITER //
 
-Drop Procedure spGetUserID;
+Drop Procedure If Exists spGetUserID;
 
 CREATE procedure spGetUserID (IN p_username varchar(64))
 BEGIN
@@ -154,7 +154,7 @@ DELIMITER //
 
 Drop Procedure If Exists spCreateContest;
 
-CREATE PROCEDURE spCreateContest (IN contestName varchar(255), IN description varchar(255), IN startDate DATETIME, IN endDate DATETIME, IN status INT, in ownerID INT)
+CREATE PROCEDURE spCreateContest (IN contestName varchar(255), IN description varchar(255), IN startDate DATETIME, IN endDate DATETIME, IN status INT, in p_username varchar(64))
 BEGIN
     INSERT into contest
     (
@@ -172,6 +172,6 @@ BEGIN
         startDate,
         endDate,
         status,
-        ownerID
+        (SELECT userID FROM Users WHERE username = p_username)
     );
 END //

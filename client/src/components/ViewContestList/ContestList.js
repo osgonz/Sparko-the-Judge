@@ -9,6 +9,7 @@ import '../../style/style.css';
 import axios from 'axios'
 import OwnedContestListTab from './OwnedContestListTab';
 import InvitedContestListTab from './InvitedContestListTab';
+import CreateContestButton from '../Dummy/FormDialog';
  const styles = {
     root: {
         flexGrow: 1,
@@ -29,57 +30,46 @@ import InvitedContestListTab from './InvitedContestListTab';
 		ownedContestData: [],
 		invitedContestData: [],
     };
-     componentDidMount(){ 
-		 axios.post('http://127.0.0.1:5000/GetUser',{}/*, {withCredentials: true}*/)
-			.then(response => {
-				if (response.data.status == 200){
-					this.setState({username: response.data.username})
-					axios.post('http://127.0.0.1:5000/GetUserID',{}/*, {withCredentials: true}*/)
-						.then(response => {
-							if (response.data.status == 200){
-								this.setState({userId: response.data.userID})
-							}
-						})
-						.catch((error) => {
-								console.log(error);
+
+     componentDidMount(){
+		axios.get('http://127.0.0.1:5000/GetActiveSession', {withCredentials: true})
+        .then(response => {
+            console.log(response.data);
+			if (response.data != 'Session not found') {
+				this.setState({username: response.data})
+				axios.post('http://127.0.0.1:5000/ViewOwnedContestList', {username: this.state.username}, {withCredentials: true})
+				.then(response => {
+					console.log(response)
+					if (response.status === 200) {
+						this.setState({ownedContestData: response.data.ownedContestList})
+					}
+
+				})
+				.then(() =>{
+					axios.post('http://127.0.0.1:5000/ViewInvitedContestList', {username: this.state.username}, {withCredentials: true})
+					.then(response => {
+						console.log(response)
+						if (response.status === 200) {
+							this.setState({invitedContestData: response.data.invitedContestList})
+						}
+
+					})
+					.catch((error) => {
+						console.log(error);
 					});
-				}
-			})
-			.catch((error) => {
+				})
+				.catch((error) => {
 					console.log(error);
-		});
-		
-		axios.post('http://127.0.0.1:5000/ViewOwnedContestList', {
-			ownerID: 3
-		}/*, {withCredentials: true}*/)
-			.then(response => {
-				if (response.status === 200) {
-					this.setState({ownedContestData: response.data.ownedContestList})
-				}
+				});
+			}
+        })
+	}
 
-			})
-			.catch((error) => {
-				console.log(error);
-			});
-			
-		axios.post('http://127.0.0.1:5000/ViewInvitedContestList', {
-		userID: 3
-		}/*, {withCredentials: true}*/)
-			.then(response => {
-				if (response.status === 200) {
-					this.setState({invitedContestData: response.data.invitedContestList})
-				}
-
-			})
-			.catch((error) => {
-				console.log(error);
-			});
-	};
-     handleChange = (event, value) => {
-        this.setState({
-            tabValue: value
-        });
-    };
+	handleChange = (event, value) => {
+	    this.setState({
+	        tabValue: value
+	    });
+	}
 
      render()
     {
@@ -87,6 +77,7 @@ import InvitedContestListTab from './InvitedContestListTab';
         const {  invitedContestData, ownedContestData, tabValue } = this.state;
 		return (
 			<div>
+			<CreateContestButton />
 				<Paper className={classes.root}>
 					<Tabs
 						value={tabValue}
