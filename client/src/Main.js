@@ -15,6 +15,9 @@ import Login from './components/Login/Login';
 import SignUp from './components/SignUp/SignUp';
 import Profile from './components/Profile/Profile';
 import Users from './components/Users/Users';
+import ContestList from './components/ViewContestList/ContestList';
+import CreateContest from './components/CreateContest/CreateContest';
+import Dummy from './components/Dummy/FormDialog'
 
 /*******************************************************************************/
 
@@ -46,6 +49,22 @@ class Main extends Component {
                 <Users isAdmin={true}/>
             );
         }
+		
+		const CreateContestComponent = (props) => {
+            return (
+                <Dummy />
+            );
+        }
+		
+		const ContestListComponent = (props) => {
+            return (
+                <ContestList
+                    isLogged = {this.props.isLogged}
+                    isAdmin = {this.props.isAdmin}
+                    {...props}
+                />
+            );
+        }
 
         const ProfileRedirect = (props) => {
             return (
@@ -58,18 +77,19 @@ class Main extends Component {
                 <Redirect to='/login'/>
             );
         }
+		
 
         // Replace Error404 component with the correct one once a specific page is developed
         return(
             <div className="main-container">
                 <Switch>
-                    <Route exact path='/' component= {UsersComponent} />
+                    <Route exact path='/' component= {About} />
                     { /* If logged and admin, show Users page */ }
                     { this.props.isLogged && this.props.isAdmin &&
                         <Route path='/users' render= {UsersComponent}/>
                     }
                     { /* If logged, show Contests page; otherwise show Login page */ }
-                    <Route path='/contests' render= {this.props.isLogged ? Error404 : Error404} />
+                    <Route path='/contests' render= {this.props.isLogged ? ContestListComponent : Error404} />
                     { /* If logged, show Profile page; otherwise show Login page */ }
                     <Route exact path='/profile' render= {this.props.isLogged ? ProfileComponent : LoginRedirect} />
                     { /* If logged, show Login page; otherwise show Home page */ }

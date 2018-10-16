@@ -152,3 +152,64 @@ BEGIN
     	SELECT CONCAT(username, ' not registered to Contest');
     END IF;
 END
+
+-- Get owned Contests
+
+DELIMITER //
+
+Drop Procedure If Exists spGetOwnedContests;
+
+CREATE Procedure spGetOwnedContests (IN p_ownerusername varchar(64))
+BEGIN
+    SELECT contestName, description, startDate, endDate, status from Contest where (SELECT userID FROM Users WHERE username = p_ownerusername) = ownerID;
+END //
+
+---- Get invited Contests
+
+DELIMITER //
+
+Drop Procedure If Exists spGetInvitedContests;
+
+CREATE Procedure spGetInvitedContests (IN p_username varchar(64))
+BEGIN
+    SELECT contestName, description, startDate, endDate, status from Contest where contestID = (SELECT contestID from Contestuser where userID = (SELECT userID FROM Users WHERE username = p_username));
+END //
+
+-- Get userID
+
+DELIMITER //
+
+Drop Procedure If Exists spGetUserID;
+
+CREATE procedure spGetUserID (IN p_username varchar(64))
+BEGIN
+	SELECT userID FROM users WHERE username = p_username;
+END //
+
+
+-- Create Contest
+DELIMITER //
+
+Drop Procedure If Exists spCreateContest;
+
+CREATE PROCEDURE spCreateContest (IN contestName varchar(255), IN description varchar(255), IN startDate DATETIME, IN endDate DATETIME, IN status INT, in p_username varchar(64))
+BEGIN
+    INSERT into contest
+    (
+        contestName,
+        description,
+        startDate,
+        endDate,
+        status,
+        ownerID
+    )
+    VALUES
+    (
+        contestName,
+        description,
+        startDate,
+        endDate,
+        status,
+        (SELECT userID FROM Users WHERE username = p_username)
+    );
+END //
