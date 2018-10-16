@@ -22,6 +22,10 @@ import Users from './components/Users/Users';
 // Main component serves as our main switch and container for general site content
 // Props: isLogged (boolean) and isAdmin (boolean)
 class Main extends Component {
+    constructor(props) {
+        super(props)
+    }
+
     render() {
 
         const LoginComponent = (props) => {
@@ -54,7 +58,7 @@ class Main extends Component {
 
         const UsersComponent = (props) => {
             return (
-                <Users isAdmin={true}/>
+                <Users isAdmin={this.props.isAdmin} />
             );
         }
 
@@ -74,11 +78,9 @@ class Main extends Component {
         return(
             <div className="main-container">
                 <Switch>
-                    <Route exact path='/' component= {About } />
+                    <Route exact path='/' component= {About} />
                     { /* If logged and admin, show Users page */ }
-                    { this.props.isLogged && this.props.isAdmin &&
-                        <Route path='/users' render= {UsersComponent}/>
-                    }
+                    <Route path='/users' render= {this.props.isLogged ? UsersComponent : LoginRedirect}/>
                     { /* If logged, show Contests page; otherwise show Login page */ }
                     <Route exact path='/contests' render= {this.props.isLogged ? Error404 : LoginRedirect} />
                     { /* If logged, show Contest Details; otherwise show Login page */ }
