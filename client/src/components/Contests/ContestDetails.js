@@ -19,6 +19,13 @@ import ProblemsTab from './ProblemsTab';
 import SubmissionsTab from './SubmissionsTab';
 import Error404 from '../Error404/Error404';
 
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import CreateContest from '../CreateContest/CreateContest';
+import TextField from '@material-ui/core/TextField';
 
 const styles = {
     root: {
@@ -35,20 +42,30 @@ function TabContainer(props) {
 }
 
 class ContestDetails extends Component {
-    state = {
-        tabValue: 0,
-        contestName: null,
-        description: null,
-        startDate: null,
-        endDate: null,
-        status: null,
-        problemsData: [],
-        submissionsData: [],
-        scoreData: [],
-        isOwner: null,
-        isParticipant: null,
-        isValidated: null
-    };
+    constructor(props) {
+        super(props)
+        this.state = {
+            tabValue: 0,
+            contestName: null,
+            description: null,
+            startDate: null,
+            endDate: null,
+            status: null,
+            problemsData: [],
+            submissionsData: [],
+            scoreData: [],
+            isOwner: null,
+            isParticipant: null,
+            isValidated: null
+        };
+
+        this.handleEditContest = this.handleEditContest.bind(this)
+        this.contestNameChange = this.contestNameChange.bind(this)
+        this.descriptionChange = this.descriptionChange.bind(this)
+        this.startDateChange = this.startDateChange.bind(this)
+        this.endDateChange = this.endDateChange.bind(this)
+        this.handleClose = this.handleClose.bind(this)
+    }
 
     componentDidMount(){
         axios.post('http://127.0.0.1:5000/GetContestInfo', {
@@ -117,11 +134,34 @@ class ContestDetails extends Component {
         });
     };
 
+    contestNameChange (event) {
+        this.setState({contestName: event.target.value})
+    }
+
+    descriptionChange (event) {
+        this.setState({description: event.target.value})
+    }
+
+    startDateChange (event) {
+        this.setState({startDate: new Date(event.target.value)})
+    }
+
+    endDateChange (event) {
+        this.setState({endDate: new Date(event.target.value)})
+    }
+
     handleChange = (event, value) => {
         this.setState({
             tabValue: value
         });
     };
+
+    handleClose = (showFeedback, feedbackMessage) => {
+        this.setState({ open: false });
+        if (showFeedback){
+          this.setState({openSnackbar: true, snackbarMessage: feedbackMessage})
+        }
+      };
 
     handleStatusCode = status => {
         switch(status) {
@@ -149,6 +189,44 @@ class ContestDetails extends Component {
         }
     }
 
+    handleEditContest= () => {
+        this.setState({attemptedRegister: true})
+        if(this.state.contestName !== "" && this.state.description !=="" && this.state.startDate !== "" && this.state.endDate !== "" && this.state.email !== "") {
+            // Parsing date times
+            const {contestName, description, ownerID} = this.state;
+            var {startDate, endDate} = this.state;
+            startDate = startDate
+            endDate = endDate
+
+            axios.post('http://127.0.0.1:5000/EditContest', {
+                contestName: contestName,
+                description: description,
+                startDate: startDate,
+                endDate: endDate,
+                status: 0,
+            }, {withCredentials: true})
+            .then(response => {
+                console.log(response)
+                if (response.status == 200) {
+                    //changes user to profile if login is successful
+                    this.handleClose(true, "Contest edited successfully")
+                }
+
+                if (response.status == 1000) {
+                    //Display error message
+                    this.handleClose(true, response.data.Message)
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+        }
+    };
+
+    handleClickOpen = () => {
+        this.setState({ open: true });
+    };
+
     render()
     {
         const { classes } = this.props;
@@ -162,7 +240,7 @@ class ContestDetails extends Component {
                             { this.handleStatusCode(status) }
                             <h1 className="contest-title">{contestName}</h1>
                             {(this.props.isAdmin || isOwner) &&
-                            <Button variant="fab" mini color="primary" aria-label="Edit" style={{margin: '0.5% 0.5%'}}>
+                            <Button onClick={this.handleClickOpen} variant="fab" mini color="primary" aria-label="Edit" style={{margin: '0.5% 0.5%'}}>
                                 <EditIcon/>
                             </Button>
                             }
@@ -171,6 +249,81 @@ class ContestDetails extends Component {
                                 <DeleteIcon />
                             </Button>
                             }
+                            <Dialog
+                                open={this.state.open}
+                                onClose={() => this.handleClose(false, "")}
+                                aria-labelledby="form-dialog-title"
+                            >
+                            <DialogTitle id="form-dialog-title">Create contest</DialogTitle>
+                            <DialogContent>
+                            <div>
+                                <TextField
+                                    id="contestName"
+                                    label="Contest Name"
+                                    margin="none"
+                                    error={this.state.contestName === "" && this.state.attemptedRegister}
+                                    helperText={!this.props.error ? "contestName is required" : ""}
+                                    style = {{width: '90%'}}
+                                    onChange={this.contestNameChange}
+                                    value={this.state.contestName}
+                                />
+                                <br/>
+                                <TextField
+                                    id="description"
+                                    type="description"
+                                    label="Description"
+                                    margin="none"
+                                    error={this.state.description === "" && this.state.attemptedRegister}
+                                    helperText={!this.props.error ? "description is required" : ""}
+                                    style = {{width: '90%'}}
+                                    onChange={this.descriptionChange}
+                                    value={this.state.description}
+                                />
+                                <br/><br/>
+                                <TextField
+                                    id="startDate"
+                                    label="Start Date"
+                                    margin="none"
+                                    type="datetime-local"
+                                    InputLabelProps={{
+                                    shrink: true,
+                                    }}
+                                    defaultValue={this.state.startDate}
+                                    error={(this.state.startDate === "" || this.state.startDate > this.state.endDate || this.state.startDate < this.state.currentDate) && this.state.attemptedRegister}
+                                    helperText={!this.props.error ? "Start date is required" : ""}
+                                    style = {{width: '90%'}}
+                                    onChange={this.startDateChange}
+                                />
+                                <br/><br/>
+                                <TextField
+                                    id="endDate"
+                                    label="End Date"
+                                    margin="none"
+                                    type="datetime-local"
+                                    InputLabelProps={{
+                                    shrink: true,
+                                    }}
+                                    defaultValue={this.state.endDate}
+                                    error={(this.state.endDate === "" || this.state.endDate < this.state.startDate || this.state.endDate == this.state.startDate) && this.state.attemptedRegister}
+                                    helperText={!this.props.error ? "End date is required" : ""}
+                                    style = {{width: '90%'}}
+                                    onChange={this.endDateChange}
+                                />
+                                <br/>
+                                <br/>
+                                <Button
+                                    variant="contained"
+                                    margin="normal"
+                                    color="primary"
+                                    type="submit"
+                                    style= {{width: '30%', backgroundColor: "#0F2027", titleColor: "#FFFFFF"}}
+                                    onClick={this.handleEditContest.bind()}
+                                >
+                                Create
+                                </Button>
+                                </div>
+                            </DialogContent>
+                            </Dialog>
                         </div>
                         <p className="contest-desc">{description}</p>
                         <Paper className={classes.root}>
