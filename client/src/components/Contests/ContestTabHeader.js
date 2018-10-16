@@ -20,7 +20,22 @@ function desc(a, b, orderBy) {
     return 0;
 }
 
-export function getSorting(order, orderBy) {
+function descDate(a, b, orderBy) {
+    let dateA = new Date(a[orderBy]);
+    let dateB = new Date(b[orderBy]);
+
+    if (dateB < dateA) {
+        return -1;
+    }
+    if (dateB > dateA) {
+        return 1;
+    }
+    return 0;
+}
+
+export function getSorting(order, orderBy, date) {
+    if (date)
+        return order === 'desc' ? (a, b) => descDate(a, b, orderBy) : (a, b) => -descDate(a, b, orderBy);
     return order === 'desc' ? (a, b) => desc(a, b, orderBy) : (a, b) => -desc(a, b, orderBy);
 }
 
@@ -35,8 +50,8 @@ export function stableSort(array, cmp) {
 }
 
 class ContestTabHeader extends Component {
-    createSortHandler = property => event => {
-        this.props.onRequestSort(event, property);
+    createSortHandler = (property, date) => event => {
+        this.props.onRequestSort(event, property, date);
     };
 
     render() {
@@ -61,7 +76,7 @@ class ContestTabHeader extends Component {
                                     <TableSortLabel
                                         active={orderBy === row.id}
                                         direction={order}
-                                        onClick={this.createSortHandler(row.id)}
+                                        onClick={this.createSortHandler(row.id, row.date)}
                                     >
                                         {row.label}
                                     </TableSortLabel>

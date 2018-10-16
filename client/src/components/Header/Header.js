@@ -111,7 +111,6 @@ class Header extends Component {
                                     <FitnessCenter/>
                                 </IconButton>
                                 </NavLink>
-                                {this.props.isAdmin &&
                                 <NavLink to='/users' style={{textDecoration: 'none', color: 'inherit'}}>
                                     <IconButton
                                         aria-label="User List"
@@ -120,7 +119,6 @@ class Header extends Component {
                                         <Group/>
                                     </IconButton>
                                 </NavLink>
-                                }
                             </div>
                             ) }
                         <IconButton
