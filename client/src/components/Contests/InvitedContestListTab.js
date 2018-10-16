@@ -111,7 +111,7 @@ class InvitedContestListTab extends Component {
                                             key={index + 1}
                                         >
                                             <TableCell component="th" scope="row" numeric={rows[0].numeric}>
-                                                {n.contestName}
+                                                <a href={"/contests/"+ n.contestID}>{n.contestName}</a>
                                             </TableCell>
                                             <TableCell numeric={rows[1].numeric}>{n.description}</TableCell>
                                             <TableCell numeric={rows[2].numeric}>{n.startDate}</TableCell>

@@ -105,21 +105,19 @@ class OwnedContestListTab extends Component {
 							 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 .map((n, index) => {
                                     return (
-
-                                            <TableRow
-                                                hover
-                                                tabIndex={-1}
-                                                key={index + 1}
-                                            >
-                                                <TableCell component="th" scope="row" numeric={rows[0].numeric}>
-                                                    <a href={"/contests/"+ n.contestID}>{n.contestName}</a>
-                                                </TableCell>
-                                                <TableCell numeric={rows[1].numeric}>{n.description}</TableCell>
-                                                <TableCell numeric={rows[2].numeric}>{n.startDate}</TableCell>
-                                                <TableCell numeric={rows[3].numeric}>{n.endDate}</TableCell>
-                                                <TableCell numeric={rows[4].numeric}>{ this.handleStatusCode(n.status)}</TableCell>
-                                            </TableRow>
-
+                                        <TableRow
+                                            hover
+                                            tabIndex={-1}
+                                            key={index + 1}
+                                        >
+                                            <TableCell component="th" scope="row" numeric={rows[0].numeric}>
+                                                <a href={"/contests/"+ n.contestID}>{n.contestName}</a>
+                                            </TableCell>
+                                            <TableCell numeric={rows[1].numeric}>{n.description}</TableCell>
+                                            <TableCell numeric={rows[2].numeric}>{n.startDate}</TableCell>
+                                            <TableCell numeric={rows[3].numeric}>{n.endDate}</TableCell>
+                                            <TableCell numeric={rows[4].numeric}>{ this.handleStatusCode(n.status)}</TableCell>
+                                        </TableRow>
                                     );
                                 })}
                             {emptyRows > 0 && (
