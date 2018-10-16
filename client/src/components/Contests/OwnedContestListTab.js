@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Link, withRouter } from 'react-router-dom';
+import {withRouter} from 'react-router-dom';
 
 import { withStyles } from '@material-ui/core/styles';
 
@@ -37,21 +37,22 @@ let rows = [
 	{ id: 'contestStatus', numeric: false, disablePadding: false, label: 'Status', date: false }
 ];
 
-class InvitedContestListTab extends Component {
+class OwnedContestListTab extends Component {
     constructor(props) {
         super(props)
         this.state = {
             username: '',
             userId: 0,
-			order: 'asc',
-			orderBy: 'local_id',
+			order: 'desc',
+			orderBy: 'endDate',
+            date: true,
 			data: [],
 			page: 0,
 			rowsPerPage: 10
         }
 
     }
-
+	
 	handleChangePage = (event, page) => {
 		this.setState({ page });
 	};
@@ -59,13 +60,13 @@ class InvitedContestListTab extends Component {
 		this.setState({ rowsPerPage: event.target.value });
 	};
   
-  handleRequestSort = (event, property) => {
+	handleRequestSort = (event, property, date) => {
         const orderBy = property;
         let order = 'desc';
          if (this.state.orderBy === property && this.state.order === 'desc') {
             order = 'asc';
         }
-         this.setState({ order, orderBy });
+         this.setState({ order, orderBy, date });
     };
 	
 	handleStatusCode = status => {
@@ -87,12 +88,12 @@ class InvitedContestListTab extends Component {
 
     render() {
         const { classes, data } = this.props;
-        const {rowsPerPage, page, order, orderBy} = this.state;
+        const {rowsPerPage, page, order, orderBy, date} = this.state;
 		const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
 		return (
 			<Paper>
 				<div className={classes.tableWrapper}>
-					<Table aria-labelledby="tableTitle">
+					<Table className={classes.table} aria-labelledby="tableTitle">
 					<ContestTabHeader
                             order={order}
                             orderBy={orderBy}
@@ -100,23 +101,25 @@ class InvitedContestListTab extends Component {
                             onRequestSort={this.handleRequestSort}
                         />
 						<TableBody>
-							 {stableSort(data, getSorting(order, orderBy))
+							 {stableSort(data, getSorting(order, orderBy, date))
 							 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 .map((n, index) => {
                                     return (
-                                        <TableRow
-                                            hover
-                                            tabIndex={-1}
-                                            key={index + 1}
-                                        >
-                                            <TableCell component="th" scope="row" numeric={rows[0].numeric}>
-                                                {n.contestName}
-                                            </TableCell>
-                                            <TableCell numeric={rows[1].numeric}>{n.description}</TableCell>
-                                            <TableCell numeric={rows[2].numeric}>{n.startDate}</TableCell>
-                                            <TableCell numeric={rows[3].numeric}>{n.endDate}</TableCell>
-                                            <TableCell numeric={rows[4].numeric}>{ this.handleStatusCode(n.status)}</TableCell>
-                                        </TableRow>
+
+                                            <TableRow
+                                                hover
+                                                tabIndex={-1}
+                                                key={index + 1}
+                                            >
+                                                <TableCell component="th" scope="row" numeric={rows[0].numeric}>
+                                                    <a href={"/contests/"+ n.contestID}>{n.contestName}</a>
+                                                </TableCell>
+                                                <TableCell numeric={rows[1].numeric}>{n.description}</TableCell>
+                                                <TableCell numeric={rows[2].numeric}>{n.startDate}</TableCell>
+                                                <TableCell numeric={rows[3].numeric}>{n.endDate}</TableCell>
+                                                <TableCell numeric={rows[4].numeric}>{ this.handleStatusCode(n.status)}</TableCell>
+                                            </TableRow>
+
                                     );
                                 })}
                             {emptyRows > 0 && (
@@ -146,4 +149,4 @@ class InvitedContestListTab extends Component {
     }
 }
 
-export default withRouter(withStyles(styles)(InvitedContestListTab));
+export default withRouter(withStyles(styles)(OwnedContestListTab));
