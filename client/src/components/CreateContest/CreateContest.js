@@ -126,6 +126,7 @@ class CreateContest extends Component {
                 helperText={!this.props.error ? "contestName is required" : ""}
                 style = {{width: '90%'}}
                 onChange={this.contestNameChange}
+                value={this.contestName}
             />
             <br/>
             <TextField
