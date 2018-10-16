@@ -192,3 +192,16 @@ BEGIN
         status = p_new_status
     WHERE p_ownerID = ownerID;
 END //
+
+-- get contest information
+
+DELIMITER //
+
+Drop Procedure If Exists spGetContest;
+
+CREATE Procedure spGetContest (IN p_ownerID INT)
+BEGIN
+    SELECT *
+	FROM contest
+	Where ownerID = p_ownerID;
+END //

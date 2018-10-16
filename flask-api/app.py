@@ -381,6 +381,26 @@ class EditContest(Resource):
 			
 api.add_resource(EditContest, '/EditContest')
 
+class GetContest(Resource):
+	def post(self):
+		try:
+			_ownerID = args['ownerID']
+
+			cursor.callproc('spGetContest', (_ownerID))
+			data = cursor.fetchall()
+
+			if(len(data) > 0):
+				return {
+					'status': 200,
+					'contest': data
+				}
+			else:
+				return {'status': 100, 'message': 'User not found'}
+		except Exception as e:
+			return {'error': str(e)}
+			
+api.add_resource(GetContest, '/GetContest')
+
 @app.route('/')
 def hello():
 	return 'Hello world!'
