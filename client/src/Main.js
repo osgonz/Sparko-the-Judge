@@ -83,7 +83,7 @@ class Main extends Component {
         return(
             <div className="main-container">
                 <Switch>
-                    <Route exact path='/' component= {CreateContestComponent} />
+                    <Route exact path='/' component= {About} />
                     { /* If logged and admin, show Users page */ }
                     { this.props.isLogged && this.props.isAdmin &&
                         <Route path='/users' render= {UsersComponent}/>
