@@ -45,6 +45,17 @@ BEGIN
     SELECT * from Users where p_username = username;
 END //
 
+---- User Type
+
+DELIMITER //
+
+Drop Procedure If Exists spGetUserType;
+
+CREATE Procedure spAuthentication (IN p_username varchar(64))
+BEGIN
+    SELECT userType from Users where p_username = username;
+END //
+
 -- Edit user information
 
 DELIMITER //
@@ -114,3 +125,30 @@ CREATE Procedure spGetCountries ()
 BEGIN
     SELECT country_name from Countries;
 END //
+
+-- Add User to Contest
+DELIMITER //
+
+Drop Procedure If Exists spAddUserToContest;
+
+CREATE Procedure spAddUserToContest (IN username varchar(64), IN contestID varchar(64))
+BEGIN
+    IF(SELECT exists (SELECT ContestUser.userID, ContestUser.contestID, Users.username from ContestUser INNER JOIN Users ON Users.userID=ContestUser.userID 
+                      WHERE contestID=ContestUser.contestID AND username=Users.username)) THEN
+        SELECT CONCAT(username, ' already registered to Contest');
+    ELSE 
+        INSERT ContestUser VALUES(contestID,(SELECT userID FROM Users Where username = Users.username),0,0);
+    END IF;
+END
+
+-- Remove User From Contest
+DELIMITER //
+
+CREATE Procedure spRemoveUserFromContest (IN username varchar(64), IN contestID varchar(64))
+BEGIN
+    IF(SELECT exists (SELECT ContestUser.userID, ContestUser.contestID, Users.username from ContestUser INNER JOIN Users ON Users.userID=ContestUser.userID WHERE contestID=ContestUser.contestID AND username=Users.username)) THEN
+        DELETE FROM ContestUser WHERE ContestUser.userID IN (SELECT Users.userID FROM Users WHERE username = Users.username) AND contestID = ContestUser.contestID;
+    ELSE 
+    	SELECT CONCAT(username, ' not registered to Contest');
+    END IF;
+END

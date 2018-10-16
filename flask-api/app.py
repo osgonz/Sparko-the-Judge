@@ -21,10 +21,11 @@ parser = reqparse.RequestParser()
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 # MySQL configurations
-app.config['MYSQL_DATABASE_USER'] = os.getenv('MYSQL_DATABASE_USER')
-app.config['MYSQL_DATABASE_PASSWORD'] = os.getenv('MYSQL_DATABASE_PASSWORD')
-app.config['MYSQL_DATABASE_DB'] = os.getenv('MYSQL_DATABASE_DB')
+app.config['MYSQL_DATABASE_USER'] = 'root'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'root'
+app.config['MYSQL_DATABASE_DB'] = 'CoProManager'
 app.config['MYSQL_DATABASE_HOST'] = os.getenv('MYSQL_DATABASE_HOST')
+app.config['MYSQL_DATABASE_PORT'] = 8889
 
 
 # Session configurations
@@ -89,7 +90,7 @@ class AuthenticateUser(Resource):
                 if bcrypt.checkpw(_userPassword.encode('utf8'), hashed_password.encode('utf8')):
                     user_id = data[0][0]
                     session['loggedUser'] = _userName
-                    return {'status':200,'UserId':str(user_id)}
+                    return {'status':200,'UserId':str(user_id), 'userType':str(data[0][6])}
                 else:
                     return {'status':100,'message':'Authentication failure'}
 
@@ -219,20 +220,79 @@ class EditPassword(Resource):
         except Exception as e:
             raise e
 
+class GetActiveSession(Resource):
+    def post(self):
+        try:
+            _username = session.get('loggedUser', SESSION_NOT_FOUND)
+            print(_username)
+
+            assert _username != SESSION_NOT_FOUND, 'No session found'
+
+            cursor.callproc('spGetUserType', (_username,))
+            data = cursor.fetchall()
+
+            if(len(data) > 0):
+                conn.commit()
+                return {'status': 200, 'loggedUser':session.get('loggedUser', SESSION_NOT_FOUND), 'isAdmin':str(data[0][0]) == '0'}
+            else:
+                return {'status': 100, 'message': data[0][0]}
+        except Exception as e:
+            return {'error': str(e)}
+
+class AddUsersToContest(Resource):
+    def post(self):
+        try:
+            # Parse the arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('usernames', action='append', help='Users to ban')
+            parser.add_argument('contestID', type=str, help='Id to contest')
+
+            args = parser.parse_args()
+
+            _usersAdded = args['usernames']
+            _contestID = args['contestID']
+
+            for username in _usersAdded:
+                cursor.callproc('spAddUserToContest',(username, _contestID))
+                data = cursor.fetchall()
+            
+            return {'StatusCode':'200','Message': 'User(s) added to Contest'}
+        except Exception as e:
+            return {'error': str(e)}
+
+class RemoveUsersFromContest(Resource):
+    def post(self):
+        try:
+            # Parse the arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('usernames', action='append', help='Users to ban')
+            parser.add_argument('contestID', type=str, help='Id to contest')
+
+            args = parser.parse_args()
+            _usersAdded = args['usernames']
+            _contestID = args['contestID']
+
+            for username in _usersAdded:
+                cursor.callproc('spRemoveUserFromContest',(username, _contestID))
+                data = cursor.fetchall()
+            
+            return {'StatusCode':'200','Message': 'User(s) removed from Contest'}
+        except Exception as e:
+            return {'error': str(e)}
+
 api.add_resource(CreateUser, '/CreateUser')
 api.add_resource(AuthenticateUser, '/AuthenticateUser')
 api.add_resource(EditUserJudgesUsernames, '/EditUserJudgesUsernames')
 api.add_resource(GetUser, '/GetUser')
 api.add_resource(EditUser, '/EditUser')
 api.add_resource(EditPassword, '/EditPassword')
+api.add_resource(GetActiveSession, '/GetActiveSession')
+api.add_resource(AddUsersToContest, '/AddUsersToContest')
+api.add_resource(RemoveUsersFromContest, '/RemoveUsersFromContest')
 
 @app.route('/')
 def hello():
     return 'Hello world!'
-
-@app.route('/GetActiveSession')
-def get():
-    return session.get('loggedUser', SESSION_NOT_FOUND)
 
 @app.route('/SetActiveSession')
 def set():
