@@ -9,9 +9,9 @@ import CardContent from '@material-ui/core/CardContent';
 import Snackbar from '@material-ui/core/Snackbar';
 import axios from 'axios'
 
-function handleTodaysDate()
+function formatDate(date)
 {
-	var today = new Date();
+	var today = date;
 	var dd = today.getDate();
 	var mm = today.getMonth()+1;
 	var yyyy = today.getFullYear();
@@ -25,20 +25,28 @@ function handleTodaysDate()
 	if(mm<10) {
 		mm = '0'+mm
 	} 
-	var todayFormated = yyyy + '-' + mm + '-' + dd+'T'+ h + ':' + m;
+	var dateFormated = yyyy + '-' + mm + '-' + dd+'T'+ h + ':' + m;
 	
-	return todayFormated;
+	return dateFormated;
 }
 
 class CreateContest extends Component {
     //Country is missing from here and the app.py
     constructor(props) {
         super(props)
+        var today = new Date();
+        var tomorrow = new Date();
+        tomorrow = tomorrow.setDate(tomorrow.getDate()+1);
+        tomorrow = new Date(tomorrow);
+
+        console.log(today)
+        console.log(tomorrow)
         this.state = {
             contestName: '',
             description: '',
-            startDate: handleTodaysDate(),
-            endDate: handleTodaysDate(),
+            currentDate: today,
+            startDate: today,
+            endDate: tomorrow,
 			ownerID: '',
             attemptedCreate: false
         }
@@ -52,10 +60,18 @@ class CreateContest extends Component {
     }
 
     handleCreateContest () {
-		const {contestName, description, startDate, endDate, ownerID} = this.state;
-        this.setState({attemptedCreate: true})
-        console.log(this.state)
-        if(this.state.contestName !== "" && this.state.description !== "" && this.state.startDate !== "" && this.state.endDate !== "") {
+		console.log("GOT IN");
+		
+        
+		this.setState({attemptedRegister: true})
+        if(this.state.contestName !== "" && this.state.description !=="" && this.state.startDate !== "" && this.state.endDate !== "" && this.state.email !== "") {
+            // Parsing date times
+            const {contestName, description, ownerID} = this.state;
+            var {startDate, endDate} = this.state;
+            startDate = formatDate(startDate)
+            endDate = formatDate(endDate)
+
+            console.log("CALLING AXIOS")
             axios.post('http://127.0.0.1:5000/CreateContest', {
                 contestName: contestName,
                 description: description,
@@ -89,26 +105,25 @@ class CreateContest extends Component {
     }
 
     startDateChange (event) {
-        this.setState({startDate: event.target.value})
+        this.setState({startDate: new Date(event.target.value)})
     }
 
     endDateChange (event) {
-        this.setState({endDate: event.target.value})
+        this.setState({endDate: new Date(event.target.value)})
     }
 
     render() {
         const { classes } = this.props;
-		var todayDateFormated = handleTodaysDate();
-		var today = new Date();
-		
+		var todayDateFormated = formatDate(new Date());
+
         return (
             <div>
             <TextField
                 id="contestName"
                 label="Contest Name"
                 margin="none"
-                error={this.state.contestName === "" && this.state.attemptedCreate}
-                helperText={this.state.contestName === "" && this.state.attemptedCreate ? "Contest name is required" : ""}
+                error={this.state.contestName === "" && this.state.attemptedRegister}
+                helperText={!this.props.error ? "contestName is required" : ""}
                 style = {{width: '90%'}}
                 onChange={this.contestNameChange}
             />
@@ -118,38 +133,38 @@ class CreateContest extends Component {
                 type="description"
                 label="Description"
                 margin="none"
-                error={this.state.description === "" && this.state.attemptedCreate}
-                helperText={this.state.description === "" && this.state.attemptedCreate ? "Description is required" : ""}
+                error={this.state.description === "" && this.state.attemptedRegister}
+                helperText={!this.props.error ? "description is required" : ""}
                 style = {{width: '90%'}}
                 onChange={this.descriptionChange}
             />
-            <br/>
+            <br/><br/>
             <TextField
                 id="startDate"
                 label="Start Date"
                 margin="none"
-    			type="datetime-local"
-    			InputLabelProps={{
-    			  shrink: true,
-    			}}
-    			defaultValue={this.state.startDate}
-                error={this.state.startDate === "" && this.state.attemptedCreate}
-                helperText={this.state.startDate === "" && this.state.attemptedCreate ? "Start date is required" : ""}
+                type="datetime-local"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                defaultValue={formatDate(this.state.startDate)}
+                error={(this.state.startDate === "" || this.state.startDate > this.state.endDate || this.state.startDate < this.state.currentDate) && this.state.attemptedRegister}
+                helperText={!this.props.error ? "Start date is required" : ""}
                 style = {{width: '90%'}}
                 onChange={this.startDateChange}
             />
-            <br/>
+            <br/><br/>
             <TextField
                 id="endDate"
                 label="End Date"
                 margin="none"
-    			type="datetime-local"
-    			InputLabelProps={{
-    			  shrink: true,
-    			}}
-    			defaultValue={this.state.endDate}
-                error={this.state.endDate === "" && this.state.attemptedCreate}
-                helperText={this.state.endDate === "" && this.state.attemptedCreate ? "End date is required" : ""}
+                type="datetime-local"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                defaultValue={formatDate(this.state.endDate)}
+                error={(this.state.endDate === "" || this.state.endDate < this.state.startDate || this.state.endDate == this.state.startDate) && this.state.attemptedRegister}
+                helperText={!this.props.error ? "End date is required" : ""}
                 style = {{width: '90%'}}
                 onChange={this.endDateChange}
             />
