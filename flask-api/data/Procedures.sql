@@ -137,7 +137,78 @@ BEGIN
     SELECT contestID, contestName, description, startDate, endDate, status from Contest where contestID = (SELECT contestID from Contestuser where userID = (SELECT userID FROM Users WHERE username = p_username));
 END //
 
--- Get userID
+-- Get Contest Problems information
+
+DELIMITER //
+
+Drop Procedure If Exists spGetContestProblems;
+
+CREATE PROCEDURE spGetContestProblems (IN p_contestID INT)
+BEGIN
+	SELECT P.* FROM ContestProblem CP, Problems P WHERE CP.problemID = P.problemID AND CP.contestID = p_contestID;
+END //
+
+-- Get User's Submissions in Contest
+
+DELIMITER //
+
+Drop Procedure If Exists spGetUserSubmissionsInContest;
+
+CREATE PROCEDURE spGetUserSubmissionsInContest (IN p_userID INT, IN p_contestID INT)
+BEGIN
+	SELECT U.username, P.problemName, P.judge, P.url, S.result, S.language, S.submissionTime
+	FROM Submission S, Problems P, Users U
+	WHERE S.contestID = p_contestID AND S.submitter = p_userID AND S.submitter = U.userID AND S.problemID = P.problemID
+	ORDER BY S.submissionTime DESC;
+	
+END //
+
+-- Get All Submissions in Contest
+
+DELIMITER //
+
+Drop Procedure If Exists spGetSubmissionsInContest;
+
+CREATE PROCEDURE spGetSubmissionsInContest (IN p_contestID INT)
+BEGIN
+	SELECT U.username, P.problemName, P.judge, P.url, S.result, S.language, S.submissionTime
+	FROM Submission S, Problems P, Users U
+	WHERE S.contestID = p_contestID AND S.submitter = U.userID AND S.problemID = P.problemID
+	ORDER BY S.submissionTime DESC;
+
+END //
+
+-- Get Contest Standings
+
+DELIMITER //
+
+Drop Procedure If Exists spGetContestStandings;
+
+CREATE PROCEDURE spGetContestStandings (IN p_contestID INT)
+BEGIN
+	SELECT CU.userID, CU.standing, U.username, C.country_name, CU.score
+	FROM ContestUser CU, Users U
+  LEFT OUTER JOIN Countries C ON U.country = C.id
+	WHERE CU.contestID = p_contestID AND CU.userID = U.userID
+	ORDER BY CU.standing;
+	
+END //
+
+-- Get Contest Owner
+
+DELIMITER //
+
+Drop Procedure If Exists spGetContestOwner;
+
+CREATE PROCEDURE spGetContestOwner (IN p_contestID INT)
+BEGIN
+	SELECT U.username
+	FROM Contest C, Users U
+	WHERE C.contestID = p_contestID AND C.ownerID = U.userID;
+
+END //
+
+-- Get User ID
 
 DELIMITER //
 
@@ -174,4 +245,63 @@ BEGIN
         status,
         (SELECT userID FROM Users WHERE username = p_username)
     );
+END //
+
+-- Get Contest Information
+
+DELIMITER //
+
+Drop Procedure If Exists spGetContestInformation;
+
+CREATE PROCEDURE spGetContestInformation (IN p_contestID INT)
+BEGIN
+	SELECT *
+  FROM Contest
+  WHERE contestID = p_contestID;
+
+END //
+
+-- Get Contest User's Username
+
+DELIMITER //
+
+Drop Procedure If Exists spGetContestUserUsername;
+
+CREATE PROCEDURE spGetContestUserUsername (IN p_userID INT, IN p_contestID INT)
+BEGIN
+	SELECT U.username
+  FROM ContestUser CU, Users U
+  WHERE CU.contestID = p_contestID AND CU.userID = p_userID AND CU.userID = U.userID;
+
+END //
+
+-- Get Contest Scores Per Problem
+
+DELIMITER //
+
+Drop Procedure If Exists spGetContestScoresPerProblem;
+
+CREATE PROCEDURE spGetContestScoresPerProblem (IN p_problemID INT, IN p_contestID INT)
+BEGIN
+  SELECT SU.username, SU.result, SU.submissionCount, TIMESTAMPDIFF(SECOND, C.startDate, SU.submissionTime) as TimeDifference
+  FROM (
+      SELECT C.contestID, C.startDate
+      FROM Contest C
+      WHERE C.contestID = p_contestID
+  ) C, (
+      SELECT U.userID, S.contestID, U.username, COUNT(S.submissionID) AS submissionCount, MAX(S.result) AS result, MAX(S.submissionTime) AS submissionTime
+      FROM (
+          SELECT CU.userID, U.username
+          FROM ContestUser CU, Users U
+          WHERE CU.contestID = p_contestID AND CU.userID = U.userID
+      ) U, (
+          SELECT S.contestID, S.submissionID, S.result, S.submissionTime, S.submitter
+          FROM submission S
+          WHERE S.contestID = p_contestID AND S.problemID = p_problemID
+      ) S
+      WHERE U.userID = S.submitter
+      GROUP BY U.userID
+  ) SU
+  WHERE SU.contestID = C.contestID
+  ORDER BY SU.userID, SU.submissionTime DESC;
 END //

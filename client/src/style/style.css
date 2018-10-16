@@ -29,6 +29,21 @@ body{
     font-weight: 500;
 }
 
+.contest-title {
+    margin: 0% 1%;
+    font-size: 2rem;
+    font-weight: 500;
+}
+
+.contest-header {
+    display: flex;
+    align-items: center;
+}
+
+.contest-desc {
+    margin: 1% 2% 2%;
+}
+
 .error-text {
     margin: 1% 2%;
 }
