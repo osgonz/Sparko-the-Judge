@@ -347,6 +347,40 @@ class ViewInvitedContestList(Resource):
 
 api.add_resource(ViewInvitedContestList, '/ViewInvitedContestList')
 
+class EditContest(Resource):
+	def post(self):
+		try:
+			# Parse request arguments
+			parser = reqparse.RequestParser()
+			parser.add_argument('ownerID', type=int, help='ownerID')
+			parser.add_argument('ContestName', type=str, help='Contest Name')
+			parser.add_argument('description', type=str, help='Description')
+			parser.add_argument('startDate', type=datetime.datetime, help='startDate')
+			parser.add_argument('endDate', type=datetime.datetime, help='endDate')
+			parser.add_argument('status', type=int, help='status')
+
+			args = parser.parse_args()
+
+			_ownerID = args['ownerID']
+			_contestName = args['ContestName']
+			_description = args['description']
+			_startDate = args['startDate']
+			_endDate = args['endDate']
+			_status = args['status']
+
+			cursor.callproc('spEditContest', (_ownerID, _contestName, _description, _startDate, _endDate, _status))
+			data = cursor.fetchall()
+
+			if(len(data) == 0):
+				conn.commit()
+				return {'status': 200, 'message': 'Contest edit succesful'}
+			else:
+				return {'status': 100, 'message': data[0][0]}
+		except Exception as e:
+			return {'error': str(e)}
+			
+api.add_resource(EditContest, '/EditContest')
+
 @app.route('/')
 def hello():
 	return 'Hello world!'
