@@ -38,7 +38,7 @@ import CreateContestButton from '../Dummy/FormDialog';
         .then(response => {
             console.log(response.data);
 			if (response.data != 'Session not found') {
-				this.setState({username: response.data})
+				this.setState({username: response.data.username})
 				axios.post('http://127.0.0.1:5000/ViewOwnedContestList', {username: this.state.username}, {withCredentials: true})
 				.then(response => {
 					console.log(response)

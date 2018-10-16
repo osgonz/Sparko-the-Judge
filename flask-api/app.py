@@ -89,13 +89,13 @@ class AuthenticateUser(Resource):
             parser.add_argument('username', type=str, help='Username address to create user')
             parser.add_argument('password', type=str, help='Password to create user')
 
-			args = parser.parse_args()
+            args = parser.parse_args()
 
-			_userName = args['username']
-			_userPassword = args['password']
+            _userName = args['username']
+            _userPassword = args['password']
 
-			cursor.callproc('spAuthentication', (_userName,))
-			data = cursor.fetchall()
+            cursor.callproc('spAuthentication', (_userName,))
+            data = cursor.fetchall()
 
             if(len(data)>0):
                 hashed_password = data[0][4]
@@ -172,16 +172,16 @@ class EditUserJudgesUsernames(Resource):
             parser.add_argument('username_UVA', type=str, help='Username for UVA Online Judge')
             parser.add_argument('username_ICPC', type=str, help='Username for ICPC Live Archive Online Judge')
 
-			args = parser.parse_args()
+            args = parser.parse_args()
 
-			_username = session.get('loggedUser', SESSION_NOT_FOUND)
-			_usernameUVA = args['username_UVA'] if args['username_UVA'] != '' else None
-			_usernameICPC = args['username_ICPC'] if args['username_ICPC'] != '' else None
+            _username = session.get('loggedUser', SESSION_NOT_FOUND)
+            _usernameUVA = args['username_UVA'] if args['username_UVA'] != '' else None
+            _usernameICPC = args['username_ICPC'] if args['username_ICPC'] != '' else None
 
-			assert _username != SESSION_NOT_FOUND, 'No session found'
+            assert _username != SESSION_NOT_FOUND, 'No session found'
 
-			cursor.callproc('spEditJudgesUsernames', (_username, _usernameUVA, _usernameICPC))
-			data = cursor.fetchall()
+            cursor.callproc('spEditJudgesUsernames', (_username, _usernameUVA, _usernameICPC))
+            data = cursor.fetchall()
 
             if(len(data) == 0):
                 conn.commit()
@@ -522,8 +522,8 @@ class GetContestScoresPerProblem(Resource):
                 newData = dict((row['username'], row) for row in data)
                 solutionList.append(newData)
 
-            cursor.close();
-            conn.close();
+            cursor.close()
+            conn.close()
             return jsonify({'status': 200, 'scoreList': solutionList})
         except Exception as e:
             cursor.close()
@@ -560,14 +560,14 @@ class GetUserList(Resource):
 
             r = [dict((cursor.description[i][0], value)
                     for i, value in enumerate(row)) for row in cursor.fetchall()]
-            cursor.close();
-            conn.close();
+            cursor.close()
+            conn.close()
             return jsonify({'status': 'SUCCESS',
                             'userList': r})
 
         except Exception as e:
-            cursor.close();
-            conn.close();
+            cursor.close()
+            conn.close()
             raise e
 
 class BanUsers(Resource):
@@ -592,12 +592,12 @@ class BanUsers(Resource):
                 cursor.execute(sql, data)
 
             conn.commit()
-            cursor.close();
-            conn.close();
+            cursor.close()
+            conn.close()
             return jsonify({'status': 'SUCCESS'})
         except Exception as e:
-            cursor.close();
-            conn.close();
+            cursor.close()
+            conn.close()
             raise e
 
 class UnbanUsers(Resource):
@@ -622,12 +622,12 @@ class UnbanUsers(Resource):
                 cursor.execute(sql, data)
 
             conn.commit()
-            cursor.close();
-            conn.close();
+            cursor.close()
+            conn.close()
             return jsonify({'status': 'SUCCESS'})
         except Exception as e:
-            cursor.close();
-            conn.close();
+            cursor.close()
+            conn.close()
             raise e
 
 api.add_resource(CreateUser, '/CreateUser')
@@ -648,116 +648,156 @@ api.add_resource(BanUsers, '/BanUsers')
 api.add_resource(UnbanUsers, '/UnbanUsers')
 
 class CreateContest(Resource):
-	def post(self):
-		try:
-			# Parse the arguments
-			parser = reqparse.RequestParser()
-			parser.add_argument('contestName', type=str, help='Contest name to create contest')
-			parser.add_argument('description', type=str, help='Contest description to create contest')
-			parser.add_argument('startDate', help='Contest start date to create contest')
-			parser.add_argument('endDate', help='Contest end date to create contest')
-			parser.add_argument('status', type=int, help='Contest status to create contest')
+    def post(self):
+        try:
+            # Opem MySQL connection
+            conn = mysql.connect()
+            cursor = conn.cursor()
 
-			args = parser.parse_args()
+            # Parse the arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('contestName', type=str, help='Contest name to create contest')
+            parser.add_argument('description', type=str, help='Contest description to create contest')
+            parser.add_argument('startDate', help='Contest start date to create contest')
+            parser.add_argument('endDate', help='Contest end date to create contest')
+            parser.add_argument('status', type=int, help='Contest status to create contest')
 
-			_contestName = args['contestName']
-			_contestDescription = args['description']
-			_contestStartDate = args['startDate']
-			_contestEndDate = args['endDate']
-			_contestStatus = args['status']
-			_contestOwnerUsername = session.get('loggedUser')
+            args = parser.parse_args()
 
-			cursor.callproc('spCreateContest',(_contestName,_contestDescription, _contestStartDate, _contestEndDate, _contestStatus, _contestOwnerUsername))
-			data = cursor.fetchall()
+            _contestName = args['contestName']
+            _contestDescription = args['description']
+            _contestStartDate = args['startDate']
+            _contestEndDate = args['endDate']
+            _contestStatus = args['status']
+            _contestOwnerUsername = session.get('loggedUser')
 
-			if len(data) is 0:
-				conn.commit()
-				return {'StatusCode':200,'Message': 'Contest creation success'}
-			else:
-				return {'StatusCode':1000,'Message': str(data[0])}
-		except Exception as e:
-			return {'error': str(e)}
-			
+            cursor.callproc('spCreateContest',(_contestName,_contestDescription, _contestStartDate, _contestEndDate, _contestStatus, _contestOwnerUsername))
+            data = cursor.fetchall()
+
+            if len(data) is 0:
+                conn.commit()
+                cursor.close()
+                conn.close()
+                return {'StatusCode':200,'Message': 'Contest creation success'}
+            else:
+                cursor.close()
+                conn.close()
+                return {'StatusCode':1000,'Message': str(data[0])}
+        except Exception as e:
+            cursor.close()
+            conn.close()
+            return {'error': str(e)}
+
 api.add_resource(CreateContest, '/CreateContest')
 
 class GetUserID(Resource):
-	def post(self):
-		try:
-			# Parse the arguments
-			parser = reqparse.RequestParser()
-			parser.add_argument('email', type=str, help='email to find userID')
+    def post(self):
+        try:
+            # Opem MySQL connection
+            conn = mysql.connect()
+            cursor = conn.cursor()
 
-			args = parser.parse_args()
+            # Parse the arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('email', type=str, help='email to find userID')
 
-			_email = args['email']
+            args = parser.parse_args()
 
-			cursor.callproc('spUserID', (_email,))
-			data = cursor.fetchall()
+            _email = args['email']
 
-			if len(data) > 0:
-				return {'StatusCode':'200','Message': 'UserID found'}
-			else:
-				return {'StatusCode':'1000','Message': str(data[0])}
+            cursor.callproc('spUserID', (_email,))
+            data = cursor.fetchall()
 
-		except Exception as e:
-			return {'error': str(e)}
+            if len(data) > 0:
+                cursor.close()
+                conn.close()
+                return {'StatusCode':'200','Message': 'UserID found'}
+            else:
+                cursor.close()
+                conn.close()
+                return {'StatusCode':'1000','Message': str(data[0])}
+
+        except Exception as e:
+            cursor.close()
+            conn.close()
+            return {'error': str(e)}
 
 api.add_resource(GetUserID, '/GetUserID')
 
 class ViewOwnedContestList(Resource):
-	def post(self):
-		try:
-			# Parse the arguments
-			parser = reqparse.RequestParser()
-			parser.add_argument('username', type=str, help='Owner username')
+    def post(self):
+        try:
+            # Opem MySQL connection
+            conn = mysql.connect()
+            cursor = conn.cursor()
 
-			args = parser.parse_args()
+            # Parse the arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('username', type=str, help='Owner username')
 
-			_ownerUsername = args['username']
+            args = parser.parse_args()
 
-			cursor.callproc('spGetOwnedContests', (_ownerUsername,))
-			data = [dict((cursor.description[i][0], value)
+            _ownerUsername = args['username']
+
+            cursor.callproc('spGetOwnedContests', (_ownerUsername,))
+            data = [dict((cursor.description[i][0], value)
                          for i, value in enumerate(row)) for row in cursor.fetchall()]
 
-			if len(data) >= 0:
-				return jsonify({'StatusCode': 200,'ownedContestList': data})
-			else:
-				return jsonify({'StatusCode': 1000,'Message': 'No owned contests'})
+            if len(data) >= 0:
+                cursor.close()
+                conn.close()
+                return jsonify({'StatusCode': 200,'ownedContestList': data})
+            else:
+                cursor.close()
+                conn.close()
+                return jsonify({'StatusCode': 1000,'Message': 'No owned contests'})
 
-		except Exception as e:
-			print(str(e))
-			return {'error': str(e)}
+        except Exception as e:
+            cursor.close()
+            conn.close()
+            print(str(e))
+            return {'error': str(e)}
 
 api.add_resource(ViewOwnedContestList, '/ViewOwnedContestList')
 
 class ViewInvitedContestList(Resource):
-	def post(self):
-		try:
-			# Parse the arguments
-			parser = reqparse.RequestParser()
-			parser.add_argument('username', type=str, help='Current username')
+    def post(self):
+        try:
+            # Opem MySQL connection
+            conn = mysql.connect()
+            cursor = conn.cursor()
 
-			args = parser.parse_args()
+            # Parse the arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('username', type=str, help='Current username')
 
-			_username = args['username']
+            args = parser.parse_args()
 
-			cursor.callproc('spGetInvitedContests', (_username,))
-			data = [dict((cursor.description[i][0], value)
+            _username = args['username']
+
+            cursor.callproc('spGetInvitedContests', (_username,))
+            data = [dict((cursor.description[i][0], value)
                          for i, value in enumerate(row)) for row in cursor.fetchall()]
 
-			if len(data) >= 0:
-				return jsonify({'StatusCode': 200,'invitedContestList': data})
-			else:
-				return jsonify({'StatusCode': 1000,'Message': 'No owned contests'})
-		except Exception as e:
-			print(str(e))
-			return {'error': str(e)}
+            if len(data) >= 0:
+                cursor.close()
+                conn.close()
+                return jsonify({'StatusCode': 200,'invitedContestList': data})
+            else:
+                cursor.close()
+                conn.close()
+                return jsonify({'StatusCode': 1000,'Message': 'No owned contests'})
+        except Exception as e:
+            cursor.close()
+            conn.close()
+            print(str(e))
+            return {'error': str(e)}
 
 api.add_resource(ViewInvitedContestList, '/ViewInvitedContestList')
 
 @app.route('/')
 def hello():
-	return 'Hello world!'
+    return 'Hello world!'
 
 @app.route('/GetActiveSession')
 def get():
@@ -773,27 +813,27 @@ def get():
         user = cursor.fetchall()
         if len(user) > 0:
             usertype = user[0][0]
-            cursor.close();
-            conn.close();
+            cursor.close()
+            conn.close()
             return jsonify({'username': username, 'usertype': usertype})
-        cursor.close();
-        conn.close();
+        cursor.close()
+        conn.close()
         return jsonify({'error': SESSION_NOT_FOUND})
     except Exception as e:
-        cursor.close();
-        conn.close();
+        cursor.close()
+        conn.close()
         return jsonify({'error': str(e)})
     #return username
 
 @app.route('/SetActiveSession')
 def set():
-	session['loggedUser'] = 'username'
-	return 'done'
+    session['loggedUser'] = 'username'
+    return 'done'
 
 @app.route('/Logout')
 def logout():
-	session.pop('loggedUser', None)
-	return 'You were logged out'
+    session.pop('loggedUser', None)
+    return 'You were logged out'
 
 if __name__ == '__main__':
     app.run(debug=True)
