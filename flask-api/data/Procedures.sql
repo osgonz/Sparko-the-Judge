@@ -115,6 +115,28 @@ BEGIN
     SELECT country_name from Countries;
 END //
 
+-- Get owned Contests
+
+DELIMITER //
+
+Drop Procedure If Exists spGetOwnedContests;
+
+CREATE Procedure spGetOwnedContests (IN p_ownerusername varchar(64))
+BEGIN
+    SELECT contestID, contestName, description, startDate, endDate, status from Contest where (SELECT userID FROM Users WHERE username = p_ownerusername) = ownerID;
+END //
+
+---- Get invited Contests
+
+DELIMITER //
+
+Drop Procedure If Exists spGetInvitedContests;
+
+CREATE Procedure spGetInvitedContests (IN p_username varchar(64))
+BEGIN
+    SELECT contestID, contestName, description, startDate, endDate, status from Contest where contestID in (SELECT contestID from Contestuser where userID = (SELECT userID FROM Users WHERE username = p_username));
+END //
+
 -- Get Contest Problems information
 
 DELIMITER //
@@ -192,12 +214,37 @@ DELIMITER //
 
 Drop Procedure If Exists spGetUserID;
 
-CREATE PROCEDURE spGetUserID (IN p_username VARCHAR(64))
+CREATE procedure spGetUserID (IN p_username varchar(64))
 BEGIN
-	SELECT U.userID
-	FROM Users U
-	WHERE U.username = p_username;
+	SELECT userID FROM users WHERE username = p_username;
+END //
 
+
+-- Create Contest
+DELIMITER //
+
+Drop Procedure If Exists spCreateContest;
+
+CREATE PROCEDURE spCreateContest (IN contestName varchar(255), IN description varchar(255), IN startDate DATETIME, IN endDate DATETIME, IN status INT, in p_username varchar(64))
+BEGIN
+    INSERT into contest
+    (
+        contestName,
+        description,
+        startDate,
+        endDate,
+        status,
+        ownerID
+    )
+    VALUES
+    (
+        contestName,
+        description,
+        startDate,
+        endDate,
+        status,
+        (SELECT userID FROM Users WHERE username = p_username)
+    );
 END //
 
 -- Get Contest Information

@@ -16,6 +16,9 @@ import SignUp from './components/SignUp/SignUp';
 import ContestDetails from './components/Contests/ContestDetails';
 import Profile from './components/Profile/Profile';
 import Users from './components/Users/Users';
+import ContestList from './components/Contests/ContestList';
+import CreateContest from './components/CreateContest/CreateContest';
+import Dummy from './components/Dummy/FormDialog'
 
 /*******************************************************************************/
 
@@ -61,6 +64,22 @@ class Main extends Component {
                 <Users isAdmin={this.props.isAdmin} />
             );
         }
+		
+		const CreateContestComponent = (props) => {
+            return (
+                <Dummy />
+            );
+        }
+		
+		const ContestListComponent = (props) => {
+            return (
+                <ContestList
+                    isLogged = {this.props.isLogged}
+                    isAdmin = {this.props.isAdmin}
+                    {...props}
+                />
+            );
+        }
 
         const ProfileRedirect = (props) => {
             return (
@@ -73,6 +92,7 @@ class Main extends Component {
                 <Redirect to='/login'/>
             );
         }
+		
 
         // Replace Error404 component with the correct one once a specific page is developed
         return(
@@ -82,7 +102,7 @@ class Main extends Component {
                     { /* If logged and admin, show Users page */ }
                     <Route path='/users' render= {this.props.isLogged ? UsersComponent : LoginRedirect}/>
                     { /* If logged, show Contests page; otherwise show Login page */ }
-                    <Route exact path='/contests' render= {this.props.isLogged ? Error404 : LoginRedirect} />
+                    <Route exact path='/contests' render= {this.props.isLogged ? ContestListComponent : LoginRedirect} />
                     { /* If logged, show Contest Details; otherwise show Login page */ }
                     <Route path='/contests/:id' render= {this.props.isLogged ? ContestDetailsComponent : LoginRedirect} />
                     { /* If logged, show Profile page; otherwise show Login page */ }
