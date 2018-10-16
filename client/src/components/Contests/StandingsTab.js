@@ -29,16 +29,17 @@ const styles = theme => ({
 });
 
 let rows = [
-    { id: 'standing', numeric: true, disablePadding: true, label: 'Rank' },
-    { id: 'username', numeric: false, disablePadding: false, label: 'Username' },
-    { id: 'country_name', numeric: false, disablePadding: false, label: 'Country' },
-    { id: 'score', numeric: true, disablePadding: false, label: 'Score' },
+    { id: 'standing', numeric: true, disablePadding: true, label: 'Rank', date: false },
+    { id: 'username', numeric: false, disablePadding: false, label: 'Username', date: false },
+    { id: 'country_name', numeric: false, disablePadding: false, label: 'Country', date: false },
+    { id: 'score', numeric: true, disablePadding: false, label: 'Score', date: false },
 ];
 
 class StandingsTab extends Component {
     state = {
         order: 'asc',
         orderBy: 'standing',
+        date: false,
         data: [],
         page: 0,
         rowsPerPage: 10,
@@ -54,7 +55,7 @@ class StandingsTab extends Component {
         });
     };
 
-    handleRequestSort = (event, property) => {
+    handleRequestSort = (event, property, date) => {
         const orderBy = property;
         let order = 'desc';
 
@@ -62,7 +63,7 @@ class StandingsTab extends Component {
             order = 'asc';
         }
 
-        this.setState({ order, orderBy });
+        this.setState({ order, orderBy, date });
     };
 
     handleChangePage = (event, page) => {
@@ -81,13 +82,13 @@ class StandingsTab extends Component {
 
     render() {
         const { classes, problemList, scores } = this.props;
-        const { data, order, orderBy, rowsPerPage, page } = this.state;
+        const { data, order, orderBy, date, rowsPerPage, page } = this.state;
         const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
 
         const problemCant = problemList.length;
         let newRows = rows.slice();
         for (let i=1; i <= problemCant; i++) {
-            newRows.push({ id: 'P' + i, numeric: false, disablePadding: false, label: 'P' + i});
+            newRows.push({ id: 'P' + i, numeric: false, disablePadding: false, label: 'P' + i, date: false});
         }
 
         return (
@@ -101,7 +102,7 @@ class StandingsTab extends Component {
                             onRequestSort={this.handleRequestSort}
                         />
                         <TableBody>
-                            {stableSort(data, getSorting(order, orderBy))
+                            {stableSort(data, getSorting(order, orderBy, date))
                                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 .map(n => {
                                     return (

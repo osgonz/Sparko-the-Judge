@@ -28,23 +28,24 @@ const styles = theme => ({
 });
 
 let rows = [
-    { id: 'username', numeric: false, disablePadding: false, label: 'Username' },
-    { id: 'problemName', numeric: false, disablePadding: false, label: 'Problem Name' },
-    { id: 'judge', numeric: false, disablePadding: false, label: 'Judge' },
-    { id: 'result', numeric: false, disablePadding: false, label: 'Result' },
-    { id: 'language', numeric: false, disablePadding: false, label: 'Language' },
-    { id: 'submissionTime', numeric: false, disablePadding: false, label: 'Submission Time' },
+    { id: 'username', numeric: false, disablePadding: false, label: 'Username', date: false },
+    { id: 'problemName', numeric: false, disablePadding: false, label: 'Problem Name', date: false },
+    { id: 'judge', numeric: false, disablePadding: false, label: 'Judge', date: false },
+    { id: 'result', numeric: false, disablePadding: false, label: 'Result', date: false },
+    { id: 'language', numeric: false, disablePadding: false, label: 'Language', date: false },
+    { id: 'submissionTime', numeric: false, disablePadding: false, label: 'Submission Time', date: true },
 ];
 
 class SubmissionsTab extends Component {
     state = {
         order: 'desc',
         orderBy: 'submissionTime',
+        date: true,
         page: 0,
         rowsPerPage: 10,
     };
 
-    handleRequestSort = (event, property) => {
+    handleRequestSort = (event, property, date) => {
         const orderBy = property;
         let order = 'desc';
 
@@ -52,7 +53,7 @@ class SubmissionsTab extends Component {
             order = 'asc';
         }
 
-        this.setState({ order, orderBy });
+        this.setState({ order, orderBy, date });
     };
 
     handleChangePage = (event, page) => {
@@ -94,9 +95,8 @@ class SubmissionsTab extends Component {
 
     render() {
         const { classes, data } = this.props;
-        const { order, orderBy, rowsPerPage, page } = this.state;
+        const { order, orderBy, date, rowsPerPage, page } = this.state;
         const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
-        console.log(data);
 
         return (
             <Paper className={classes.root}>
@@ -109,7 +109,7 @@ class SubmissionsTab extends Component {
                             onRequestSort={this.handleRequestSort}
                         />
                         <TableBody>
-                            {stableSort(data, getSorting(order, orderBy))
+                            {stableSort(data, getSorting(order, orderBy, date))
                                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 .map((n, index) => {
                                     return (

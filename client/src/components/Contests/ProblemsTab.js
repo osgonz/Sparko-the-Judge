@@ -28,20 +28,21 @@ const styles = theme => ({
 });
 
 let rows = [
-    { id: 'local_id', numeric: true, disablePadding: true, label: 'No.' },
-    { id: 'problemName', numeric: false, disablePadding: false, label: 'Problem Name' },
-    { id: 'judge', numeric: false, disablePadding: false, label: 'Judge' },
+    { id: 'local_id', numeric: true, disablePadding: true, label: 'No.', date: false },
+    { id: 'problemName', numeric: false, disablePadding: false, label: 'Problem Name', date: false },
+    { id: 'judge', numeric: false, disablePadding: false, label: 'Judge', date: false },
 ];
 
 class ProblemsTab extends Component {
     state = {
         order: 'asc',
         orderBy: 'local_id',
+        date: false,
         page: 0,
         rowsPerPage: 10,
     };
 
-    handleRequestSort = (event, property) => {
+    handleRequestSort = (event, property, date) => {
         const orderBy = property;
         let order = 'desc';
 
@@ -49,7 +50,7 @@ class ProblemsTab extends Component {
             order = 'asc';
         }
 
-        this.setState({ order, orderBy });
+        this.setState({ order, orderBy, date });
     };
 
     handleChangePage = (event, page) => {
@@ -62,7 +63,7 @@ class ProblemsTab extends Component {
 
     render() {
         const { classes, data } = this.props;
-        const { order, orderBy, rowsPerPage, page } = this.state;
+        const { order, orderBy, date, rowsPerPage, page } = this.state;
         const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
 
         return (
@@ -76,7 +77,7 @@ class ProblemsTab extends Component {
                             onRequestSort={this.handleRequestSort}
                         />
                         <TableBody>
-                            {stableSort(data, getSorting(order, orderBy))
+                            {stableSort(data, getSorting(order, orderBy, date))
                                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 .map((n, index) => {
                                     return (
