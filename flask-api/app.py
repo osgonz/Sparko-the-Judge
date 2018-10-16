@@ -654,15 +654,25 @@ def hello():
 def get():
     username = session.get('loggedUser', SESSION_NOT_FOUND)
     try:
+        # Opem MySQL connection
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
         sql = '''SELECT usertype FROM Users WHERE username = %s'''
         data = (username,)
         cursor.execute(sql, data)
         user = cursor.fetchall()
         if len(user) > 0:
             usertype = user[0][0]
+            cursor.close();
+            conn.close();
             return jsonify({'username': username, 'usertype': usertype})
+        cursor.close();
+        conn.close();
         return jsonify({'error': SESSION_NOT_FOUND})
     except Exception as e:
+        cursor.close();
+        conn.close();
         return jsonify({'error': str(e)})
     #return username
 
