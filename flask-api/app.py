@@ -796,58 +796,84 @@ class ViewInvitedContestList(Resource):
 api.add_resource(ViewInvitedContestList, '/ViewInvitedContestList')
 
 class EditContest(Resource):
-	def post(self):
-		try:
-			# Parse request arguments
-			parser = reqparse.RequestParser()
-			parser.add_argument('ownerID', type=int, help='ownerID')
-			parser.add_argument('ContestName', type=str, help='Contest Name')
-			parser.add_argument('description', type=str, help='Description')
-			parser.add_argument('startDate', type=datetime.datetime, help='startDate')
-			parser.add_argument('endDate', type=datetime.datetime, help='endDate')
-			parser.add_argument('status', type=int, help='status')
+    def post(self):
+        try:
+            # Open MySQL connection
+            conn = mysql.connect()
+            cursor = conn.cursor()
 
-			args = parser.parse_args()
+            # Parse request arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('ownerID', type=int, help='ownerID')
+            parser.add_argument('ContestName', type=str, help='Contest Name')
+            parser.add_argument('description', type=str, help='Description')
+            parser.add_argument('startDate', type=datetime.datetime, help='startDate')
+            parser.add_argument('endDate', type=datetime.datetime, help='endDate')
+            parser.add_argument('status', type=int, help='status')
 
-			_ownerID = args['ownerID']
-			_contestName = args['ContestName']
-			_description = args['description']
-			_startDate = args['startDate']
-			_endDate = args['endDate']
-			_status = args['status']
+            args = parser.parse_args()
 
-			cursor.callproc('spEditContest', (_ownerID, _contestName, _description, _startDate, _endDate, _status))
-			data = cursor.fetchall()
+            _ownerID = args['ownerID']
+            _contestName = args['ContestName']
+            _description = args['description']
+            _startDate = args['startDate']
+            _endDate = args['endDate']
+            _status = args['status']
 
-			if(len(data) == 0):
-				conn.commit()
-				return {'status': 200, 'message': 'Contest edit succesful'}
-			else:
-				return {'status': 100, 'message': data[0][0]}
-		except Exception as e:
-			return {'error': str(e)}
-			
+            cursor.callproc('spEditContest', (_ownerID, _contestName, _description, _startDate, _endDate, _status))
+            data = cursor.fetchall()
+
+            if(len(data) == 0):
+                conn.commit()
+                cursor.close()
+                conn.close()
+                return {'status': 200, 'message': 'Contest edit succesful'}
+            else:
+                cursor.close()
+                conn.close()
+                return {'status': 100, 'message': data[0][0]}
+        except Exception as e:
+            cursor.close()
+            conn.close()
+            return {'error': str(e)}
+
 api.add_resource(EditContest, '/EditContest')
 
-class GetContest(Resource):
-	def post(self):
-		try:
-			_ownerID = args['ownerID']
+class GetContestInfoForEdit(Resource):
+   def post(self):
+        try:
+            # Open MySQL connection
+            conn = mysql.connect()
+            cursor = conn.cursor()
 
-			cursor.callproc('spGetContest', (_ownerID))
-			data = cursor.fetchall()
+            # Parse request arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('contest_id', type=int, help='Contest identifier number')
 
-			if(len(data) > 0):
-				return {
-					'status': 200,
-					'contest': data
-				}
-			else:
-				return {'status': 100, 'message': 'User not found'}
-		except Exception as e:
-			return {'error': str(e)}
-			
-api.add_resource(GetContest, '/GetContest')
+            args = parser.parse_args()
+
+            _contest = args['contest_id']
+
+            cursor.callproc('spGetContestInformation', _contest)
+            data = cursor.fetchall()
+
+            if(len(data) > 0):
+                cursor.close()
+                conn.close()
+                return jsonify({
+                    'status': 200,
+                    'contest': data
+                })
+            else:
+                cursor.close()
+                conn.close()
+                return jsonify({'status': 100, 'message': 'User not found'})
+        except Exception as e:
+            cursor.close()
+            conn.close()
+            return {'error': str(e)}
+
+api.add_resource(GetContestInfoForEdit, '/GetContestInfoForEdit')
 
 @app.route('/')
 def hello():
