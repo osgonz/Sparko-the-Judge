@@ -123,7 +123,7 @@ Drop Procedure If Exists spGetOwnedContests;
 
 CREATE Procedure spGetOwnedContests (IN p_ownerusername varchar(64))
 BEGIN
-    SELECT contestName, description, startDate, endDate, status from Contest where (SELECT userID FROM Users WHERE username = p_ownerusername) = ownerID;
+    SELECT contestID, contestName, description, startDate, endDate, status from Contest where (SELECT userID FROM Users WHERE username = p_ownerusername) = ownerID;
 END //
 
 ---- Get invited Contests
@@ -134,7 +134,7 @@ Drop Procedure If Exists spGetInvitedContests;
 
 CREATE Procedure spGetInvitedContests (IN p_username varchar(64))
 BEGIN
-    SELECT contestName, description, startDate, endDate, status from Contest where contestID = (SELECT contestID from Contestuser where userID = (SELECT userID FROM Users WHERE username = p_username));
+    SELECT contestID, contestName, description, startDate, endDate, status from Contest where contestID = (SELECT contestID from Contestuser where userID = (SELECT userID FROM Users WHERE username = p_username));
 END //
 
 -- Get userID

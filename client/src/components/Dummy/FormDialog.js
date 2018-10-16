@@ -1,12 +1,12 @@
 import React from 'react';
 import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Snackbar from '@material-ui/core/Snackbar';
+
+import AddIcon from '@material-ui/icons/Add';
+
 import CreateContest from '../CreateContest/CreateContest';
 
 export default class FormDialog extends React.Component {
@@ -33,8 +33,10 @@ export default class FormDialog extends React.Component {
 
   render() {
     return (
-      <div>
-        <Button onClick={this.handleClickOpen}>Create contest</Button>
+      <span>
+        <Button variant="fab" mini color="primary" aria-label="Create Contest" style={{margin: '0.5% 0.5%'}} onClick={this.handleClickOpen}>
+            <AddIcon/>
+        </Button>
         <Dialog
           open={this.state.open}
           onClose={() => this.handleClose(false, "")}
@@ -54,7 +56,7 @@ export default class FormDialog extends React.Component {
             }}
             message={<span id="message-id">{this.state.snackbarMessage}</span>}
         />
-      </div>
+      </span>
     );
   }
 }

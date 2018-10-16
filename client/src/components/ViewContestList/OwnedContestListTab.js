@@ -1,29 +1,17 @@
 import React, { Component } from "react";
-import PropTypes from 'prop-types';
-
-import Error404 from '../Error404/Error404';
+import {Link, NavLink, withRouter} from 'react-router-dom';
 
 import { withStyles } from '@material-ui/core/styles';
 
-import Button from '@material-ui/core/Button';
 import Chip from '@material-ui/core/Chip';
 import Paper from '@material-ui/core/Paper';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
-import Typography from '@material-ui/core/Typography';
 
 import Table from "@material-ui/core/Table/Table";
 import TableBody from "@material-ui/core/TableBody/TableBody";
-import TableHead from "@material-ui/core/TableHead/TableHead";
 import TableRow from "@material-ui/core/TableRow/TableRow";
 import TableCell from "@material-ui/core/TableCell/TableCell";
-import Tooltip from "@material-ui/core/Tooltip/Tooltip";
-import TableSortLabel from "@material-ui/core/TableSortLabel/TableSortLabel";
 import TablePagination from "@material-ui/core/TablePagination/TablePagination";
 
-import EditIcon from '@material-ui/icons/Edit';
-import DeleteIcon from '@material-ui/icons/Delete';
-import axios from 'axios'
 import '../../style/style.css';
 
 import ContestTabHeader, {getSorting, stableSort} from './ContestTabHeader';
@@ -42,11 +30,11 @@ const styles = theme => ({
 });
 
 let rows = [
-    { id: 'contestName', numeric: false, disablePadding: false, label: 'Name' },
-    { id: 'description', numeric: false, disablePadding: false, label: 'Description' },
-    { id: 'startDate', numeric: false, disablePadding: false, label: 'Start Date' },
-    { id: 'endDate', numeric: false, disablePadding: false, label: 'End Date' },
-	{ id: 'contestStatus', numeric: false, disablePadding: false, label: 'Status' }
+    { id: 'contestName', numeric: false, disablePadding: false, label: 'Name', date: false },
+    { id: 'description', numeric: false, disablePadding: false, label: 'Description', date: false },
+    { id: 'startDate', numeric: false, disablePadding: false, label: 'Start Date', date: true },
+    { id: 'endDate', numeric: false, disablePadding: false, label: 'End Date', date: true },
+	{ id: 'contestStatus', numeric: false, disablePadding: false, label: 'Status', date: false }
 ];
 
 class OwnedContestListTab extends Component {
@@ -116,19 +104,21 @@ class OwnedContestListTab extends Component {
 							 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 .map((n, index) => {
                                     return (
-                                        <TableRow
-                                            hover
-                                            tabIndex={-1}
-                                            key={index + 1}
-                                        >
-                                            <TableCell component="th" scope="row" numeric={rows[0].numeric}>
-                                                {n[0]}
-                                            </TableCell>
-                                            <TableCell numeric={rows[1].numeric}>{n[1]}</TableCell>
-                                            <TableCell numeric={rows[2].numeric}>{n[2]}</TableCell>
-                                            <TableCell numeric={rows[3].numeric}>{n[3]}</TableCell>
-											<TableCell numeric={rows[4].numeric}>{ this.handleStatusCode(n[4])}</TableCell>
-                                        </TableRow>
+
+                                            <TableRow
+                                                hover
+                                                tabIndex={-1}
+                                                key={index + 1}
+                                            >
+                                                <TableCell component="th" scope="row" numeric={rows[0].numeric}>
+                                                    <a href={"/contests/"+ n.contestID}>{n.contestName}</a>
+                                                </TableCell>
+                                                <TableCell numeric={rows[1].numeric}>{n.description}</TableCell>
+                                                <TableCell numeric={rows[2].numeric}>{n.startDate}</TableCell>
+                                                <TableCell numeric={rows[3].numeric}>{n.endDate}</TableCell>
+                                                <TableCell numeric={rows[4].numeric}>{ this.handleStatusCode(n.status)}</TableCell>
+                                            </TableRow>
+
                                     );
                                 })}
                             {emptyRows > 0 && (
@@ -158,4 +148,4 @@ class OwnedContestListTab extends Component {
     }
 }
 
-export default withStyles(styles)(OwnedContestListTab);
+export default withRouter(withStyles(styles)(OwnedContestListTab));

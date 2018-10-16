@@ -296,19 +296,13 @@ class ViewOwnedContestList(Resource):
 			_ownerUsername = args['username']
 
 			cursor.callproc('spGetOwnedContests', (_ownerUsername,))
-			data = cursor.fetchall()
-			data = list(data)
-			for i in range(len(data)):
-				data[i] = list(data[i])
-				for j in range(len(data[i])):
-					if type(data[i][j]) is datetime.datetime:
-
-						data[i][j] = str(data[i][j])
+			data = [dict((cursor.description[i][0], value)
+                         for i, value in enumerate(row)) for row in cursor.fetchall()]
 
 			if len(data) >= 0:
-				return {'StatusCode':'200','ownedContestList': data}
+				return jsonify({'StatusCode': 200,'ownedContestList': data})
 			else:
-				return {'StatusCode':'1000','Message': str(data[0])}
+				return jsonify({'StatusCode': 1000,'Message': 'No owned contests'})
 
 		except Exception as e:
 			print(str(e))
@@ -328,19 +322,13 @@ class ViewInvitedContestList(Resource):
 			_username = args['username']
 
 			cursor.callproc('spGetInvitedContests', (_username,))
-			data = cursor.fetchall()
-			data = list(data)
-
-			for i in range(len(data)):
-				data[i] = list(data[i])
-				for j in range(len(data[i])):
-					if type(data[i][j]) is datetime.datetime:
-						data[i][j] = str(data[i][j])
+			data = [dict((cursor.description[i][0], value)
+                         for i, value in enumerate(row)) for row in cursor.fetchall()]
 
 			if len(data) >= 0:
-				return {'StatusCode':'200','invitedContestList': data}
+				return jsonify({'StatusCode': 200,'invitedContestList': data})
 			else:
-				return {'StatusCode':'1000','Message': str(data[0])}
+				return jsonify({'StatusCode': 1000,'Message': 'No owned contests'})
 		except Exception as e:
 			print(str(e))
 			return {'error': str(e)}
