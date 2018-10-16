@@ -33,8 +33,8 @@ export default class FormDialog extends React.Component {
 
   render() {
     return (
-      <span>
-        <Button variant="fab" mini color="primary" aria-label="Create Contest" style={{margin: '0.5% 0.5%'}} onClick={this.handleClickOpen}>
+      <span style={{margin: '0.5% 0.5%'}}>
+        <Button variant="fab" mini color="primary" aria-label="Create Contest" onClick={this.handleClickOpen}>
             <AddIcon/>
         </Button>
         <Dialog

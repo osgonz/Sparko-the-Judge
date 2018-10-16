@@ -79,7 +79,7 @@ import CreateContestButton from '../Dummy/FormDialog';
         const {  invitedContestData, ownedContestData, tabValue } = this.state;
 		return (
 			<div>
-                <div className="contest-header">
+                <div className="contest-list-header">
                     <h1 className="contest-title">Contest List</h1>
                     <CreateContestButton />
                 </div>

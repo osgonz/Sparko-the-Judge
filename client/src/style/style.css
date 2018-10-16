@@ -40,6 +40,12 @@ body{
     align-items: center;
 }
 
+.contest-list-header {
+    display: flex;
+    align-items: center;
+    margin: 0% 0% 1%
+}
+
 .contest-desc {
     margin: 1% 2% 2%;
 }
