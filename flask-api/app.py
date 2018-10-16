@@ -707,6 +707,42 @@ class CreateContest(Resource):
 				return {'StatusCode':1000,'Message': str(data[0])}
 		except Exception as e:
 			return {'error': str(e)}
+
+class EditContest(Resource):
+	def post(self):
+		try:
+			# Opem MySQL connection
+			conn = mysql.connect()
+			cursor = conn.cursor()
+
+			# Parse the arguments
+			parser = reqparse.RequestParser()
+			parser.add_argument('contestName', type=str, help='Contest name to create contest')
+			parser.add_argument('description', type=str, help='Contest description to create contest')
+			parser.add_argument('startDate', help='Contest start date to create contest')
+			parser.add_argument('endDate', help='Contest end date to create contest')
+			parser.add_argument('status', type=int, help='Contest status to create contest')
+
+			args = parser.parse_args()
+
+			_contestName = args['contestName']
+			_contestDescription = args['description']
+			_contestStartDate = args['startDate']
+			_contestEndDate = args['endDate']
+			_contestStatus = args['status']
+			_contestOwnerUsername = session.get('loggedUser')
+
+			cursor.callproc('spEditContest',(_contestName,_contestDescription, _contestStartDate, _contestEndDate, _contestStatus, _contestOwnerUsername))
+			data = cursor.fetchall()
+
+			if len(data) is 0:
+				conn.commit()
+				return {'StatusCode':200,'Message': 'Contest edited successfully'}
+			else:
+				return {'StatusCode':1000,'Message': str(data[0])}
+		except Exception as e:
+			return {'error': str(e)}
+			
 			
 			
 class GetUserID(Resource):
@@ -824,6 +860,7 @@ api.add_resource(UnbanUsers, '/UnbanUsers')
 api.add_resource(ViewOwnedContestList, '/ViewOwnedContestList')
 api.add_resource(GetUserID, '/GetUserID')
 api.add_resource(CreateContest, '/CreateContest')
+api.add_resource(EditContest, '/EditContest')
 
 @app.route('/')
 def hello():

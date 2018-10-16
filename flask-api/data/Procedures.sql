@@ -285,6 +285,31 @@ BEGIN
     );
 END //
 
+-- Edit Contest
+DELIMITER //
+
+Drop Procedure If Exists spEditContest;
+
+CREATE PROCEDURE spEditContest (IN contestName varchar(255), IN description varchar(255), IN startDate DATETIME, IN endDate DATETIME, IN status INT, in p_username varchar(64))
+BEGIN
+    Update contest
+    (
+        contestName,
+        description,
+        startDate,
+        endDate,
+    )
+    VALUES
+    (
+        contestName,
+        description,
+        startDate,
+        endDate,
+    )
+    WHERE
+    Contest.contestName == contestName;
+END //
+
 -- Get Contest Information
 
 DELIMITER //
