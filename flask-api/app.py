@@ -286,13 +286,28 @@ api.add_resource(EditUserJudgesUsernames, '/EditUserJudgesUsernames')
 api.add_resource(GetUser, '/GetUser')
 api.add_resource(EditUser, '/EditUser')
 api.add_resource(EditPassword, '/EditPassword')
-api.add_resource(GetActiveSession, '/GetActiveSession')
 api.add_resource(AddUsersToContest, '/AddUsersToContest')
 api.add_resource(RemoveUsersFromContest, '/RemoveUsersFromContest')
 
 @app.route('/')
 def hello():
     return 'Hello world!'
+
+@app.route('/GetActiveSession')
+def get():
+    username = session.get('loggedUser', SESSION_NOT_FOUND)
+    try:
+        sql = '''SELECT usertype FROM Users WHERE username = %s'''
+        data = (username,)
+        cursor.execute(sql, data)
+        user = cursor.fetchall()
+        if len(user) > 0:
+            usertype = user[0][0]
+            return jsonify({'username': username, 'usertype': usertype})
+        return jsonify({'error': SESSION_NOT_FOUND})
+    except Exception as e:
+        return jsonify({'error': str(e)})
+    #return username
 
 @app.route('/SetActiveSession')
 def set():
