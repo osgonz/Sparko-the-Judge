@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { Route } from 'react-router-dom'
 import PropTypes from 'prop-types';
 
 import Error404 from '../Error404/Error404';
@@ -46,7 +47,7 @@ let rows = [
     { id: 'description', numeric: false, disablePadding: false, label: 'Description' },
     { id: 'startDate', numeric: false, disablePadding: false, label: 'Start Date' },
     { id: 'endDate', numeric: false, disablePadding: false, label: 'End Date' },
-	{ id: 'contestStatus', numeric: false, disablePadding: false, label: 'Status' }
+    { id: 'contestStatus', numeric: false, disablePadding: false, label: 'Status' }
 ];
 
 class OwnedContestListTab extends Component {
@@ -116,19 +117,23 @@ class OwnedContestListTab extends Component {
 							 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 .map((n, index) => {
                                     return (
-                                        <TableRow
+                                        <Route render={({ history}) => (
+                                            <TableRow
                                             hover
                                             tabIndex={-1}
                                             key={index + 1}
-                                        >
-                                            <TableCell component="th" scope="row" numeric={rows[0].numeric}>
-                                                {n[0]}
-                                            </TableCell>
-                                            <TableCell numeric={rows[1].numeric}>{n[1]}</TableCell>
-                                            <TableCell numeric={rows[2].numeric}>{n[2]}</TableCell>
-                                            <TableCell numeric={rows[3].numeric}>{n[3]}</TableCell>
-											<TableCell numeric={rows[4].numeric}>{ this.handleStatusCode(n[4])}</TableCell>
-                                        </TableRow>
+                                            onClick={() => { let path = `/contests/`+ n[5]; history.push(path) }}
+                                            >
+                                                <TableCell component="th" scope="row" numeric={rows[0].numeric}>
+                                                    {n[0]}
+                                                </TableCell>
+                                                <TableCell numeric={rows[1].numeric}>{n[1]}</TableCell>
+                                                <TableCell numeric={rows[2].numeric}>{n[2]}</TableCell>
+                                                <TableCell numeric={rows[3].numeric}>{n[3]}</TableCell>
+                                                <TableCell numeric={rows[4].numeric}>{ this.handleStatusCode(n[4])}</TableCell>
+                                            </TableRow>
+                                          )} />
+                                        
                                     );
                                 })}
                             {emptyRows > 0 && (

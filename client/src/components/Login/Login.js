@@ -18,6 +18,7 @@ class Login extends Component {
             attemptedLogin: false,
             openSnackbar: false,
             snackbarMessage: '',
+            userType: -1,
         }
 
         this.handleLogin = this.handleLogin.bind(this)
@@ -36,15 +37,24 @@ class Login extends Component {
 				password: password
 			}, {withCredentials: true})
 			.then(response => {
-				if (response.data.status === 200){
-					this.setState({userId: response.data.UserId, username: response.data.Username})
+                // Correct credentials
+                if (response.data.status === 200){
+                    // User is not banned
+                    if (response.data.userType !== 2){
+                        this.setState({userId: response.data.UserId, username: response.data.Username, userType: response.data.userType})
+                    }
+                    // User is banned
+                    else{
+                        this.setState({openSnackbar: true, snackbarMessage: "This account has been suspended until further notice."})
+                    }
 				}
+                // Incorrect credentials
 				else if (response.data.status === 100){
 					this.setState({openSnackbar: true, snackbarMessage: response.data.message})
 				}
 			})
 			.then(response => {
-				this.props.loginChanged(this.state.userId !== '')
+				this.props.loginChanged(this.state.userId != '', this.state.userType === 0)
 			})
 			.catch((error) => {
 				  console.log(error);

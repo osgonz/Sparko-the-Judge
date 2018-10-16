@@ -37,16 +37,15 @@ import CreateContestButton from '../Dummy/FormDialog';
             console.log(response.data);
 			if (response.data != 'Session not found') {
 				this.setState({username: response.data})
-				axios.post('http://127.0.0.1:5000/ViewOwnedContestList', {username: this.state.username}, {withCredentials: true})
+				axios.post('http://127.0.0.1:5000/ViewOwnedContestList', {username: response.data.username}, {withCredentials: true})
 				.then(response => {
 					console.log(response)
 					if (response.status === 200) {
 						this.setState({ownedContestData: response.data.ownedContestList})
 					}
-
 				})
 				.then(() =>{
-					axios.post('http://127.0.0.1:5000/ViewInvitedContestList', {username: this.state.username}, {withCredentials: true})
+					axios.post('http://127.0.0.1:5000/ViewInvitedContestList', {username: response.data.username}, {withCredentials: true})
 					.then(response => {
 						console.log(response)
 						if (response.status === 200) {
