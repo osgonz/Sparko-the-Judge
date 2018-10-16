@@ -61,55 +61,58 @@ class ContestDetails extends Component {
                     startDate: response.data.contestInfo.startDate,
                     endDate: response.data.contestInfo.endDate,
                     status: response.data.contestInfo.status,
-                    isParticipant: response.data.isParticipant,
-                    isValidated: true
+                    isParticipant: response.data.isParticipant
                 });
-            } else {
-                this.setState({ isValidated: true })
-            }
-        });
 
-        axios.post('http://127.0.0.1:5000/IsLoggedUserContestOwner', {
-            contest_id: this.props.match.params.id
-        }, {withCredentials: true}).then(response => {
-            if (response.data.status == 200){
-                this.setState({ isOwner: true });
-            }
-        }).then( () => {
-            if (this.props.isAdmin || this.state.isOwner) {
-                axios.post('http://127.0.0.1:5000/GetSubmissionsInContest', {
-                    contest_id: this.props.match.params.id
-                }).then(response => {
-                    if (response.data.status == 200){
-                        this.setState({ submissionsData: response.data.submissionsList });
-                    }
-                });
-            } else {
-                axios.post('http://127.0.0.1:5000/GetUserSubmissionsInContest', {
+                axios.post('http://127.0.0.1:5000/IsLoggedUserContestOwner', {
                     contest_id: this.props.match.params.id
                 }, {withCredentials: true}).then(response => {
                     if (response.data.status == 200){
-                        this.setState({ submissionsData: response.data.userSubmissionsList });
+                        this.setState({ isOwner: true });
+                    }
+                    this.setState({ isValidated: true });
+                }).then( () => {
+                    if (this.props.isAdmin || this.state.isOwner) {
+                        axios.post('http://127.0.0.1:5000/GetSubmissionsInContest', {
+                            contest_id: this.props.match.params.id
+                        }).then(response => {
+                            if (response.data.status == 200){
+                                this.setState({ submissionsData: response.data.submissionsList });
+                            }
+                        });
+                    } else {
+                        axios.post('http://127.0.0.1:5000/GetUserSubmissionsInContest', {
+                            contest_id: this.props.match.params.id
+                        }, {withCredentials: true}).then(response => {
+                            if (response.data.status == 200){
+                                this.setState({ submissionsData: response.data.userSubmissionsList });
+                            }
+                        });
                     }
                 });
-            }
-        });
 
-        axios.post('http://127.0.0.1:5000/GetContestProblems', {
-            contest_id: this.props.match.params.id
-        }).then(response => {
-            if (response.data.status == 200){
-                this.setState({ problemsData: response.data.problemList });
-                let problemIDList = [];
-                this.state.problemsData.forEach(problem => {
-                    problemIDList.push(problem.problemID.toString());
-                });
-                axios.post('http://127.0.0.1:5000/GetContestScoresPerProblem', {
-                    contest_id: this.props.match.params.id,
-                    problem_id_list: problemIDList
+                axios.post('http://127.0.0.1:5000/GetContestProblems', {
+                    contest_id: this.props.match.params.id
                 }).then(response => {
-                    this.setState({ scoreData: response.data.scoreList });
+                    if (response.data.status == 200){
+                        this.setState({ problemsData: response.data.problemList });
+                        let problemIDList = [];
+                        this.state.problemsData.forEach(problem => {
+                            problemIDList.push(problem.problemID.toString());
+                        });
+                        if (problemIDList.length > 0) {
+                            axios.post('http://127.0.0.1:5000/GetContestScoresPerProblem', {
+                                contest_id: this.props.match.params.id,
+                                problem_id_list: problemIDList
+                            }).then(response => {
+                                this.setState({scoreData: response.data.scoreList});
+                            });
+                        }
+                    }
                 });
+
+            } else {
+                this.setState({ isValidated: true })
             }
         });
     };

@@ -339,13 +339,20 @@ class GetContestInfo(Resource):
                     validData = cursor.fetchall()
 
                     cursor.callproc('spGetContestInformation', (_contest,))
-                    data = [dict((cursor.description[i][0], value)
-                                 for i, value in enumerate(row)) for row in cursor.fetchall()]
-                    cursor.close()
-                    conn.close()
-                    return jsonify({'status': 200,
-                                    'contestInfo': data[0],
-                                    'isParticipant': len(validData) > 0})
+                    contestData = cursor.fetchall();
+
+                    if len(contestData) > 0:
+                        data = [dict((cursor.description[i][0], value)
+                                     for i, value in enumerate(row)) for row in contestData]
+                        cursor.close()
+                        conn.close()
+                        return jsonify({'status': 200,
+                                        'contestInfo': data[0],
+                                        'isParticipant': len(validData) > 0})
+                    else:
+                        cursor.close()
+                        conn.close()
+                        return jsonify ({'status': 100, 'message': 'Contest not found'})
                 else:
                     cursor.close()
                     conn.close()
