@@ -7,7 +7,7 @@ import Snackbar from '@material-ui/core/Snackbar';
 
 import AddIcon from '@material-ui/icons/Add';
 
-import CreateContest from '../CreateContest/CreateContest';
+import CreateContest from './CreateContest';
 
 export default class FormDialog extends React.Component {
   state = {
@@ -42,10 +42,12 @@ export default class FormDialog extends React.Component {
           onClose={() => this.handleClose(false, "")}
           aria-labelledby="form-dialog-title"
         >
-          <DialogTitle id="form-dialog-title">Create contest</DialogTitle>
-          <DialogContent>
-          <CreateContest handleClose={this.handleClose} />
-          </DialogContent>
+            <center>
+                <DialogTitle id="form-dialog-title">Create Contest</DialogTitle>
+                <DialogContent>
+                <CreateContest handleClose={this.handleClose} />
+                </DialogContent>
+            </center>
         </Dialog>
         <Snackbar
             open={this.state.openSnackbar}

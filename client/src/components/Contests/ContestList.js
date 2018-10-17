@@ -10,7 +10,7 @@ import '../../style/style.css';
 import axios from 'axios'
 import OwnedContestListTab from './OwnedContestListTab';
 import InvitedContestListTab from './InvitedContestListTab';
-import CreateContestButton from '../Dummy/FormDialog';
+import CreateContestButton from '../CreateContest/FormDialog';
 
  const styles = {
     root: {

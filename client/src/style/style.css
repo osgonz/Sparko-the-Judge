@@ -50,6 +50,11 @@ body{
     margin: 1% 2% 2%;
 }
 
+.contest-form-content {
+    display: flex;
+    margin: 0% 4%;
+}
+
 .error-text {
     margin: 1% 2%;
 }
