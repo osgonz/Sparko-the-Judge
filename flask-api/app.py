@@ -761,23 +761,23 @@ class EditContest(Resource):
         try:
             # Parse request arguments
             parser = reqparse.RequestParser()
-            parser.add_argument('ownerID', type=int, help='ownerID')
-            parser.add_argument('ContestName', type=str, help='Contest Name')
+            parser.add_argument('contestID', type=int, help='Contest ID')
+            parser.add_argument('contestName', type=str, help='Contest Name')
             parser.add_argument('description', type=str, help='Description')
-            parser.add_argument('startDate', type=datetime.datetime, help='startDate')
-            parser.add_argument('endDate', type=datetime.datetime, help='endDate')
+            parser.add_argument('startDate', help='startDate')
+            parser.add_argument('endDate', help='endDate')
             parser.add_argument('status', type=int, help='status')
 
             args = parser.parse_args()
 
-            _ownerID = args['ownerID']
-            _contestName = args['ContestName']
+            _contestID = args['contestID']
+            _contestName = args['contestName']
             _description = args['description']
             _startDate = args['startDate']
             _endDate = args['endDate']
             _status = args['status']
 
-            cursor.callproc('spEditContest', (_ownerID, _contestName, _description, _startDate, _endDate, _status))
+            cursor.callproc('spEditContest', (_contestID, _contestName, _description, _startDate, _endDate, _status))
             data = cursor.fetchall()
 
             if (len(data) == 0):
@@ -787,6 +787,7 @@ class EditContest(Resource):
                 return {'status': 100, 'message': data[0][0]}
 
         except Exception as e:
+            print(str(e))
             return {'error': str(e)}
 
         finally:
