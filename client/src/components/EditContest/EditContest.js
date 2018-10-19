@@ -173,7 +173,7 @@ class EditContest extends Component {
                         margin="none"
                         defaultValue={this.state.contestName}
                         error={this.state.contestName === "" && this.state.attemptedEdit}
-                        helperText={!this.props.error ? "Name is required" : ""}
+                        helperText={this.state.contestName === "" && this.state.attemptedEdit ? "Name is required" : ""}
                         style = {{width: '92%'}}
                         onChange={this.contestNameChange}
                     />
@@ -185,7 +185,7 @@ class EditContest extends Component {
                         margin="none"
                         defaultValue={this.state.description}
                         error={this.state.description === "" && this.state.attemptedEdit}
-                        helperText={!this.props.error ? "Description is required" : ""}
+                        helperText={this.state.description === "" && this.state.attemptedEdit ? "Description is required" : ""}
                         style = {{width: '92%'}}
                         onChange={this.descriptionChange}
                     />
@@ -201,8 +201,8 @@ class EditContest extends Component {
                             }}
                             defaultValue={formatDate(this.state.startDate)}
                             disabled={this.state.status > 0}
-                            error={this.state.status == 0 && (startDate >= endDate || startDate < todayDate) && this.state.attemptedEdit}
-                            helperText={!this.props.error ? "Start date is required" : ""}
+                            error={this.state.status == 0 && (isNaN(startDate.getTime()) || startDate >= endDate || startDate < todayDate) && this.state.attemptedEdit}
+                            helperText={this.state.status == 0 && (isNaN(startDate.getTime()) || startDate >= endDate || startDate < todayDate) && this.state.attemptedEdit ? "Valid start date is required" : ""}
                             style = {{width: '50%'}}
                             onChange={this.startDateChange}
                         />
@@ -217,8 +217,8 @@ class EditContest extends Component {
                             }}
                             defaultValue={formatDate(this.state.endDate)}
                             disabled={this.state.status > 0}
-                            error={endDate <= startDate && this.state.attemptedEdit}
-                            helperText={!this.props.error ? "End date is required" : ""}
+                            error={(isNaN(endDate.getTime()) || endDate <= startDate) && this.state.attemptedEdit}
+                            helperText={(isNaN(endDate.getTime()) || endDate <= startDate) && this.state.attemptedEdit ? "Valid end date is required" : ""}
                             style={{marginLeft: '3%', width:'50%'}}
                             onChange={this.endDateChange}
                         />

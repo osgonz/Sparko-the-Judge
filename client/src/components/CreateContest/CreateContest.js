@@ -129,7 +129,7 @@ class CreateContest extends Component {
                         label="Contest Name"
                         margin="none"
                         error={this.state.contestName === "" && this.state.attemptedCreate}
-                        helperText={!this.props.error ? "Name is required" : ""}
+                        helperText={this.state.contestName === "" && this.state.attemptedCreate ? "Name is required" : ""}
                         style = {{width: '92%'}}
                         onChange={this.contestNameChange}
                     />
@@ -140,7 +140,7 @@ class CreateContest extends Component {
                         label="Description"
                         margin="none"
                         error={this.state.description === "" && this.state.attemptedCreate}
-                        helperText={!this.props.error ? "Description is required" : ""}
+                        helperText={this.state.description === "" && this.state.attemptedCreate ? "Description is required" : ""}
                         style = {{width: '92%'}}
                         onChange={this.descriptionChange}
                     />
@@ -155,8 +155,8 @@ class CreateContest extends Component {
                               shrink: true,
                             }}
                             defaultValue={formatDate(this.state.startDate)}
-                            error={(startDate >= endDate || startDate < todayDate) && this.state.attemptedCreate}
-                            helperText={!this.props.error ? "Start date is required" : ""}
+                            error={(isNaN(startDate.getTime()) || startDate >= endDate || startDate < todayDate) && this.state.attemptedCreate}
+                            helperText={(isNaN(startDate.getTime()) || startDate >= endDate || startDate < todayDate) && this.state.attemptedCreate ? "Valid start date is required" : ""}
                             style = {{width: '50%'}}
                             onChange={this.startDateChange}
                         />
@@ -170,8 +170,8 @@ class CreateContest extends Component {
                               shrink: true,
                             }}
                             defaultValue={formatDate(this.state.endDate)}
-                            error={endDate <= startDate && this.state.attemptedCreate}
-                            helperText={!this.props.error ? "End date is required" : ""}
+                            error={(isNaN(endDate.getTime()) || endDate <= startDate) && this.state.attemptedCreate}
+                            helperText={(isNaN(endDate.getTime()) || endDate <= startDate) && this.state.attemptedCreate? "Valid end date is required" : ""}
                             //style = {{width: '35%'}}
                             style={{marginLeft: '3%', width:'50%'}}
                             onChange={this.endDateChange}
