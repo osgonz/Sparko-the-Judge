@@ -104,8 +104,7 @@ class EditContest extends Component {
 		this.state.endDate.setSeconds(0,0);
 		this.state.currentDate.setSeconds(0,0);
 
-        if(this.state.contestName !== "" && this.state.description !=="" && this.state.startDate !== "" &&
-            this.state.endDate !== "" && this.state.email !== "" && this.state.startDate < this.state.endDate &&
+        if(this.state.contestName !== "" && this.state.description !=="" && this.state.startDate < this.state.endDate &&
             (this.state.startDate >= this.state.currentDate || this.state.status == 1)) {
             // Parsing date times
             const {contestName, description, contestID, status} = this.state;
@@ -202,7 +201,7 @@ class EditContest extends Component {
                             }}
                             defaultValue={formatDate(this.state.startDate)}
                             disabled={this.state.status > 0}
-                            error={this.state.status == 0 && (this.state.startDate === "" || startDate >= endDate || startDate < todayDate) && this.state.attemptedEdit}
+                            error={this.state.status == 0 && (startDate >= endDate || startDate < todayDate) && this.state.attemptedEdit}
                             helperText={!this.props.error ? "Start date is required" : ""}
                             style = {{width: '50%'}}
                             onChange={this.startDateChange}
@@ -218,7 +217,7 @@ class EditContest extends Component {
                             }}
                             defaultValue={formatDate(this.state.endDate)}
                             disabled={this.state.status > 0}
-                            error={(this.state.endDate === "" || endDate <= startDate) && this.state.attemptedEdit}
+                            error={endDate <= startDate && this.state.attemptedEdit}
                             helperText={!this.props.error ? "End date is required" : ""}
                             style={{marginLeft: '3%', width:'50%'}}
                             onChange={this.endDateChange}

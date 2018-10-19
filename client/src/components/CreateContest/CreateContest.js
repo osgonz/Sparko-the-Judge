@@ -64,11 +64,10 @@ class CreateContest extends Component {
 		this.state.endDate.setSeconds(0,0);
 		this.state.currentDate.setSeconds(0,0);
 
-        if(this.state.contestName !== "" && this.state.description !=="" && this.state.startDate !== "" &&
-            this.state.endDate !== "" && this.state.email !== "" && this.state.startDate < this.state.endDate &&
+        if(this.state.contestName !== "" && this.state.description !=="" && this.state.startDate < this.state.endDate &&
             this.state.startDate >= this.state.currentDate) {
             // Parsing date times
-            const {contestName, description, ownerID} = this.state;
+            const {contestName, description} = this.state;
             let {startDate, endDate} = this.state;
             startDate = formatDate(startDate)
             endDate = formatDate(endDate)
@@ -156,7 +155,7 @@ class CreateContest extends Component {
                               shrink: true,
                             }}
                             defaultValue={formatDate(this.state.startDate)}
-                            error={(this.state.startDate === "" || startDate >= endDate || startDate < todayDate) && this.state.attemptedCreate}
+                            error={(startDate >= endDate || startDate < todayDate) && this.state.attemptedCreate}
                             helperText={!this.props.error ? "Start date is required" : ""}
                             style = {{width: '50%'}}
                             onChange={this.startDateChange}
@@ -171,7 +170,7 @@ class CreateContest extends Component {
                               shrink: true,
                             }}
                             defaultValue={formatDate(this.state.endDate)}
-                            error={(this.state.endDate === "" || endDate <= startDate) && this.state.attemptedCreate}
+                            error={endDate <= startDate && this.state.attemptedCreate}
                             helperText={!this.props.error ? "End date is required" : ""}
                             //style = {{width: '35%'}}
                             style={{marginLeft: '3%', width:'50%'}}
