@@ -9,6 +9,8 @@ import CardContent from '@material-ui/core/CardContent';
 import Snackbar from '@material-ui/core/Snackbar';
 import axios from 'axios'
 
+import AddProblemDropdown from '../AddProblem/AddProblemDropdown'
+
 function formatDate(date)
 {
 	var today = date;
@@ -38,9 +40,7 @@ class CreateContest extends Component {
         var tomorrow = new Date();
         tomorrow = tomorrow.setDate(tomorrow.getDate()+1);
         tomorrow = new Date(tomorrow);
-
-        console.log(today)
-        console.log(tomorrow)
+        
         this.state = {
             contestName: '',
             description: '',
@@ -48,8 +48,11 @@ class CreateContest extends Component {
             startDate: today,
             endDate: tomorrow,
 			ownerID: '',
-            attemptedCreate: false
+            attemptedCreate: false,
+            selectedOptionsDict: [],
         }
+
+        this.selectedProblems = new Set()
 
         this.handleCreateContest = this.handleCreateContest.bind(this)
         this.contestNameChange = this.contestNameChange.bind(this)
@@ -57,27 +60,34 @@ class CreateContest extends Component {
         this.startDateChange = this.startDateChange.bind(this)
         this.endDateChange = this.endDateChange.bind(this)
         this.handleModalClose = this.props.handleClose.bind(this)
+        this.handleAddProblem = this.handleAddProblem.bind(this)
+    }
+
+    handleAddProblem (problem) {
+        var selectedOptions = this.state.selectedOptionsDict
+        if (!this.selectedProblems.has(problem.problemTitle)){
+          selectedOptions.push(problem)
+          this.selectedProblems.add(problem.problemTitle)
+          this.setState({selectedOptionsDict: selectedOptions})
+        }
     }
 
     handleCreateContest () {
-		console.log("GOT IN");
-		
-        
 		this.setState({attemptedRegister: true})
         if(this.state.contestName !== "" && this.state.description !=="" && this.state.startDate !== "" && this.state.endDate !== "" && this.state.email !== "") {
             // Parsing date times
-            const {contestName, description, ownerID} = this.state;
+            const {contestName, description, ownerID, problems} = this.state;
             var {startDate, endDate} = this.state;
             startDate = formatDate(startDate)
             endDate = formatDate(endDate)
 
-            console.log("CALLING AXIOS")
             axios.post('http://127.0.0.1:5000/CreateContest', {
                 contestName: contestName,
                 description: description,
                 startDate: startDate,
                 endDate: endDate,
                 status: 0,
+                problems: problems,
             }, {withCredentials: true})
             .then(response => {
                 if (response.data.StatusCode == 200) {
@@ -170,6 +180,7 @@ class CreateContest extends Component {
             />
     		<br/>
             <br/>
+            <AddProblemDropdown problems={this.props.onlineJudgesProblems} handleAddProblem={this.handleAddProblem} addedProblems={this.state.selectedOptionsDict} />
             <Button
                 variant="contained"
                 margin="normal"

@@ -19,7 +19,6 @@ import ProblemsTab from './ProblemsTab';
 import SubmissionsTab from './SubmissionsTab';
 import Error404 from '../Error404/Error404';
 
-
 const styles = {
     root: {
         flexGrow: 1,
@@ -47,7 +46,7 @@ class ContestDetails extends Component {
         scoreData: [],
         isOwner: null,
         isParticipant: null,
-        isValidated: null
+        isValidated: null,
     };
 
     componentDidMount(){
@@ -110,7 +109,6 @@ class ContestDetails extends Component {
                         }
                     }
                 });
-
             } else {
                 this.setState({ isValidated: true })
             }
@@ -198,6 +196,7 @@ class ContestDetails extends Component {
                                 <ProblemsTab
                                     data={problemsData}
                                     handleJudgeCode = {this.handleJudgeCode}
+                                    onlineJudgesProblems={this.state.onlineJudgesProblems}
                                 />
                             </TabContainer>}
                             {this.state.tabValue === 2 &&

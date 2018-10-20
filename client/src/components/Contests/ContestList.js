@@ -10,7 +10,9 @@ import '../../style/style.css';
 import axios from 'axios'
 import OwnedContestListTab from './OwnedContestListTab';
 import InvitedContestListTab from './InvitedContestListTab';
-import CreateContestButton from '../Dummy/FormDialog';
+import ButtonShowModal from '../Dummy/FormDialog';
+
+import CreateContest from '../CreateContest/CreateContest';
 
  const styles = {
     root: {
@@ -31,17 +33,17 @@ import CreateContestButton from '../Dummy/FormDialog';
 		username: '',
 		ownedContestData: [],
 		invitedContestData: [],
+		onlineJudgesProblems: ["hola", "adios"]
     };
 
      componentDidMount(){
+     	var onlineJudgesProblems = []
 		axios.get('http://127.0.0.1:5000/GetActiveSession', {withCredentials: true})
         .then(response => {
-            console.log(response.data);
 			if (response.data != 'Session not found') {
 				this.setState({username: response.data.username})
 				axios.post('http://127.0.0.1:5000/ViewOwnedContestList', {username: this.state.username}, {withCredentials: true})
 				.then(response => {
-					console.log(response)
 					if (response.status === 200) {
 						this.setState({ownedContestData: response.data.ownedContestList})
 					}
@@ -50,7 +52,6 @@ import CreateContestButton from '../Dummy/FormDialog';
 				.then(() =>{
 					axios.post('http://127.0.0.1:5000/ViewInvitedContestList', {username: this.state.username}, {withCredentials: true})
 					.then(response => {
-						console.log(response)
 						if (response.status === 200) {
 							this.setState({invitedContestData: response.data.invitedContestList})
 						}
@@ -64,6 +65,20 @@ import CreateContestButton from '../Dummy/FormDialog';
 					console.log(error);
 				});
 			}
+        })
+        .then(() => {
+		    axios.get('https://uhunt.onlinejudge.org/api/p').then(response => {
+			    var problemsSuggestions = response.data.map(function(problem) {
+			        var problemID = problem[0]
+			        var problemNumber = problem[1]
+			        var problemTitle = problem[2]
+			        var str = String(problemID) + " - " + String(problemNumber) + " - " + problemTitle + " (UVa)"
+			        return {value: str, label: str}
+			    })
+
+			    onlineJudgesProblems = onlineJudgesProblems.concat(problemsSuggestions)
+			    this.setState({onlineJudgesProblems: onlineJudgesProblems})
+			})
         })
 	}
 
@@ -81,7 +96,7 @@ import CreateContestButton from '../Dummy/FormDialog';
 			<div>
                 <div className="contest-header">
                     <h1 className="contest-title">Contest List</h1>
-                    <CreateContestButton />
+                    <ButtonShowModal component={<CreateContest onlineJudgesProblems={this.state.onlineJudgesProblems} />} modalTitle={"Create Contest"} />
                 </div>
 				<Paper className={classes.root}>
 					<Tabs
