@@ -10,7 +10,7 @@ import '../../style/style.css';
 import axios from 'axios'
 import OwnedContestListTab from './OwnedContestListTab';
 import InvitedContestListTab from './InvitedContestListTab';
-import CreateContestButton from '../Dummy/FormDialog';
+import CreateContestButton from '../CreateContest/FormDialog';
 
  const styles = {
     root: {
@@ -79,7 +79,7 @@ import CreateContestButton from '../Dummy/FormDialog';
         const {  invitedContestData, ownedContestData, tabValue } = this.state;
 		return (
 			<div>
-                <div className="contest-header">
+                <div className="contest-list-header">
                     <h1 className="contest-title">Contest List</h1>
                     <CreateContestButton />
                 </div>

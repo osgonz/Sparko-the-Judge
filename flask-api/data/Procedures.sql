@@ -304,6 +304,7 @@ BEGIN
   ORDER BY SU.userID, SU.submissionTime DESC;
 END //
 
+
 DELIMITER //
 
 Drop Procedure spGetUserList;
@@ -336,4 +337,22 @@ BEGIN
         SET Users.usertype = 2
         WHERE Users.userID = p_userID;
     END IF;
+END //
+
+                          
+-- Edit contest information
+
+DELIMITER //
+
+Drop Procedure If Exists spEditContest;
+
+CREATE Procedure spEditContest (IN p_contestID INT, IN p_new_contestName varchar(255), IN p_new_description varchar(255), IN p_new_startDate DATETIME, IN p_new_endDate DATETIME, IN p_new_status INT)
+BEGIN
+    UPDATE contest
+    SET contestName = p_new_contestName,
+        description = p_new_description,
+        startDate = p_new_startDate,
+        endDate = p_new_endDate,
+        status = p_new_status
+    WHERE p_contestID = contestID;
 END //
