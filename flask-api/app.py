@@ -26,6 +26,7 @@ app.config['MYSQL_DATABASE_USER'] = os.getenv('MYSQL_DATABASE_USER')
 app.config['MYSQL_DATABASE_PASSWORD'] = os.getenv('MYSQL_DATABASE_PASSWORD')
 app.config['MYSQL_DATABASE_DB'] = os.getenv('MYSQL_DATABASE_DB')
 app.config['MYSQL_DATABASE_HOST'] = os.getenv('MYSQL_DATABASE_HOST')
+app.config['MYSQL_DATABASE_PORT'] = 3307
 
 
 # Session configurations
@@ -546,24 +547,17 @@ class GetUserList(Resource):
             _username = session.get('loggedUser', SESSION_NOT_FOUND)
             _usertype = args['usertype']
 
-            if _usertype == '0':
-                sql = '''SELECT userID AS id, username, CONCAT(fname, " ",lname) AS fullName, usertype AS userType, iduva AS uvaUsername, idicpc AS icpcUsername 
-                        FROM users WHERE usertype != %s AND username != %s'''
-                data = (_usertype,_username)
+            cursor.callproc('spGetUserList', (_usertype,))
+            data = cursor.fetchall()
+
+            if(len(data)>0):
+                r = [dict((cursor.description[i][0], value)
+                        for i, value in enumerate(row)) for row in data]
+
+                return jsonify({'status': 'SUCCESS',
+                                'userList': r})
             else:
-                sql = '''SELECT userID AS id, username, CONCAT(fname, " ",lname) AS fullName, usertype AS userType, iduva AS uvaUsername, idicpc AS icpcUsername 
-                        FROM users
-                        WHERE usertype = %s AND username != %s '''
-                data = (_usertype, _username)
-
-            cursor.execute(sql, data)
-
-            r = [dict((cursor.description[i][0], value)
-                    for i, value in enumerate(row)) for row in cursor.fetchall()]
-            cursor.close()
-            conn.close()
-            return jsonify({'status': 'SUCCESS',
-                            'userList': r})
+                return {'status':100,'message':'Authentication failure'}
 
         except Exception as e:
             cursor.close()
@@ -584,17 +578,14 @@ class BanUsers(Resource):
 
             _usersBanned = args['usernames']
 
-            sql = '''UPDATE users
-                    SET usertype = 2
-                    WHERE userID = %s'''
             for userID in _usersBanned:
-                data = (userID, )
-                cursor.execute(sql, data)
+                cursor.callproc('spBanUser', (userID,))
 
             conn.commit()
             cursor.close()
             conn.close()
             return jsonify({'status': 'SUCCESS'})
+
         except Exception as e:
             cursor.close()
             conn.close()
@@ -629,23 +620,6 @@ class UnbanUsers(Resource):
             cursor.close()
             conn.close()
             raise e
-
-api.add_resource(CreateUser, '/CreateUser')
-api.add_resource(AuthenticateUser, '/AuthenticateUser')
-api.add_resource(EditUserJudgesUsernames, '/EditUserJudgesUsernames')
-api.add_resource(GetUser, '/GetUser')
-api.add_resource(EditUser, '/EditUser')
-api.add_resource(EditPassword, '/EditPassword')
-api.add_resource(GetContestProblems, '/GetContestProblems')
-api.add_resource(GetContestStandings, '/GetContestStandings')
-api.add_resource(GetSubmissionsInContest, '/GetSubmissionsInContest')
-api.add_resource(GetUserSubmissionsInContest, '/GetUserSubmissionsInContest')
-api.add_resource(IsLoggedUserContestOwner, '/IsLoggedUserContestOwner')
-api.add_resource(GetContestInfo, '/GetContestInfo')
-api.add_resource(GetContestScoresPerProblem, '/GetContestScoresPerProblem')
-api.add_resource(GetUserList, '/GetUserList')
-api.add_resource(BanUsers, '/BanUsers')
-api.add_resource(UnbanUsers, '/UnbanUsers')
 
 class CreateContest(Resource):
     def post(self):
@@ -688,8 +662,6 @@ class CreateContest(Resource):
             conn.close()
             return {'error': str(e)}
 
-api.add_resource(CreateContest, '/CreateContest')
-
 class GetUserID(Resource):
     def post(self):
         try:
@@ -721,8 +693,6 @@ class GetUserID(Resource):
             cursor.close()
             conn.close()
             return {'error': str(e)}
-
-api.add_resource(GetUserID, '/GetUserID')
 
 class ViewOwnedContestList(Resource):
     def post(self):
@@ -758,8 +728,6 @@ class ViewOwnedContestList(Resource):
             print(str(e))
             return {'error': str(e)}
 
-api.add_resource(ViewOwnedContestList, '/ViewOwnedContestList')
-
 class ViewInvitedContestList(Resource):
     def post(self):
         try:
@@ -793,6 +761,26 @@ class ViewInvitedContestList(Resource):
             print(str(e))
             return {'error': str(e)}
 
+
+api.add_resource(CreateUser, '/CreateUser')
+api.add_resource(AuthenticateUser, '/AuthenticateUser')
+api.add_resource(EditUserJudgesUsernames, '/EditUserJudgesUsernames')
+api.add_resource(GetUser, '/GetUser')
+api.add_resource(EditUser, '/EditUser')
+api.add_resource(EditPassword, '/EditPassword')
+api.add_resource(GetContestProblems, '/GetContestProblems')
+api.add_resource(GetContestStandings, '/GetContestStandings')
+api.add_resource(GetSubmissionsInContest, '/GetSubmissionsInContest')
+api.add_resource(GetUserSubmissionsInContest, '/GetUserSubmissionsInContest')
+api.add_resource(IsLoggedUserContestOwner, '/IsLoggedUserContestOwner')
+api.add_resource(GetContestInfo, '/GetContestInfo')
+api.add_resource(GetContestScoresPerProblem, '/GetContestScoresPerProblem')
+api.add_resource(GetUserList, '/GetUserList')
+api.add_resource(BanUsers, '/BanUsers')
+api.add_resource(UnbanUsers, '/UnbanUsers')
+api.add_resource(CreateContest, '/CreateContest')
+api.add_resource(GetUserID, '/GetUserID')
+api.add_resource(ViewOwnedContestList, '/ViewOwnedContestList')
 api.add_resource(ViewInvitedContestList, '/ViewInvitedContestList')
 
 @app.route('/')

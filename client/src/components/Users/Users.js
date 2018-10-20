@@ -6,6 +6,8 @@ import React, { Component } from 'react';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import axios from 'axios'
+import AlertDialog from '../AlertDialog/AlertDialog';
+import ReactDOM from 'react-dom'
 
 /*--------------------------- M A T E R I A L   U I ---------------------------*/
 import { withStyles } from '@material-ui/core/styles';
@@ -164,21 +166,56 @@ const toolbarStyles = theme => ({
   },
 });
 
-let EnhancedTableToolbar = props => {
+var EnhancedTableToolbar = props => {
   const { numSelected, classes } = props;
 
-    function handleBanUser(event, usersBanned) {
-        console.log(usersBanned);
+    function dialogBanUser(event, usersBanned) {
+
+      const dialog = (
+          <AlertDialog 
+            open={true}
+            title="Ban users" 
+            description="You are about to ban these users. Are you sure you want to proceed?"
+            btnAcceptTitle="Accept"
+            btnCancelTitle="Cancel"
+            acceptFunc={ () => {
+                handleBanUser(usersBanned)
+              }
+            }/>
+        );
+
+        ReactDOM.render(dialog, document.getElementById('myDialog'));
+    }
+
+    function dialogUnbanUser(event, usersUnbanned) {
+
+      const dialog = (
+          <AlertDialog 
+            open={true}
+            title="Unban users" 
+            description="You are about to unban these users. Are you sure you want to proceed?"
+            btnAcceptTitle="Accept"
+            btnCancelTitle="Cancel"
+            acceptFunc={ () => {
+                handleUnbanUser(usersUnbanned)
+              }
+            }/>
+        );
+
+        ReactDOM.render(dialog, document.getElementById('myDialog'));
+    }
+
+    function handleBanUser(usersBanned) {
+        console.log("BANNED!")
         axios.post('http://127.0.0.1:5000/BanUsers', {
           usernames: usersBanned
         }, {withCredentials: true})
         .then(response => {
-            console.log("You just banned ", usersBanned);
             window.location.reload();
-        })
+        })        
     }
 
-    function handleUnbanUser(event, usersUnbanned) {
+    function handleUnbanUser(usersUnbanned) {
         console.log(usersUnbanned);
         axios.post('http://127.0.0.1:5000/UnbanUsers', {
           usernames: usersUnbanned
@@ -211,13 +248,17 @@ let EnhancedTableToolbar = props => {
       <div className={classes.actions}>
         {numSelected > 0 ? (
           <div style={{display: "flex"}}>
+            
             <Tooltip title="Ban Users">
-              <IconButton aria-label="Delete" onClick={event => handleBanUser(event, props.usersSelected)}>
+              <IconButton aria-label="Ban" onClick={event => dialogBanUser(event, props.usersSelected)}>
                 <LockIcon />
               </IconButton>
             </Tooltip>
+
+            <div id="myDialog"></div>           
+
             <Tooltip title="Unban Users">
-              <IconButton aria-label="Delete" onClick={event => handleUnbanUser(event, props.usersSelected)}>
+              <IconButton aria-label="Unban" onClick={event => dialogUnbanUser(event, props.usersSelected)}>
                 <LockOpenIcon />
               </IconButton>
             </Tooltip>
@@ -238,6 +279,7 @@ EnhancedTableToolbar.propTypes = {
   classes: PropTypes.object.isRequired,
   numSelected: PropTypes.number.isRequired,
   usersSelected: PropTypes.array.isRequired,
+  openDialog: PropTypes.bool.isRequired
 };
 
 EnhancedTableToolbar = withStyles(toolbarStyles)(EnhancedTableToolbar);
@@ -389,7 +431,7 @@ class Users extends Component {
 
     return (
       <Paper className={classes.root}>
-        <EnhancedTableToolbar numSelected={selected.length} usersSelected={selected}/>
+        <EnhancedTableToolbar numSelected={selected.length} usersSelected={selected} openDialog={true}/>
         <div className={classes.tableWrapper}>
           <Table className={classes.table} aria-labelledby="tableTitle">
             <UsersTableHead
