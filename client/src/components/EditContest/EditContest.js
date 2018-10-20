@@ -165,6 +165,23 @@ class EditContest extends Component {
 		let endDate = this.state.endDate;
         endDate.setSeconds(0,0);
 
+        let startDateErrorText = "";
+        let endDateErrorText = "";
+
+        if (this.state.attemptedEdit && this.state.status == 0) {
+            if (isNaN(startDate.getTime()))
+                startDateErrorText = "Start date required";
+            else if (startDate >= endDate)
+                startDateErrorText = "Start date must be before end date";
+            else if (startDate < todayDate)
+                startDateErrorText = "Start date must be equal to or after current date";
+
+            if (isNaN(endDate.getTime()))
+                endDateErrorText = "End date required";
+            else if (endDate <= startDate)
+                endDateErrorText = "End date must be after start date";
+        }
+
         return (
             <div>
                     <TextField
@@ -202,7 +219,7 @@ class EditContest extends Component {
                             defaultValue={formatDate(this.state.startDate)}
                             disabled={this.state.status > 0}
                             error={this.state.status == 0 && (isNaN(startDate.getTime()) || startDate >= endDate || startDate < todayDate) && this.state.attemptedEdit}
-                            helperText={this.state.status == 0 && (isNaN(startDate.getTime()) || startDate >= endDate || startDate < todayDate) && this.state.attemptedEdit ? "Valid start date is required" : ""}
+                            helperText={startDateErrorText}
                             style = {{width: '50%'}}
                             onChange={this.startDateChange}
                         />
@@ -218,7 +235,7 @@ class EditContest extends Component {
                             defaultValue={formatDate(this.state.endDate)}
                             disabled={this.state.status > 0}
                             error={(isNaN(endDate.getTime()) || endDate <= startDate) && this.state.attemptedEdit}
-                            helperText={(isNaN(endDate.getTime()) || endDate <= startDate) && this.state.attemptedEdit ? "Valid end date is required" : ""}
+                            helperText={endDateErrorText}
                             style={{marginLeft: '3%', width:'50%'}}
                             onChange={this.endDateChange}
                         />

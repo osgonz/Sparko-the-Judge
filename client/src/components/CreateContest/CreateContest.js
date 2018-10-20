@@ -122,6 +122,23 @@ class CreateContest extends Component {
 		let endDate = this.state.endDate;
         endDate.setSeconds(0,0);
 
+        let startDateErrorText = "";
+        let endDateErrorText = "";
+
+        if (this.state.attemptedCreate) {
+            if (isNaN(startDate.getTime()))
+                startDateErrorText = "Start date required";
+            else if (startDate >= endDate)
+                startDateErrorText = "Start date must be before end date";
+            else if (startDate < todayDate)
+                startDateErrorText = "Start date must be equal to or after current date";
+
+            if (isNaN(endDate.getTime()))
+                endDateErrorText = "End date required";
+            else if (endDate <= startDate)
+                endDateErrorText = "End date must be after start date";
+        }
+
         return (
             <div>
                     <TextField
@@ -156,7 +173,7 @@ class CreateContest extends Component {
                             }}
                             defaultValue={formatDate(this.state.startDate)}
                             error={(isNaN(startDate.getTime()) || startDate >= endDate || startDate < todayDate) && this.state.attemptedCreate}
-                            helperText={(isNaN(startDate.getTime()) || startDate >= endDate || startDate < todayDate) && this.state.attemptedCreate ? "Valid start date is required" : ""}
+                            helperText={startDateErrorText}
                             style = {{width: '50%'}}
                             onChange={this.startDateChange}
                         />
@@ -171,7 +188,7 @@ class CreateContest extends Component {
                             }}
                             defaultValue={formatDate(this.state.endDate)}
                             error={(isNaN(endDate.getTime()) || endDate <= startDate) && this.state.attemptedCreate}
-                            helperText={(isNaN(endDate.getTime()) || endDate <= startDate) && this.state.attemptedCreate? "Valid end date is required" : ""}
+                            helperText={endDateErrorText}
                             //style = {{width: '35%'}}
                             style={{marginLeft: '3%', width:'50%'}}
                             onChange={this.endDateChange}
