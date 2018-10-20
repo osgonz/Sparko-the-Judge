@@ -7,31 +7,30 @@ Drop Procedure If Exists spCreateUser;
 
 CREATE PROCEDURE spCreateUser (IN p_username varchar(64),IN password varchar(255), IN fname varchar(32), IN lname varchar(32),IN p_email varchar(64), IN usertype INT)
 BEGIN
-IF(SELECT exists (SELECT * from Users where p_username = username)) THEN
-    SELECT 'User already exists';
-ELSEIF(SELECT exists (SELECT * from Users where p_email = email)) THEN
-    SELECT 'Email already exists';
-ELSE
-    INSERT into Users
-    (
-        username,
-        password,
-        fname,
-        lname,
-        email,
-        usertype
-    )
-    VALUES
-    (
-        p_username,
-        password,
-        fname,
-        lname,
-        p_email,
-        usertype
-    );
-END IF;
-
+  IF(SELECT exists (SELECT * from Users where p_username = username)) THEN
+      SELECT 'User already exists';
+  ELSEIF(SELECT exists (SELECT * from Users where p_email = email)) THEN
+      SELECT 'Email already exists';
+  ELSE
+      INSERT into Users
+      (
+          username,
+          password,
+          fname,
+          lname,
+          email,
+          usertype
+      )
+      VALUES
+      (
+          p_username,
+          password,
+          fname,
+          lname,
+          p_email,
+          usertype
+      );
+  END IF;
 END //
 
 ---- Authentication
@@ -53,19 +52,19 @@ Drop Procedure If Exists spEditUser;
 
 CREATE Procedure spEditUser (IN p_curr_username varchar(64), IN p_new_username varchar(64), IN p_fname varchar(32), IN p_lname varchar(32), IN p_email varchar(64), IN p_country INT)
 BEGIN
-IF(SELECT exists (SELECT username from Users where p_new_username = username) AND p_curr_username != p_new_username) THEN
-    SELECT CONCAT(p_new_username, ' already registered');
-ELSEIF(p_curr_username != (SELECT username from Users where p_email = email)) THEN
-    SELECT CONCAT(p_email, ' already registered');
-ELSE
-    UPDATE Users
-    SET username = p_new_username,
-        fname = p_fname,
-        lname = p_lname,
-        email = p_email,
-        country = p_country
-    WHERE p_curr_username = username;
-END IF;
+  IF(SELECT exists (SELECT username from Users where p_new_username = username) AND p_curr_username != p_new_username) THEN
+      SELECT CONCAT(p_new_username, ' already registered');
+  ELSEIF(p_curr_username != (SELECT username from Users where p_email = email)) THEN
+      SELECT CONCAT(p_email, ' already registered');
+  ELSE
+      UPDATE Users
+      SET username = p_new_username,
+          fname = p_fname,
+          lname = p_lname,
+          email = p_email,
+          country = p_country
+      WHERE p_curr_username = username;
+  END IF;
 
 END //
 
@@ -77,16 +76,16 @@ Drop Procedure If Exists spEditJudgesUsernames;
 
 CREATE Procedure spEditJudgesUsernames (IN p_username varchar(64), IN p_username_uva varchar(64), IN p_username_icpc varchar(64))
 BEGIN
-IF(p_username != (SELECT username from Users where p_username_uva = iduva)) THEN
-    SELECT CONCAT(p_username_uva, ' already registered (UVA)');
-ELSEIF(p_username != (SELECT username from Users where p_username_icpc = idicpc)) THEN
-    SELECT CONCAT(p_username_icpc, ' already registered (ICPC Live Archive)');
-ELSE
-    UPDATE Users
-    SET iduva = p_username_uva,
-        idicpc = p_username_icpc
-    WHERE p_username = username;
-END IF;
+  IF(p_username != (SELECT username from Users where p_username_uva = iduva)) THEN
+      SELECT CONCAT(p_username_uva, ' already registered (UVA)');
+  ELSEIF(p_username != (SELECT username from Users where p_username_icpc = idicpc)) THEN
+      SELECT CONCAT(p_username_icpc, ' already registered (ICPC Live Archive)');
+  ELSE
+      UPDATE Users
+      SET iduva = p_username_uva,
+          idicpc = p_username_icpc
+      WHERE p_username = username;
+  END IF;
 
 END //
 
@@ -98,10 +97,9 @@ Drop Procedure If Exists spEditPassword;
 
 CREATE PROCEDURE spEditPassword (IN p_username varchar(64), IN p_new_password varchar(255))
 BEGIN
-UPDATE Users
-SET password = p_new_password
-WHERE username = p_username;
-
+  UPDATE Users
+  SET password = p_new_password
+  WHERE username = p_username;
 END //
 
 -- Get Countries
@@ -306,6 +304,42 @@ BEGIN
   ORDER BY SU.userID, SU.submissionTime DESC;
 END //
 
+
+DELIMITER //
+
+Drop Procedure spGetUserList;
+
+CREATE Procedure spGetUserList (IN p_userType INT)
+BEGIN
+    IF(p_userType = 0) THEN
+        SELECT userID AS id, username, CONCAT(fname, " ",lname) AS fullName, usertype AS userType, iduva AS uvaUsername, idicpc AS icpcUsername 
+        FROM Users
+        WHERE usertype != 0;
+    ELSE
+        SELECT userID AS id, username, CONCAT(fname, " ",lname) AS fullName, usertype AS userType, iduva AS uvaUsername, idicpc AS icpcUsername 
+        FROM Users
+        WHERE usertype = 1;
+    END IF;
+END //
+
+DELIMITER //
+
+Drop Procedure spBanUser;
+
+CREATE Procedure spBanUser (IN p_userID varchar(64))
+BEGIN
+    IF(SELECT exists (SELECT * FROM Users WHERE userID=p_userID AND usertype=0)) THEN
+        SELECT 'You cant ban an administrator';
+    ELSEIF(SELECT exists (SELECT * FROM Users WHERE userID=p_userID AND usertype=2)) THEN
+        SELECT 'User already banned';
+    ELSE
+        UPDATE Users 
+        SET Users.usertype = 2
+        WHERE Users.userID = p_userID;
+    END IF;
+END //
+
+                          
 -- Edit contest information
 
 DELIMITER //

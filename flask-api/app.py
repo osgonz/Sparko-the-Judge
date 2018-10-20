@@ -26,6 +26,7 @@ app.config['MYSQL_DATABASE_USER'] = os.getenv('MYSQL_DATABASE_USER')
 app.config['MYSQL_DATABASE_PASSWORD'] = os.getenv('MYSQL_DATABASE_PASSWORD')
 app.config['MYSQL_DATABASE_DB'] = os.getenv('MYSQL_DATABASE_DB')
 app.config['MYSQL_DATABASE_HOST'] = os.getenv('MYSQL_DATABASE_HOST')
+app.config['MYSQL_DATABASE_PORT'] = 3307
 
 
 # Session configurations
@@ -530,22 +531,16 @@ class GetUserList(Resource):
             _username = session.get('loggedUser', SESSION_NOT_FOUND)
             _usertype = args['usertype']
 
-            if _usertype == '0':
-                sql = '''SELECT userID AS id, username, CONCAT(fname, " ",lname) AS fullName, usertype AS userType, iduva AS uvaUsername, idicpc AS icpcUsername 
-                        FROM users WHERE usertype != %s AND username != %s'''
-                data = (_usertype,_username)
+            cursor.callproc('spGetUserList', (_usertype,))
+            data = cursor.fetchall()
+
+            if(len(data)>0):
+                r = [dict((cursor.description[i][0], value)
+                        for i, value in enumerate(row)) for row in data]
+                return jsonify({'status': 'SUCCESS',
+                                'userList': r})
             else:
-                sql = '''SELECT userID AS id, username, CONCAT(fname, " ",lname) AS fullName, usertype AS userType, iduva AS uvaUsername, idicpc AS icpcUsername 
-                        FROM users
-                        WHERE usertype = %s AND username != %s '''
-                data = (_usertype, _username)
-
-            cursor.execute(sql, data)
-
-            r = [dict((cursor.description[i][0], value)
-                    for i, value in enumerate(row)) for row in cursor.fetchall()]
-            return jsonify({'status': 'SUCCESS',
-                            'userList': r})
+                return {'status':100,'message':'Authentication failure'}
 
         except Exception as e:
             raise e
@@ -568,12 +563,8 @@ class BanUsers(Resource):
 
             _usersBanned = args['usernames']
 
-            sql = '''UPDATE users
-                    SET usertype = 2
-                    WHERE userID = %s'''
             for userID in _usersBanned:
-                data = (userID, )
-                cursor.execute(sql, data)
+                cursor.callproc('spBanUser', (userID,))
 
             conn.commit()
             return jsonify({'status': 'SUCCESS'})
@@ -611,7 +602,7 @@ class UnbanUsers(Resource):
 
         except Exception as e:
             raise e
-
+        
         finally:
             cursor.close()
             conn.close()
@@ -653,7 +644,7 @@ class CreateContest(Resource):
 
         except Exception as e:
             return {'error': str(e)}
-
+        
         finally:
             cursor.close()
             conn.close()
@@ -683,7 +674,8 @@ class GetUserID(Resource):
 
         except Exception as e:
             return {'error': str(e)}
-
+        
+        
         finally:
             cursor.close()
             conn.close()
@@ -715,11 +707,12 @@ class ViewOwnedContestList(Resource):
         except Exception as e:
             print(str(e))
             return {'error': str(e)}
-
+          
+       
         finally:
             cursor.close()
             conn.close()
-
+            
 class ViewInvitedContestList(Resource):
     def post(self):
         # Open MySQL connection
@@ -789,7 +782,7 @@ class EditContest(Resource):
         except Exception as e:
             print(str(e))
             return {'error': str(e)}
-
+       
         finally:
             cursor.close()
             conn.close()
