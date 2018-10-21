@@ -322,3 +322,30 @@ BEGIN
         status = p_new_status
     WHERE p_contestID = contestID;
 END //
+
+-- Get Ongoing Contest Info
+
+DELIMITER //
+
+CREATE PROCEDURE spGetOngoingContestInfo()
+BEGIN
+	SELECT contestID, startDate, endDate
+	FROM Contest
+	WHERE status = 1;
+END //
+
+-- Get Ongoing Contest Users Info
+
+DELIMITER //
+
+Drop Procedure If Exists spGetOngoingContestUsersInfo;
+
+CREATE PROCEDURE spGetOngoingContestUsersInfo (IN p_contestID INT)
+BEGIN
+	SELECT CU.userID, U.username, U.iduva, U.idicpc, C.country_name
+	FROM ContestUser CU, Users U
+	LEFT OUTER JOIN Countries C ON U.country = C.id
+	WHERE CU.contestID = p_contestID AND CU.userID = U.userID
+	ORDER BY CU.userID;
+
+END //
