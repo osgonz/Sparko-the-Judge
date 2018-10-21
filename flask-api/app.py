@@ -513,7 +513,6 @@ class GetContestScoresPerProblem(Resource):
 
             _contest = args['contest_id']
             _problemList = args['problem_id_list']
-            print("PROBLEM LIST", _problemList)
             solutionList = []
 
             for _problem in _problemList:
