@@ -29,6 +29,32 @@ body{
     font-weight: 500;
 }
 
+.contest-title {
+    margin: 0% 1%;
+    font-size: 2rem;
+    font-weight: 500;
+}
+
+.contest-header {
+    display: flex;
+    align-items: center;
+}
+
+.contest-list-header {
+    display: flex;
+    align-items: center;
+    margin: 0% 0% 1%
+}
+
+.contest-desc {
+    margin: 1% 2% 2%;
+}
+
+.contest-form-content {
+    display: flex;
+    margin: 0% 4%;
+}
+
 .error-text {
     margin: 1% 2%;
 }

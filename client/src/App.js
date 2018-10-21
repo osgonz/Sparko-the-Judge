@@ -18,9 +18,10 @@ import axios from 'axios'
 
 class App extends Component {
 
-    loginChanged = val => {
+    loginChanged = (isLogged, isAdmin) => {
       this.setState({
-        isLogged: val
+        isLogged: isLogged,
+        isAdmin: isAdmin
       });
     }
 
@@ -34,16 +35,20 @@ class App extends Component {
     componentDidMount(){
 		axios.get('http://127.0.0.1:5000/GetActiveSession', {withCredentials: true})
         .then(response => {
-            console.log(response.data);
-			if (response.data !== 'Session not found')
-				this.setState({
-					isLogged: true,
-				});
-			this.setState({
-				hasVerifiedSession: true,
-			});
+            if (!response.data.error){
+                if (response.data.username != 'Session not found'){
+                    this.setState({
+                        isLogged: response.data.usertype !== 2,
+                        isAdmin: response.data.usertype == 0
+                    });
+                }
+            }
+            this.setState({
+                hasVerifiedSession: true,
+            });
         })
-		this.loginChanged = this.loginChanged.bind(this)
+
+        this.loginChanged = this.loginChanged.bind(this)
     };
 
     handleLogout() {

@@ -24,7 +24,7 @@ class Profile extends Component {
         password: 'random_123123',
         new_password: '',
         country: '',
-        countryInt: 0,
+        countryInt: undefined,
         countries: [{value: '', display: '(Select your Country)'}],
         iduva: '',
         idicpc: '',
@@ -56,7 +56,10 @@ class Profile extends Component {
 		.then(response => {
 			if (response.data.status === 200){
         let _countries = response.data.countries.map((country, index)=>{return {value:index, display:country}})
-				this.setState({username: response.data.username, fname: response.data.fname, lname: response.data.lname, email: response.data.email, country: response.data.country, iduva: response.data.username_uva, idicpc: response.data.username_icpc, countries: [{value: '', display: '(Select your Country)'}].concat(_countries) })
+        if (response.data.country == null) response.data.country = ''
+        if (response.data.username_uva == null) response.data.username_uva = ''
+        if (response.data.username_icpc == null) response.data.username_icpc = ''
+				this.setState({username: response.data.username, fname: response.data.fname, lname: response.data.lname, email: response.data.email, country: response.data.country, iduva: response.data.username_uva, idicpc: response.data.username_icpc, countries: _countries})
 			}
 			else if (response.data.status === 100){
 				this.setState({openSnackbar: true, snackbarMessage: response.data.message})
@@ -208,13 +211,16 @@ class Profile extends Component {
                 value={this.state.country}
                 label="Country"
                 disabled={!isEditingPersonalInfo}
-                onChange={(e) => this.setState({country: e.target.value, countryInt: e.target.value})}
+                onChange={(e) => {
+                  console.log(e.target.value)
+                  this.setState({country: e.target.value, countryInt: e.target.value})
+                }}
                 inputProps={{
                   name: 'country',
                   id: 'country-simple',
                 }}
               >
-                {this.state.countries.map((_country) => <MenuItem value={_country.value}>{_country.display}</MenuItem>)}
+                {this.state.countries.map((_country) => <MenuItem key={_country.value} value={_country.value}>{_country.display}</MenuItem>)}
               </Select>
             </FormControl>
           </div>
@@ -357,10 +363,5 @@ class Profile extends Component {
     )
   }
 }
-
-ReactDOM.render(
-  <Profile/>,
-  document.getElementById('root')
-)
 
 export default Profile;

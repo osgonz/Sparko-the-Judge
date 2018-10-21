@@ -13,14 +13,20 @@ import Error404 from './components/Error404/Error404';
 import About from './components/About/About';
 import Login from './components/Login/Login';
 import SignUp from './components/SignUp/SignUp';
+import ContestDetails from './components/Contests/ContestDetails';
 import Profile from './components/Profile/Profile';
 import Users from './components/Users/Users';
+import ContestList from './components/Contests/ContestList';
 
 /*******************************************************************************/
 
 // Main component serves as our main switch and container for general site content
 // Props: isLogged (boolean) and isAdmin (boolean)
 class Main extends Component {
+    constructor(props) {
+        super(props)
+    }
+
     render() {
 
         const LoginComponent = (props) => {
@@ -35,15 +41,35 @@ class Main extends Component {
             );
         }
 
+        const ContestDetailsComponent = (props) => {
+            return (
+                <ContestDetails
+                    isLogged = {this.props.isLogged}
+                    isAdmin = {this.props.isAdmin}
+                    {...props}
+                />
+            );
+        }
+
         const ProfileComponent = (props) => {
             return (
                 <Profile />
-            )
+            );
         }
 
         const UsersComponent = (props) => {
             return (
-                <Users isAdmin={true}/>
+                <Users isAdmin={this.props.isAdmin} />
+            );
+        }
+		
+		const ContestListComponent = (props) => {
+            return (
+                <ContestList
+                    isLogged = {this.props.isLogged}
+                    isAdmin = {this.props.isAdmin}
+                    {...props}
+                />
             );
         }
 
@@ -58,18 +84,19 @@ class Main extends Component {
                 <Redirect to='/login'/>
             );
         }
+		
 
         // Replace Error404 component with the correct one once a specific page is developed
         return(
             <div className="main-container">
                 <Switch>
-                    <Route exact path='/' component= {UsersComponent} />
+                    <Route exact path='/' component= {About} />
                     { /* If logged and admin, show Users page */ }
-                    { this.props.isLogged && this.props.isAdmin &&
-                        <Route path='/users' render= {UsersComponent}/>
-                    }
+                    <Route path='/users' render= {this.props.isLogged ? UsersComponent : LoginRedirect}/>
                     { /* If logged, show Contests page; otherwise show Login page */ }
-                    <Route path='/contests' render= {this.props.isLogged ? Error404 : Error404} />
+                    <Route exact path='/contests' render= {this.props.isLogged ? ContestListComponent : LoginRedirect} />
+                    { /* If logged, show Contest Details; otherwise show Login page */ }
+                    <Route path='/contests/:id' render= {this.props.isLogged ? ContestDetailsComponent : LoginRedirect} />
                     { /* If logged, show Profile page; otherwise show Login page */ }
                     <Route exact path='/profile' render= {this.props.isLogged ? ProfileComponent : LoginRedirect} />
                     { /* If logged, show Login page; otherwise show Home page */ }
