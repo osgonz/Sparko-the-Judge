@@ -61,6 +61,7 @@ class CreateContest extends Component {
         this.endDateChange = this.endDateChange.bind(this)
         this.handleModalClose = this.props.handleClose.bind(this)
         this.handleAddProblem = this.handleAddProblem.bind(this)
+        this.handleRemoveProblem = this.handleRemoveProblem.bind(this)
     }
 
     handleAddProblem (problem) {
@@ -72,11 +73,23 @@ class CreateContest extends Component {
         }
     }
 
+    handleRemoveProblem (problem) {
+        console.log(problem)
+        var selectedOptions = this.state.selectedOptionsDict // Selected problems
+        var index = selectedOptions.indexOf(problem)
+        selectedOptions.splice(index, 1)
+        console.log(selectedOptions)
+        this.selectedProblems.delete(problem.problemTitle)   // Remove from Set
+
+        this.setState({selectedOptionsDict: selectedOptions}) // Update state
+    }
+
     handleCreateContest () {
 		this.setState({attemptedRegister: true})
         if(this.state.contestName !== "" && this.state.description !=="" && this.state.startDate !== "" && this.state.endDate !== "" && this.state.email !== "") {
             // Parsing date times
-            const {contestName, description, ownerID, problems} = this.state;
+            const {contestName, description, ownerID, selectedOptionsDict} = this.state;
+            console.log(selectedOptionsDict)
             var {startDate, endDate} = this.state;
             startDate = formatDate(startDate)
             endDate = formatDate(endDate)
@@ -87,12 +100,21 @@ class CreateContest extends Component {
                 startDate: startDate,
                 endDate: endDate,
                 status: 0,
-                problems: problems,
             }, {withCredentials: true})
             .then(response => {
                 if (response.data.StatusCode == 200) {
-                    //changes user to profile if login is successful
-                    this.handleModalClose(true, "Contest created successfully")
+                    var contestID = response.data.contestID
+                    axios.post('http://127.0.0.1:5000/CreateProblems', {
+                        problems: selectedOptionsDict,
+                    }, {withCredentials: true})
+                    .then(response => {
+                        axios.post('http://127.0.0.1:5000/AddProblemsToContest', {
+                            contestID: contestID,
+                            problems: selectedOptionsDict,
+                        }, {withCredentials: true})
+
+                        this.handleModalClose(true, "Contest created successfully")
+                    })
                 }
 
                 if (response.data.StatusCode == 1000) {
@@ -180,7 +202,7 @@ class CreateContest extends Component {
             />
     		<br/>
             <br/>
-            <AddProblemDropdown problems={this.props.onlineJudgesProblems} handleAddProblem={this.handleAddProblem} addedProblems={this.state.selectedOptionsDict} />
+            <AddProblemDropdown problems={this.props.onlineJudgesProblems} handleAddProblem={this.handleAddProblem} handleRemoveProblem={this.handleRemoveProblem} addedProblems={this.state.selectedOptionsDict} />
             <Button
                 variant="contained"
                 margin="normal"

@@ -56,7 +56,7 @@ class AddProblemDropdown extends React.Component {
           onChange={this.handleChange}
           options={this.props.problems}
         />
-        <ProblemsTable data={this.props.addedProblems}/>
+        <ProblemsTable data={this.props.addedProblems} handleRemoveProblem={this.props.handleRemoveProblem}/>
       </div>
     );
   }

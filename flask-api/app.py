@@ -507,12 +507,13 @@ class GetContestScoresPerProblem(Resource):
             # Parse request arguments
             parser = reqparse.RequestParser()
             parser.add_argument('contest_id', type=int, help='Contest identifier number')
-            parser.add_argument('problem_id_list', type=list, help='List of problem identifier numbers', action='append')
+            parser.add_argument('problem_id_list', type=str, help='List of problem identifier numbers', action='append')
 
             args = parser.parse_args()
 
             _contest = args['contest_id']
             _problemList = args['problem_id_list']
+            print("PROBLEM LIST", _problemList)
             solutionList = []
 
             for _problem in _problemList:
@@ -676,9 +677,12 @@ class CreateContest(Resource):
 
             if len(data) is 0:
                 conn.commit()
+                cursor.callproc('spGetLastInsertedID')
+                data = cursor.fetchall()
+                contestID = data[0][0]
                 cursor.close()
                 conn.close()
-                return {'StatusCode':200,'Message': 'Contest creation success'}
+                return {'StatusCode':200,'Message': 'Contest creation success', 'contestID': contestID}
             else:
                 cursor.close()
                 conn.close()
@@ -794,6 +798,85 @@ class ViewInvitedContestList(Resource):
             return {'error': str(e)}
 
 api.add_resource(ViewInvitedContestList, '/ViewInvitedContestList')
+
+class AddProblemsToContest(Resource):
+    def post(self):
+        try:
+            # Opem MySQL connection
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            # Parse the arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('contestID', type=str, help='List of dictionaries of problems to add')
+            parser.add_argument('problems', type=dict, action='append', help='List of dictionaries of problems to add')
+
+            args = parser.parse_args()
+
+            _contestID = args['contestID']
+            _problems = args['problems']
+
+            for _problem in _problems:
+                cursor.callproc('spAddProblemToContest', (_contestID, _problem['problemTitle']))
+
+            conn.commit()
+            cursor.close()
+            conn.close()
+
+            return {'StatusCode': 200}
+        except Exception as e:
+            cursor.close()
+            conn.close()
+            return {'error': str(e)}
+
+api.add_resource(AddProblemsToContest, '/AddProblemsToContest')
+
+class CreateProblems(Resource):
+
+    def __init__ (self):
+        self.onlineJudgeToInt = {
+            'ICPC Live Archive': 0,
+            'UVa': 1,
+        }
+
+        self.onlineJudgeBaseURL = {
+            'ICPC Live Archive': 'https://icpcarchive.ecs.baylor.edu/index.php?option=com_onlinejudge&Itemid=8&page=show_problem&problem=',
+            'UVa': 'https://uva.onlinejudge.org/index.php?option=com_onlinejudge&Itemid=8&page=show_problem&problem='
+        }
+
+    def post(self):
+        try:
+            # Opem MySQL connection
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            # Parse the arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('problems', type=dict, action='append', help='List of dictionaries of problems to add')
+
+            args = parser.parse_args()
+
+            _problems = args['problems']
+
+            print(_problems)
+
+            for _problem in _problems:
+                problemName = _problem['problemTitle']
+                onlineJudgeProblemID = _problem['problemID']
+                onlineJudge = self.onlineJudgeToInt[_problem['onlineJudge']]
+                url = self.onlineJudgeBaseURL[_problem['onlineJudge']] + str(onlineJudgeProblemID)
+                cursor.callproc('spCreateProblem', (onlineJudge, onlineJudgeProblemID, problemName, url))
+
+            conn.commit()
+            cursor.close()
+            conn.close()
+            return {'StatusCode': 200}
+        except Exception as e:
+            cursor.close()
+            conn.close()
+            return {'error': str(e)}
+
+api.add_resource(CreateProblems, '/CreateProblems')
 
 @app.route('/')
 def hello():

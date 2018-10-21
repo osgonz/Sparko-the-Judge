@@ -33,7 +33,7 @@ import CreateContest from '../CreateContest/CreateContest';
 		username: '',
 		ownedContestData: [],
 		invitedContestData: [],
-		onlineJudgesProblems: ["hola", "adios"]
+		onlineJudgesProblems: []
     };
 
      componentDidMount(){
@@ -73,6 +73,19 @@ import CreateContest from '../CreateContest/CreateContest';
 			        var problemNumber = problem[1]
 			        var problemTitle = problem[2]
 			        var str = String(problemID) + " - " + String(problemNumber) + " - " + problemTitle + " (UVa)"
+			        return {value: str, label: str}
+			    })
+
+			    onlineJudgesProblems = onlineJudgesProblems.concat(problemsSuggestions)
+			    this.setState({onlineJudgesProblems: onlineJudgesProblems})
+			})
+
+		    axios.get('https://icpcarchive.ecs.baylor.edu/uhunt/api/p').then(response => {
+			    var problemsSuggestions = response.data.map(function(problem) {
+			        var problemID = problem[0]
+			        var problemNumber = problem[1]
+			        var problemTitle = problem[2]
+			        var str = String(problemID) + " - " + String(problemNumber) + " - " + problemTitle + " (ICPC Live Archive)"
 			        return {value: str, label: str}
 			    })
 

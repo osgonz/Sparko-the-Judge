@@ -32,6 +32,10 @@ function desc(a, b, orderBy) {
   return 0;
 }
 
+function clickKek(message){
+  console.log(message)
+}
+
 function stableSort(array, cmp) {
   const stabilizedThis = array.map((el, index) => [el, index]);
   stabilizedThis.sort((a, b) => {
@@ -229,12 +233,6 @@ class ProblemsTable extends React.Component {
     const { data, order, orderBy, selected, rowsPerPage, page } = this.state;
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
 
-    var deleteIcon =
-      (<IconButton>
-        <DeleteIcon />
-      </IconButton>
-    );
-
     return (
       <Paper className={classes.root}>
         <EnhancedTableToolbar numSelected={selected.length} usersSelected={selected}/>
@@ -262,7 +260,11 @@ class ProblemsTable extends React.Component {
                       </TableCell>
                       <TableCell numeric={rows[1].numeric}>{n.onlineJudge}</TableCell>
                       <TableCell>
-                        {deleteIcon}
+                        <IconButton
+                          onClick={() => this.props.handleRemoveProblem(n)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
                       </TableCell>
                     </TableRow>
                   );

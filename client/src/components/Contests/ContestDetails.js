@@ -92,18 +92,20 @@ class ContestDetails extends Component {
 
                 axios.post('http://127.0.0.1:5000/GetContestProblems', {
                     contest_id: this.props.match.params.id
-                }).then(response => {
+                }, {withCredentials: true}).then(response => {
                     if (response.data.status == 200){
                         this.setState({ problemsData: response.data.problemList });
                         let problemIDList = [];
+                        console.log(this.state.problemsData)
                         this.state.problemsData.forEach(problem => {
                             problemIDList.push(problem.problemID.toString());
                         });
+                        console.log(problemIDList)
                         if (problemIDList.length > 0) {
                             axios.post('http://127.0.0.1:5000/GetContestScoresPerProblem', {
                                 contest_id: this.props.match.params.id,
                                 problem_id_list: problemIDList
-                            }).then(response => {
+                            }, {withCredentials: true}).then(response => {
                                 this.setState({scoreData: response.data.scoreList});
                             });
                         }
