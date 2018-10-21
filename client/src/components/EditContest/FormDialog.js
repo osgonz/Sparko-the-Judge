@@ -1,13 +1,13 @@
 import React from 'react';
 import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Snackbar from '@material-ui/core/Snackbar';
-import CreateContest from '../CreateContest/CreateContest';
+
+import EditIcon from '@material-ui/icons/Edit';
+
+import EditContest from './EditContest';
 
 export default class FormDialog extends React.Component {
   state = {
@@ -33,17 +33,28 @@ export default class FormDialog extends React.Component {
 
   render() {
     return (
-      <div>
-        <Button onClick={this.handleClickOpen}>Create contest</Button>
+      <span style={{margin: '0.5% 0.5%'}}>
+        <Button variant="fab" mini color="primary" aria-label="Edit Contest" onClick={this.handleClickOpen}>
+            <EditIcon/>
+        </Button>
         <Dialog
           open={this.state.open}
           onClose={() => this.handleClose(false, "")}
           aria-labelledby="form-dialog-title"
         >
-          <DialogTitle id="form-dialog-title">Create contest</DialogTitle>
-          <DialogContent>
-          <CreateContest handleClose={this.handleClose} />
-          </DialogContent>
+            <center>
+                <DialogTitle id="form-dialog-title">Edit Contest</DialogTitle>
+                <DialogContent>
+                <EditContest
+                    contestID={this.props.contestID}
+                    contestName={this.props.contestName}
+                    description= {this.props.description}
+                    startDate= {this.props.startDate}
+                    endDate= {this.props.endDate}
+                    status={this.props.status}
+                    handleClose={this.handleClose} />
+                </DialogContent>
+            </center>
         </Dialog>
         <Snackbar
             open={this.state.openSnackbar}
@@ -54,7 +65,7 @@ export default class FormDialog extends React.Component {
             }}
             message={<span id="message-id">{this.state.snackbarMessage}</span>}
         />
-      </div>
+      </span>
     );
   }
 }

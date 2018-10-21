@@ -16,9 +16,7 @@ import SignUp from './components/SignUp/SignUp';
 import ContestDetails from './components/Contests/ContestDetails';
 import Profile from './components/Profile/Profile';
 import Users from './components/Users/Users';
-import ContestList from './components/ViewContestList/ContestList';
-import CreateContest from './components/CreateContest/CreateContest';
-import Dummy from './components/Dummy/FormDialog'
+import ContestList from './components/Contests/ContestList';
 
 /*******************************************************************************/
 
@@ -62,12 +60,6 @@ class Main extends Component {
         const UsersComponent = (props) => {
             return (
                 <Users isAdmin={this.props.isAdmin} />
-            );
-        }
-		
-		const CreateContestComponent = (props) => {
-            return (
-                <Dummy />
             );
         }
 		

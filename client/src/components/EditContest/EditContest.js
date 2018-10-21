@@ -6,12 +6,33 @@ import axios from 'axios'
 
 function formatDate(date)
 {
+    var today = date;
+    var dd = today.getDate();
+    var mm = today.getMonth()+1;
+    var yyyy = today.getFullYear();
+    var h = (today.getHours()<10?'0':'') + today.getHours();
+    var m = (today.getMinutes()<10?'0':'') + today.getMinutes();
+
+    if(dd<10) {
+        dd = '0'+dd
+    }
+
+    if(mm<10) {
+        mm = '0'+mm
+    }
+    var dateFormated = yyyy + '-' + mm + '-' + dd+'T'+ h + ':' + m;
+
+    return dateFormated;
+}
+
+function formatUTCDate(date)
+{
 	var today = date;
-	var dd = today.getDate();
-	var mm = today.getMonth()+1;
-	var yyyy = today.getFullYear();
-	var h = (today.getHours()<10?'0':'') + today.getHours();
-	var m = (today.getMinutes()<10?'0':'') + today.getMinutes();
+	var dd = today.getUTCDate();
+	var mm = today.getUTCMonth()+1;
+	var yyyy = today.getUTCFullYear();
+	var h = (today.getUTCHours()<10?'0':'') + today.getUTCHours();
+	var m = (today.getUTCMinutes()<10?'0':'') + today.getUTCMinutes();
 
 	if(dd<10) {
 		dd = '0'+dd
@@ -25,39 +46,58 @@ function formatDate(date)
 	return dateFormated;
 }
 
-class CreateContest extends Component {
+class EditContest extends Component {
     //Country is missing from here and the app.py
     constructor(props) {
-        super(props)
-        var today = new Date();
-        var tomorrow = new Date();
+        super(props);
+        let today = new Date();
+        today.setSeconds(0,0);
+        let tomorrow = new Date();
         tomorrow = tomorrow.setDate(tomorrow.getDate()+1);
         tomorrow = new Date(tomorrow);
 
-        console.log(today)
-        console.log(tomorrow)
         this.state = {
             contestName: '',
             description: '',
             currentDate: today,
             startDate: today,
             endDate: tomorrow,
-			ownerID: '',
-            attemptedCreate: false
-        }
+			contestID: -1,
+            status: -1,
+            attemptedEdit: false
+        };
 
-        this.handleCreateContest = this.handleCreateContest.bind(this)
-        this.contestNameChange = this.contestNameChange.bind(this)
-        this.descriptionChange = this.descriptionChange.bind(this)
-        this.startDateChange = this.startDateChange.bind(this)
-        this.endDateChange = this.endDateChange.bind(this)
-        this.handleModalClose = this.props.handleClose.bind(this)
+        this.handleEditContest = this.handleEditContest.bind(this);
+        this.contestNameChange = this.contestNameChange.bind(this);
+        this.descriptionChange = this.descriptionChange.bind(this);
+        this.startDateChange = this.startDateChange.bind(this);
+        this.endDateChange = this.endDateChange.bind(this);
+        this.handleModalClose = this.props.handleClose.bind(this);
     }
 
-    handleCreateContest () {
+    componentWillMount() {
+        let startDate = new Date(this.props.startDate);
+        startDate = new Date(formatUTCDate(startDate));
+        let endDate = new Date(this.props.endDate);
+        endDate = new Date(formatUTCDate(endDate));
+
+        startDate.setSeconds(0,0);
+        endDate.setSeconds(0,0);
+
+        this.setState({
+            contestID: this.props.contestID,
+            contestName: this.props.contestName,
+            description: this.props.description,
+            startDate: startDate,
+            endDate: endDate,
+            status: this.props.status,
+        });
+    }
+
+    handleEditContest () {
 		console.log("GOT IN");
 
-		this.setState({attemptedCreate: true})
+		this.setState({attemptedEdit: true})
 
         // Removing seconds and milliseconds from dates
         this.state.startDate.setSeconds(0,0);
@@ -65,30 +105,33 @@ class CreateContest extends Component {
 		this.state.currentDate.setSeconds(0,0);
 
         if(this.state.contestName !== "" && this.state.description !=="" && this.state.startDate < this.state.endDate &&
-            this.state.startDate >= this.state.currentDate) {
+            (this.state.startDate >= this.state.currentDate || this.state.status == 1)) {
             // Parsing date times
-            const {contestName, description} = this.state;
+            const {contestName, description, contestID, status} = this.state;
             let {startDate, endDate} = this.state;
             startDate = formatDate(startDate)
             endDate = formatDate(endDate)
 
             console.log("CALLING AXIOS")
-            axios.post('http://127.0.0.1:5000/CreateContest', {
+            axios.post('http://127.0.0.1:5000/EditContest', {
+                contestID: contestID,
                 contestName: contestName,
                 description: description,
                 startDate: startDate,
                 endDate: endDate,
-                status: 0,
+                status: status,
             }, {withCredentials: true})
             .then(response => {
-                if (response.data.StatusCode == 200) {
-                    this.handleModalClose(true, "Contest created successfully")
+                if (response.data.status == 200) {
+                    console.log(200);
+                    this.handleModalClose(true, "Contest edited successfully")
                     window.location.reload();
                 }
 
-                if (response.data.StatusCode == 1000) {
+                if (response.data.status == 100) {
                     //Display error message
-                    this.handleModalClose(true, response.data.Message)
+                    console.log(100);
+                    this.handleModalClose(true, response.data.message)
                 }
             })
             .catch((error) => {
@@ -125,7 +168,7 @@ class CreateContest extends Component {
         let startDateErrorText = "";
         let endDateErrorText = "";
 
-        if (this.state.attemptedCreate) {
+        if (this.state.attemptedEdit && this.state.status == 0) {
             if (isNaN(startDate.getTime()))
                 startDateErrorText = "Start date required";
             else if (startDate >= endDate)
@@ -145,8 +188,9 @@ class CreateContest extends Component {
                         id="contestName"
                         label="Contest Name"
                         margin="none"
-                        error={this.state.contestName === "" && this.state.attemptedCreate}
-                        helperText={this.state.contestName === "" && this.state.attemptedCreate ? "Name is required" : ""}
+                        defaultValue={this.state.contestName}
+                        error={this.state.contestName === "" && this.state.attemptedEdit}
+                        helperText={this.state.contestName === "" && this.state.attemptedEdit ? "Name is required" : ""}
                         style = {{width: '92%'}}
                         onChange={this.contestNameChange}
                     />
@@ -156,8 +200,9 @@ class CreateContest extends Component {
                         type="description"
                         label="Description"
                         margin="none"
-                        error={this.state.description === "" && this.state.attemptedCreate}
-                        helperText={this.state.description === "" && this.state.attemptedCreate ? "Description is required" : ""}
+                        defaultValue={this.state.description}
+                        error={this.state.description === "" && this.state.attemptedEdit}
+                        helperText={this.state.description === "" && this.state.attemptedEdit ? "Description is required" : ""}
                         style = {{width: '92%'}}
                         onChange={this.descriptionChange}
                     />
@@ -172,7 +217,8 @@ class CreateContest extends Component {
                               shrink: true,
                             }}
                             defaultValue={formatDate(this.state.startDate)}
-                            error={(isNaN(startDate.getTime()) || startDate >= endDate || startDate < todayDate) && this.state.attemptedCreate}
+                            disabled={this.state.status > 0}
+                            error={this.state.status == 0 && (isNaN(startDate.getTime()) || startDate >= endDate || startDate < todayDate) && this.state.attemptedEdit}
                             helperText={startDateErrorText}
                             style = {{width: '50%'}}
                             onChange={this.startDateChange}
@@ -187,9 +233,9 @@ class CreateContest extends Component {
                               shrink: true,
                             }}
                             defaultValue={formatDate(this.state.endDate)}
-                            error={(isNaN(endDate.getTime()) || endDate <= startDate) && this.state.attemptedCreate}
+                            disabled={this.state.status > 0}
+                            error={(isNaN(endDate.getTime()) || endDate <= startDate) && this.state.attemptedEdit}
                             helperText={endDateErrorText}
-                            //style = {{width: '35%'}}
                             style={{marginLeft: '3%', width:'50%'}}
                             onChange={this.endDateChange}
                         />
@@ -201,9 +247,9 @@ class CreateContest extends Component {
                         color="primary"
                         type="submit"
                         style={{display:'block', width:'100%'}}
-                        onClick={this.handleCreateContest.bind()}
+                        onClick={this.handleEditContest.bind()}
                     >
-                    Create
+                    Edit
                     </Button>
 
             </div>
@@ -211,4 +257,4 @@ class CreateContest extends Component {
       }
 }
 
-export default CreateContest
+export default EditContest

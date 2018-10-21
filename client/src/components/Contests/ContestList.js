@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { withStyles } from '@material-ui/core/styles';
+
 import Paper from '@material-ui/core/Paper';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
@@ -9,7 +10,8 @@ import '../../style/style.css';
 import axios from 'axios'
 import OwnedContestListTab from './OwnedContestListTab';
 import InvitedContestListTab from './InvitedContestListTab';
-import CreateContestButton from '../Dummy/FormDialog';
+import CreateContestButton from '../CreateContest/FormDialog';
+
  const styles = {
     root: {
         flexGrow: 1,
@@ -36,8 +38,8 @@ import CreateContestButton from '../Dummy/FormDialog';
         .then(response => {
             console.log(response.data);
 			if (response.data != 'Session not found') {
-				this.setState({username: response.data})
-				axios.post('http://127.0.0.1:5000/ViewOwnedContestList', {username: response.data.username}, {withCredentials: true})
+				this.setState({username: response.data.username})
+				axios.post('http://127.0.0.1:5000/ViewOwnedContestList', {username: this.state.username}, {withCredentials: true})
 				.then(response => {
 					console.log(response)
 					if (response.status === 200) {
@@ -76,7 +78,10 @@ import CreateContestButton from '../Dummy/FormDialog';
         const {  invitedContestData, ownedContestData, tabValue } = this.state;
 		return (
 			<div>
-			<CreateContestButton />
+                <div className="contest-list-header">
+                    <h1 className="contest-title">Contest List</h1>
+                    <CreateContestButton />
+                </div>
 				<Paper className={classes.root}>
 					<Tabs
 						value={tabValue}
