@@ -10,9 +10,8 @@ import '../../style/style.css';
 import axios from 'axios'
 import OwnedContestListTab from './OwnedContestListTab';
 import InvitedContestListTab from './InvitedContestListTab';
-import ButtonShowModal from '../Dummy/FormDialog';
-
 import CreateContest from '../CreateContest/CreateContest';
+import CreateContestButton from '../CreateContest/FormDialog';
 
  const styles = {
     root: {
@@ -107,9 +106,9 @@ import CreateContest from '../CreateContest/CreateContest';
         const {  invitedContestData, ownedContestData, tabValue } = this.state;
 		return (
 			<div>
-                <div className="contest-header">
+                <div className="contest-list-header">
                     <h1 className="contest-title">Contest List</h1>
-                    <ButtonShowModal component={<CreateContest onlineJudgesProblems={this.state.onlineJudgesProblems} />} modalTitle={"Create Contest"} />
+                    <CreateContestButton component={<CreateContest onlineJudgesProblems={this.state.onlineJudgesProblems} />} modalTitle={"Create Contest"} />
                 </div>
 				<Paper className={classes.root}>
 					<Tabs
@@ -139,4 +138,5 @@ import CreateContest from '../CreateContest/CreateContest';
 		);
     }
 }
- export default withStyles(styles)(ContestList); 
+
+export default withStyles(styles)(ContestList); 

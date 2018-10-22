@@ -51,9 +51,9 @@ function getSorting(order, orderBy) {
 }
 
 const rows = [
-  { id: 'Problem', numeric: false, disablePadding: false, label: 'Problem' },
-  { id: 'Online Judge', numeric: false, disablePadding: false, label: 'Online Judge' },
-  { id: 'Remove', numeric: false, disablePadding: false, label: 'Remove' },
+  { id: 'Problem', numeric: false, disablePadding: false, label: 'Problem', sortable: true },
+  { id: 'Online Judge', numeric: false, disablePadding: false, label: 'Online Judge', sortable: true },
+  { id: 'Remove', numeric: false, disablePadding: false, label: 'Remove', sortable: false },
 ];
 
 /*******************************************************************************/
@@ -80,19 +80,23 @@ class ProblemsTableHead extends React.Component {
                 padding={row.disablePadding ? 'none' : 'default'}
                 sortDirection={orderBy === row.id ? order : false}
               >
-                <Tooltip
-                  title="Sort"
-                  placement={row.numeric ? 'bottom-end' : 'bottom-start'}
-                  enterDelay={300}
-                >
-                  <TableSortLabel
-                    active={orderBy === row.id}
-                    direction={order}
-                    onClick={this.createSortHandler(row.id)}
+              {row.sortable ? (
+                  <Tooltip
+                    title="Sort"
+                    placement={row.numeric ? 'bottom-end' : 'bottom-start'}
+                    enterDelay={300}
                   >
-                    {row.label}
-                  </TableSortLabel>
-                </Tooltip>
+                    <TableSortLabel
+                      active={orderBy === row.id}
+                      direction={order}
+                      onClick={this.createSortHandler(row.id)}
+                    >
+                      {row.label}
+                    </TableSortLabel>
+                  </Tooltip>
+                ) : (
+                  <p>{row.label}</p>
+                )}
               </TableCell>
             );
           }, this)}

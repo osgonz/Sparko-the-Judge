@@ -5,22 +5,16 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Snackbar from '@material-ui/core/Snackbar';
 
-import AddIcon from '@material-ui/icons/Add';
+import EditIcon from '@material-ui/icons/Edit';
+
+import EditContest from './EditContest';
 
 export default class FormDialog extends React.Component {
-  constructor(props){
-    super(props)
-    this.state = {
-      open: false,
-      openSnackbar: false,
-      snackbarMessage: '',
-      component: null
-    };
-  }
-
-  componentWillReceiveProps(nextProps) {
-    this.setState({component: React.cloneElement(nextProps.component, {handleClose: this.handleClose})})
-  }
+  state = {
+    open: false,
+    openSnackbar: false,
+    snackbarMessage: '',
+  };
 
   handleClickOpen = () => {
     this.setState({ open: true });
@@ -39,19 +33,28 @@ export default class FormDialog extends React.Component {
 
   render() {
     return (
-      <span>
-        <Button variant="fab" mini color="primary" aria-label={this.props.modalTitle} style={{margin: '0.5% 0.5%'}} onClick={this.handleClickOpen}>
-            <AddIcon/>
+      <span style={{margin: '0.5% 0.5%'}}>
+        <Button variant="fab" mini color="primary" aria-label="Edit Contest" onClick={this.handleClickOpen}>
+            <EditIcon/>
         </Button>
         <Dialog
           open={this.state.open}
           onClose={() => this.handleClose(false, "")}
           aria-labelledby="form-dialog-title"
         >
-          <DialogTitle id="form-dialog-title">{this.props.modalTitle}</DialogTitle>
-          <DialogContent>
-          {this.state.component}
-          </DialogContent>
+            <center>
+                <DialogTitle id="form-dialog-title">Edit Contest</DialogTitle>
+                <DialogContent>
+                <EditContest
+                    contestID={this.props.contestID}
+                    contestName={this.props.contestName}
+                    description= {this.props.description}
+                    startDate= {this.props.startDate}
+                    endDate= {this.props.endDate}
+                    status={this.props.status}
+                    handleClose={this.handleClose} />
+                </DialogContent>
+            </center>
         </Dialog>
         <Snackbar
             open={this.state.openSnackbar}

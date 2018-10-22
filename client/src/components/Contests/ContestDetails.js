@@ -9,7 +9,6 @@ import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Typography from '@material-ui/core/Typography';
 
-import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 import '../../style/style.css';
 import axios from 'axios'
@@ -18,6 +17,7 @@ import StandingsTab from './StandingsTab';
 import ProblemsTab from './ProblemsTab';
 import SubmissionsTab from './SubmissionsTab';
 import Error404 from '../Error404/Error404';
+import EditContestButton from '../EditContest/FormDialog';
 
 const styles = {
     root: {
@@ -161,12 +161,17 @@ class ContestDetails extends Component {
                         <div className="contest-header">
                             { this.handleStatusCode(status) }
                             <h1 className="contest-title">{contestName}</h1>
-                            {(this.props.isAdmin || isOwner) &&
-                            <Button variant="fab" mini color="primary" aria-label="Edit" style={{margin: '0.5% 0.5%'}}>
-                                <EditIcon/>
-                            </Button>
+                            {(this.props.isAdmin || isOwner) && status <= 1 &&
+                            <EditContestButton
+                                contestID={this.props.match.params.id}
+                                contestName={contestName}
+                                description= {description}
+                                startDate= {this.state.startDate}
+                                endDate= {this.state.endDate}
+                                status = {status}
+                            />
                             }
-                            {(this.props.isAdmin || isOwner) &&
+                            {(this.props.isAdmin || isOwner) && status == 0 &&
                             <Button variant="fab" mini color="primary" aria-label="Delete" style={{margin:'0.5% 0.5%'}}>
                                 <DeleteIcon />
                             </Button>
