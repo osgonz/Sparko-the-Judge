@@ -283,13 +283,13 @@ Drop Procedure If Exists spGetContestScoresPerProblem;
 
 CREATE PROCEDURE spGetContestScoresPerProblem (IN p_problemID INT, IN p_contestID INT)
 BEGIN
-  SELECT SU.username, SU.result, SU.submissionCount, TIMESTAMPDIFF(SECOND, C.startDate, SU.submissionTime) as TimeDifference
+  SELECT SU.username, SU.result, SU.submissionCount, (TIMESTAMPDIFF(SECOND, C.startDate, SU.submissionTime) + SU.penalty) as TimeDifference
   FROM (
       SELECT C.contestID, C.startDate
       FROM Contest C
       WHERE C.contestID = p_contestID
   ) C, (
-      SELECT U.userID, S.contestID, U.username, COUNT(S.submissionID) AS submissionCount, MAX(S.result) AS result, MAX(S.submissionTime) AS submissionTime
+      SELECT U.userID, S.contestID, U.username, COUNT(S.submissionID) AS submissionCount, MAX(S.result) AS result, MAX(S.submissionTime) AS submissionTime, P.penalty
       FROM (
           SELECT CU.userID, U.username
           FROM ContestUser CU, Users U
@@ -298,12 +298,17 @@ BEGIN
           SELECT S.contestID, S.submissionID, S.result, S.submissionTime, S.submitter
           FROM submission S
           WHERE S.contestID = p_contestID AND S.problemID = p_problemID
-      ) S
-      WHERE U.userID = S.submitter
+      ) S, (
+          SELECT submitter, COUNT(submissionID) * 1200 AS penalty
+          FROM submission
+          WHERE contestID = 3 AND problemID = 3 AND result < 90
+          GROUP BY submitter
+      ) P
+      WHERE U.userID = S.submitter AND S.submitter = P.submitter
       GROUP BY U.userID
   ) SU
   WHERE SU.contestID = C.contestID
-  ORDER BY SU.userID, SU.submissionTime DESC;
+  ORDER BY SU.userID, TimeDifference DESC;
 END //
 
 -- Edit contest information
@@ -347,5 +352,33 @@ BEGIN
 	LEFT OUTER JOIN Countries C ON U.country = C.id
 	WHERE CU.contestID = p_contestID AND CU.userID = U.userID
 	ORDER BY CU.userID;
+
+END //
+
+-- Contest Update Upcoming to Ongoing
+
+DELIMITER //
+
+Drop Procedure If Exists spUpdateContestUpcomingToOngoing;
+
+CREATE PROCEDURE spUpdateContestUpcomingToOngoing()
+BEGIN
+	UPDATE Contest
+	SET status = 1
+	WHERE status = 0 AND startDate < CURRENT_TIMESTAMP AND endDate > CURRENT_TIMESTAMP;
+
+END //
+
+-- Contest Update Ongoing to Finished
+
+DELIMITER //
+
+Drop Procedure If Exists sspUpdateContestOngoingToFinished;
+
+CREATE PROCEDURE spUpdateContestOngoingToFinished()
+BEGIN
+	UPDATE Contest
+	SET status = 2
+	WHERE status = 1 AND endDate <= CURRENT_TIMESTAMP;
 
 END //
