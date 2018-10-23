@@ -26,10 +26,10 @@ Drop Procedure If Exists spGetContestScoresPerProblem;
 Drop Procedure If Exists spCreateProblem;
 Drop Procedure If Exists spGetUserList;
 Drop Procedure If Exists spAddProblemToContest;
+Drop Procedure If Exists spRemoveProblemFromContest;
 Drop Procedure If Exists spGetLastInsertedID;
 Drop Procedure If Exists spBanUser;
 Drop Procedure If Exists spEditContest;
-
 
 ################################################################################
 #                                                                              #
@@ -339,6 +339,17 @@ BEGIN
       p_contestID,
       (SELECT problemID FROM Problems WHERE problemName = p_problemName)
     );
+  END IF;
+END //
+
+DELIMITER //
+
+CREATE PROCEDURE spRemoveProblemFromContest (IN p_contestID INT, IN p_problemName VARCHAR(255))
+BEGIN
+  IF EXISTS (SELECT 1 FROM ContestProblem WHERE contestID = p_contestID AND problemID = (SELECT problemID FROM Problems WHERE problemName = p_problemName)) THEN
+    DELETE FROM ContestProblem
+    WHERE contestID = p_contestID
+    AND problemID = (SELECT problemID FROM Problems WHERE problemName = p_problemName);
   END IF;
 END //
 

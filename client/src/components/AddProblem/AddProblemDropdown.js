@@ -22,7 +22,7 @@ function parseProblemString(problem){
   var problemTitle = problem.substring(secondHyphen + 2, lastOpenParen - 1)
   var onlineJudge = problem.substring(lastOpenParen + 1, problem.length - 1)
 
-  return  {problemID: parseInt(problemID), problemNumber: parseInt(problemNumber), problemTitle: problemTitle, onlineJudge: onlineJudge}
+  return  {problemID: parseInt(problemID), problemNumber: parseInt(problemNumber), problemName: problemTitle, judge: onlineJudge}
 }
 
 class AddProblemDropdown extends React.Component {
@@ -40,7 +40,7 @@ class AddProblemDropdown extends React.Component {
   }
 
   handleSelectOption = () => {
-    var selectedOptions = this.props.selectedOptionsDict
+    var selectedOptions = this.props.addedProblems
     var problem = parseProblemString(this.state.selectedOption.value)
     this.props.handleAddProblem(problem)
   }

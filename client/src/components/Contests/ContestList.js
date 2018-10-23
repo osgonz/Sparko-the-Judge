@@ -5,6 +5,9 @@ import Paper from '@material-ui/core/Paper';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Typography from '@material-ui/core/Typography';
+
+import Button from '@material-ui/core/Button';
+import AddIcon from '@material-ui/icons/Add';
  
 import '../../style/style.css';
 import axios from 'axios'
@@ -26,19 +29,19 @@ import CreateContestButton from '../CreateContest/FormDialog';
     );
 }
  class ContestList extends Component {
-    state = {
-        tabValue: 0,
+	state = {
+		tabValue: 0,
 		userId: 0,
 		username: '',
 		ownedContestData: [],
 		invitedContestData: [],
 		onlineJudgesProblems: []
-    };
+	};
 
-     componentDidMount(){
-     	var onlineJudgesProblems = []
+	 componentDidMount(){
+		var onlineJudgesProblems = []
 		axios.get('http://127.0.0.1:5000/GetActiveSession', {withCredentials: true})
-        .then(response => {
+		.then(response => {
 			if (response.data != 'Session not found') {
 				this.setState({username: response.data.username})
 				axios.post('http://127.0.0.1:5000/ViewOwnedContestList', {username: this.state.username}, {withCredentials: true})
@@ -64,52 +67,63 @@ import CreateContestButton from '../CreateContest/FormDialog';
 					console.log(error);
 				});
 			}
-        })
-        .then(() => {
-		    axios.get('https://uhunt.onlinejudge.org/api/p').then(response => {
-			    var problemsSuggestions = response.data.map(function(problem) {
-			        var problemID = problem[0]
-			        var problemNumber = problem[1]
-			        var problemTitle = problem[2]
-			        var str = String(problemID) + " - " + String(problemNumber) + " - " + problemTitle + " (UVa)"
-			        return {value: str, label: str}
-			    })
+		})
+		.then(() => {
+			axios.get('https://uhunt.onlinejudge.org/api/p').then(response => {
+				var problemsSuggestions = response.data.map(function(problem) {
+					var problemID = problem[0]
+					var problemNumber = problem[1]
+					var problemTitle = problem[2]
+					var str = String(problemID) + " - " + String(problemNumber) + " - " + problemTitle + " (UVa)"
+					return {value: str, label: str}
+				})
 
-			    onlineJudgesProblems = onlineJudgesProblems.concat(problemsSuggestions)
-			    this.setState({onlineJudgesProblems: onlineJudgesProblems})
+				onlineJudgesProblems = onlineJudgesProblems.concat(problemsSuggestions)
+				this.setState({onlineJudgesProblems: onlineJudgesProblems})
 			})
 
-		    axios.get('https://icpcarchive.ecs.baylor.edu/uhunt/api/p').then(response => {
-			    var problemsSuggestions = response.data.map(function(problem) {
-			        var problemID = problem[0]
-			        var problemNumber = problem[1]
-			        var problemTitle = problem[2]
-			        var str = String(problemID) + " - " + String(problemNumber) + " - " + problemTitle + " (ICPC Live Archive)"
-			        return {value: str, label: str}
-			    })
+			axios.get('https://icpcarchive.ecs.baylor.edu/uhunt/api/p').then(response => {
+				var problemsSuggestions = response.data.map(function(problem) {
+					var problemID = problem[0]
+					var problemNumber = problem[1]
+					var problemTitle = problem[2]
+					var str = String(problemID) + " - " + String(problemNumber) + " - " + problemTitle + " (ICPC Live Archive)"
+					return {value: str, label: str}
+				})
 
-			    onlineJudgesProblems = onlineJudgesProblems.concat(problemsSuggestions)
-			    this.setState({onlineJudgesProblems: onlineJudgesProblems})
+				onlineJudgesProblems = onlineJudgesProblems.concat(problemsSuggestions)
+				this.setState({onlineJudgesProblems: onlineJudgesProblems})
 			})
-        })
+		})
 	}
 
 	handleChange = (event, value) => {
-	    this.setState({
-	        tabValue: value
-	    });
+		this.setState({
+			tabValue: value
+		});
 	}
 
-     render()
-    {
-        const { classes } = this.props;
-        const {  invitedContestData, ownedContestData, tabValue } = this.state;
+	 render()
+	{
+		const { classes } = this.props;
+		const {  invitedContestData, ownedContestData, tabValue } = this.state;
 		return (
 			<div>
-                <div className="contest-list-header">
-                    <h1 className="contest-title">Contest List</h1>
-                    <CreateContestButton component={<CreateContest onlineJudgesProblems={this.state.onlineJudgesProblems} />} modalTitle={"Create Contest"} />
-                </div>
+				<div className="contest-list-header">
+					<h1 className="contest-title">Contest List</h1>
+					<CreateContestButton
+						component={
+							<CreateContest
+								onlineJudgesProblems={this.state.onlineJudgesProblems}
+							/>
+						}
+						button={
+							<Button variant="fab" mini color="primary" aria-label={"Create Contest"} style={{margin: '0.5% 0.5%'}}>
+								<AddIcon/>
+							</Button>
+						}
+						modalTitle={"Create Contest"} />
+				</div>
 				<Paper className={classes.root}>
 					<Tabs
 						value={tabValue}
@@ -136,7 +150,7 @@ import CreateContestButton from '../CreateContest/FormDialog';
 				</Paper>
 			</div>
 		);
-    }
+	}
 }
 
 export default withStyles(styles)(ContestList); 

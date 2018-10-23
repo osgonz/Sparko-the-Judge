@@ -63,9 +63,9 @@ class CreateContest extends Component {
         var currentSelectedProblems = this.state.selectedProblems
 
         // Add problem if not present already
-        if (!this.selectedProblems.has(problem.problemTitle)){
+        if (!this.selectedProblems.has(problem.problemName)){
           currentSelectedProblems.push(problem)
-          this.selectedProblems.add(problem.problemTitle) // Add it to the set
+          this.selectedProblems.add(problem.problemName) // Add it to the set
           this.setState({selectedProblems: currentSelectedProblems}) // Update state
         }
     }
@@ -77,7 +77,7 @@ class CreateContest extends Component {
         // Find problem to delete and remove it from the table and set
         var index = currentSelectedProblems.indexOf(problem)
         currentSelectedProblems.splice(index, 1)
-        this.selectedProblems.delete(problem.problemTitle)
+        this.selectedProblems.delete(problem.problemName)
 
         this.setState({selectedProblems: currentSelectedProblems}) // Update state
     }
@@ -119,6 +119,7 @@ class CreateContest extends Component {
                         }, {withCredentials: true})
 
                         this.handleModalClose(true, "Contest created successfully")
+                        window.location.reload();
                     })
                 }
 

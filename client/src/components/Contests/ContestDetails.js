@@ -10,6 +10,7 @@ import Tab from '@material-ui/core/Tab';
 import Typography from '@material-ui/core/Typography';
 
 import DeleteIcon from '@material-ui/icons/Delete';
+import EditIcon from '@material-ui/icons/Edit';
 import '../../style/style.css';
 import axios from 'axios'
 
@@ -17,7 +18,8 @@ import StandingsTab from './StandingsTab';
 import ProblemsTab from './ProblemsTab';
 import SubmissionsTab from './SubmissionsTab';
 import Error404 from '../Error404/Error404';
-import EditContestButton from '../EditContest/FormDialog';
+import EditContestButton from '../CreateContest/FormDialog';
+import EditContest from '../EditContest/EditContest';
 
 const styles = {
     root: {
@@ -47,6 +49,7 @@ class ContestDetails extends Component {
         isOwner: null,
         isParticipant: null,
         isValidated: null,
+        onlineJudgesProblems: []
     };
 
     componentDidMount(){
@@ -90,17 +93,17 @@ class ContestDetails extends Component {
                     }
                 });
 
+                var onlineJudgesProblems = []
+
                 axios.post('http://127.0.0.1:5000/GetContestProblems', {
                     contest_id: this.props.match.params.id
                 }, {withCredentials: true}).then(response => {
                     if (response.data.status == 200){
                         this.setState({ problemsData: response.data.problemList });
                         let problemIDList = [];
-                        console.log(this.state.problemsData)
                         this.state.problemsData.forEach(problem => {
                             problemIDList.push(problem.problemID.toString());
                         });
-                        console.log(problemIDList)
                         if (problemIDList.length > 0) {
                             axios.post('http://127.0.0.1:5000/GetContestScoresPerProblem', {
                                 contest_id: this.props.match.params.id,
@@ -111,6 +114,32 @@ class ContestDetails extends Component {
                         }
                     }
                 });
+
+                axios.get('https://uhunt.onlinejudge.org/api/p').then(response => {
+                    var problemsSuggestions = response.data.map(function(problem) {
+                        var problemID = problem[0]
+                        var problemNumber = problem[1]
+                        var problemTitle = problem[2]
+                        var str = String(problemID) + " - " + String(problemNumber) + " - " + problemTitle + " (UVa)"
+                        return {value: str, label: str}
+                    })
+
+                    onlineJudgesProblems = onlineJudgesProblems.concat(problemsSuggestions)
+                    this.setState({onlineJudgesProblems: onlineJudgesProblems})
+                })
+
+                axios.get('https://icpcarchive.ecs.baylor.edu/uhunt/api/p').then(response => {
+                    var problemsSuggestions = response.data.map(function(problem) {
+                        var problemID = problem[0]
+                        var problemNumber = problem[1]
+                        var problemTitle = problem[2]
+                        var str = String(problemID) + " - " + String(problemNumber) + " - " + problemTitle + " (ICPC Live Archive)"
+                        return {value: str, label: str}
+                    })
+
+                    onlineJudgesProblems = onlineJudgesProblems.concat(problemsSuggestions)
+                    this.setState({onlineJudgesProblems: onlineJudgesProblems})
+                })
             } else {
                 this.setState({ isValidated: true })
             }
@@ -153,6 +182,10 @@ class ContestDetails extends Component {
     {
         const { classes } = this.props;
         const { isOwner, isParticipant, isValidated, contestName, description, status, problemsData, submissionsData, scoreData, tabValue } = this.state;
+        var problemsForEdit = []
+        for (let problem in this.state.problemsData) {
+            problemsForEdit.push(this.state.problemsData[problem])
+        }
 
         if (isValidated)
             if (isOwner || isParticipant)
@@ -163,12 +196,23 @@ class ContestDetails extends Component {
                             <h1 className="contest-title">{contestName}</h1>
                             {(this.props.isAdmin || isOwner) && status <= 1 &&
                             <EditContestButton
-                                contestID={this.props.match.params.id}
-                                contestName={contestName}
-                                description= {description}
-                                startDate= {this.state.startDate}
-                                endDate= {this.state.endDate}
-                                status = {status}
+                                component={
+                                    <EditContest
+                                        contestID={this.props.match.params.id}
+                                        contestName={contestName}
+                                        description= {description}
+                                        startDate= {this.state.startDate}
+                                        endDate= {this.state.endDate}
+                                        status = {status}
+                                        onlineJudgesProblems = {this.state.onlineJudgesProblems}
+                                        addedProblems = {problemsForEdit} />
+                                }
+                                button={
+                                    <Button variant="fab" mini color="primary" aria-label="Edit Contest">
+                                        <EditIcon/>
+                                    </Button>
+                                }
+                                modalTitle={"Edit contest"}
                             />
                             }
                             {(this.props.isAdmin || isOwner) && status == 0 &&
@@ -203,7 +247,6 @@ class ContestDetails extends Component {
                                 <ProblemsTab
                                     data={problemsData}
                                     handleJudgeCode = {this.handleJudgeCode}
-                                    onlineJudgesProblems={this.state.onlineJudgesProblems}
                                 />
                             </TabContainer>}
                             {this.state.tabValue === 2 &&

@@ -32,10 +32,6 @@ function desc(a, b, orderBy) {
   return 0;
 }
 
-function clickKek(message){
-  console.log(message)
-}
-
 function stableSort(array, cmp) {
   const stabilizedThis = array.map((el, index) => [el, index]);
   stabilizedThis.sort((a, b) => {
@@ -230,6 +226,15 @@ class ProblemsTable extends React.Component {
     this.setState({ rowsPerPage: event.target.value });
   };
 
+  handleJudgeCode = judge => {
+      switch(judge) {
+          case 0:
+              return 'ICPC Live Archive';
+          case 1:
+              return 'UVa';
+      }
+  }
+
   isSelected = id => this.state.selected.indexOf(id) !== -1;
 
   render() {
@@ -253,16 +258,21 @@ class ProblemsTable extends React.Component {
               {stableSort(data, getSorting(order, orderBy))
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map(n => {
+                  var judge = n.judge
+                  if(Number.isInteger(n.judge)){
+                    judge = this.handleJudgeCode(n.judge)
+                  }
+
                   return (
                     <TableRow
                       tabIndex={-1}
-                      key={n.problemTitle}
+                      key={n.problemName}
                       style={{cursor: 'pointer'}}
                     >
                       <TableCell component="th" scope="row" padding="default">
-                        {n.problemTitle}
+                        {n.problemName}
                       </TableCell>
-                      <TableCell numeric={rows[1].numeric}>{n.onlineJudge}</TableCell>
+                      <TableCell numeric={rows[1].numeric}>{judge}</TableCell>
                       <TableCell>
                         <IconButton
                           onClick={() => this.props.handleRemoveProblem(n)}

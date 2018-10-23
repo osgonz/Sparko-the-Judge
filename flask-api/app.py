@@ -761,6 +761,8 @@ class EditContest(Resource):
             parser.add_argument('startDate', help='startDate')
             parser.add_argument('endDate', help='endDate')
             parser.add_argument('status', type=int, help='status')
+            parser.add_argument('problemsToAdd', type=dict, action='append', help='Problems to add to contest.')
+            parser.add_argument('problemsToDelete', type=dict, action='append', help='Problems to delete from contest.')
 
             args = parser.parse_args()
 
@@ -770,11 +772,23 @@ class EditContest(Resource):
             _startDate = args['startDate']
             _endDate = args['endDate']
             _status = args['status']
+            _problemsToAdd = args['problemsToAdd']
+            _problemsToDelete = args['problemsToDelete']
 
             cursor.callproc('spEditContest', (_contestID, _contestName, _description, _startDate, _endDate, _status))
             data = cursor.fetchall()
 
             if (len(data) == 0):
+                # Checking for None because if no probles is added, Javascript sends an empty list and Flask receives it as None
+                if _problemsToAdd is not None:
+                    for problem in _problemsToAdd:
+                        cursor.callproc('spAddProblemToContest', (_contestID, problem['problemName']))
+
+                # Same as above
+                if _problemsToDelete is not None:
+                    for problem in _problemsToDelete:
+                        cursor.callproc('spRemoveProblemFromContest', (_contestID, problem['problemName']))
+
                 conn.commit()
                 return {'status': 200, 'message': 'Contest edit succesful'}
             else:
@@ -839,8 +853,7 @@ class AddProblemsToContest(Resource):
             _problems = args['problems']
 
             for _problem in _problems:
-                print(_problem)
-                cursor.callproc('spAddProblemToContest', (_contestID, _problem['problemTitle']))
+                cursor.callproc('spAddProblemToContest', (_contestID, _problem['problemName']))
 
             conn.commit()
             return {'StatusCode': 200}
@@ -878,13 +891,11 @@ class CreateProblems(Resource):
 
             _problems = args['problems']
 
-            print(_problems)
-
             for _problem in _problems:
-                problemName = _problem['problemTitle']
+                problemName = _problem['problemName']
                 onlineJudgeProblemID = _problem['problemID']
-                onlineJudge = self.onlineJudgeToInt[_problem['onlineJudge']]
-                url = self.onlineJudgeBaseURL[_problem['onlineJudge']] + str(onlineJudgeProblemID)
+                onlineJudge = self.onlineJudgeToInt[_problem['judge']]
+                url = self.onlineJudgeBaseURL[_problem['judge']] + str(onlineJudgeProblemID)
                 cursor.callproc('spCreateProblem', (onlineJudge, onlineJudgeProblemID, problemName, url))
 
             conn.commit()
