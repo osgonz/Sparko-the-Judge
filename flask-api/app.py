@@ -49,11 +49,13 @@ def update_ongoing_contest_data():
     #temp_data = dict()
 
     try:
+        # Get Ongoing Contests data
         cursor.callproc('spGetOngoingContestInfo')
         contests = cursor.fetchall()
 
         for contest in contests:
             _contestID = contest[0]
+            # Get Ongoing Contest's Users and Problems data
             cursor.callproc('spGetOngoingContestUsersInfo', (_contestID,))
             usernameList = cursor.fetchall()
             cursor.callproc('spGetContestProblems', (_contestID,))
@@ -64,8 +66,12 @@ def update_ongoing_contest_data():
             icpcProblemDict = dict()
             uvaUserProblemDict = dict()
             icpcUserProblemDict = dict()
+            standingsDict = dict()
 
+            # Extract each user's judges ids
             for username in usernameList:
+                standingsDict[username[1]] = 0
+
                 if username[2]:
                     uvaUsernameDict[username[2]] = [username[0], username[1], username[4]]
                     uvaUserProblemDict[username[1]] = dict()
@@ -77,6 +83,7 @@ def update_ongoing_contest_data():
             uvaUsernameCall = ','.join(str(x) for x in uvaUsernameDict.keys())
             icpcUsernameCall = ','.join(str(x) for x in icpcUsernameDict.keys())
 
+            # Divide problems by judge
             for problem in problemList:
                 if problem[1] == 0:
                     # key will be changed later for judge problem ID
@@ -89,6 +96,7 @@ def update_ongoing_contest_data():
 
             submissionsData = []
 
+            # Get UVA submissions
             if uvaUsernameCall and uvaProblemCall:
                 uvaCall = 'https://uhunt.onlinejudge.org/api/subs-pids/' + uvaUsernameCall + '/' + uvaProblemCall + '/0'
                 uvaRequest = requests.get(uvaCall)
@@ -134,6 +142,7 @@ def update_ongoing_contest_data():
                                     userProblemInfo["time"] = submission[4]
                                     uvaUserProblemDict[userData[1]][submission[1]] = userProblemInfo
 
+            # Get ICPC submissions
             if icpcUsernameCall and icpcProblemCall:
                 icpcCall = 'https://icpcarchive.ecs.baylor.edu/uhunt/api/subs-pids/' + icpcUsernameCall + '/' + icpcProblemCall + '/0'
                 icpcRequest = requests.get(icpcCall)
@@ -181,6 +190,7 @@ def update_ongoing_contest_data():
 
             scoresData = []
 
+            # Calculate users' results for each problem
             for problem in problemList:
                 scoreEntry = dict()
                 if problem[1] == 0:
@@ -190,6 +200,8 @@ def update_ongoing_contest_data():
                             entry = dict()
                             entry["username"] = user
                             entry["result"] = icpcUserProblemDict[user][problem[0]]["result"]
+                            if entry["result"] == 90:
+                                standingsDict[user] += 1
                             entry["submissionCount"] = icpcUserProblemDict[user][problem[0]]["submissionCount"]
                             entry["TimeDifference"] = icpcUserProblemDict[user][problem[0]]["time"] - contest[1].timestamp()
                             scoreEntry[user] = entry
@@ -207,9 +219,20 @@ def update_ongoing_contest_data():
 
                 scoresData.append(scoreEntry)
 
+            standingsData = []
+            # Calculate standings for contest (still have to calculate position)
+            for user in usernameList:
+                entry = dict()
+                entry["userID"] = user[0]
+                entry["username"] = user[1]
+                entry["country_name"] = user[4]
+                entry["score"] = standingsDict[user[1]]
+                standingsData.append(entry)
+
             print(_contestID)
             print(submissionsData)
             print(scoresData)
+            print(standingsData)
 
     except Exception as e:
         raise e
@@ -219,7 +242,7 @@ def update_ongoing_contest_data():
         conn.close()
         print('Bye Job! The time is: %s' % datetime.now())
 
-sched.add_job(update_ongoing_contest_data, 'interval', minutes=1)
+sched.add_job(update_ongoing_contest_data, 'interval', minutes=5)
 
 sched.start()
 update_ongoing_contest_data()
