@@ -1,6 +1,7 @@
 import os
 import bcrypt
 import requests
+import pprint as pp
 from datetime import datetime
 from flask import Flask, jsonify, session
 from flaskext.mysql import MySQL
@@ -92,7 +93,7 @@ def get_new_ongoing_contest_data(contest, cursor):
             uvaResult = uvaRequest.json()
 
             for user in uvaUsernameDict.keys():
-                if uvaResult[str(user)]:
+                if str(user) in uvaResult:
                     userData = uvaUsernameDict.get(user)
                     submissions = uvaResult[str(user)]["subs"]
 
@@ -117,10 +118,10 @@ def get_new_ongoing_contest_data(contest, cursor):
                                 entry["language"] = 'C++11'
                             else:
                                 entry["language"] = 'Other'
-                            entry["submissionTime"] = datetime.fromtimestamp(submission[4] / 1e3)
+                            entry["submissionTime"] = datetime.fromtimestamp(submission[4])
                             submissionsData.append(entry)
 
-                            if uvaUserProblemDict[userData[1]][submission[1]]:
+                            if submission[1] in uvaUserProblemDict[userData[1]]:
                                 if uvaUserProblemDict[userData[1]][submission[1]]["result"] < submission[2]:
                                     uvaUserProblemDict[userData[1]][submission[1]]["result"] = submission[2]
                                 if submission[2] < 90:
@@ -143,7 +144,7 @@ def get_new_ongoing_contest_data(contest, cursor):
             icpcResult = icpcRequest.json()
 
             for user in icpcUsernameDict.keys():
-                if icpcResult[str(user)]:
+                if str(user) in icpcResult:
                     userData = icpcUsernameDict.get(user)
                     submissions = icpcResult[str(user)]["subs"]
 
@@ -168,10 +169,10 @@ def get_new_ongoing_contest_data(contest, cursor):
                                 entry["language"] = 'C++11'
                             else:
                                 entry["language"] = 'Other'
-                            entry["submissionTime"] = datetime.datetime.fromtimestamp(submission[4] / 1e3)
+                            entry["submissionTime"] = datetime.fromtimestamp(submission[4])
                             submissionsData.append(entry)
 
-                            if icpcUserProblemDict[userData[1]][submission[1]]:
+                            if submission[1] in icpcUserProblemDict[userData[1]]:
                                 if icpcUserProblemDict[userData[1]][submission[1]]["result"] < submission[2]:
                                     icpcUserProblemDict[userData[1]][submission[1]]["result"] = submission[2]
                                 if submission[2] < 90:
@@ -194,7 +195,7 @@ def get_new_ongoing_contest_data(contest, cursor):
             scoreEntry = dict()
             if problem[1] == 0:
                 for user in icpcUserProblemDict.keys():
-                    if icpcUserProblemDict[user][problem[2]]:
+                    if problem[2] in icpcUserProblemDict[user]:
                         entry = dict()
                         entry["username"] = user
                         entry["result"] = icpcUserProblemDict[user][problem[2]]["result"]
@@ -208,7 +209,7 @@ def get_new_ongoing_contest_data(contest, cursor):
 
             elif problem[1] == 1:
                 for user in uvaUserProblemDict.keys():
-                    if uvaUserProblemDict[user][problem[2]]:
+                    if problem[2] in uvaUserProblemDict[user]:
                         entry = dict()
                         entry["username"] = user
                         entry["result"] = uvaUserProblemDict[user][problem[2]]["result"]
@@ -239,11 +240,6 @@ def get_new_ongoing_contest_data(contest, cursor):
             entry["score"] = standingsDict[user[1]]["score"]
             entry["standing"] = standingsDict[user[1]]["position"]
             standingsData.append(entry)
-
-        print(_contestID)
-        print(submissionsData)
-        print(scoresData)
-        print(standingsData)
 
         result = dict()
         result["submissions"] = submissionsData
@@ -304,7 +300,7 @@ def insert_finished_contest_data(contest, conn, cursor):
             uvaResult = uvaRequest.json()
 
             for user in uvaUsernameDict.keys():
-                if uvaResult[str(user)]:
+                if str(user) in uvaResult:
                     userData = uvaUsernameDict.get(user)
                     submissions = uvaResult[str(user)]["subs"]
 
@@ -327,16 +323,16 @@ def insert_finished_contest_data(contest, conn, cursor):
                                 entry["language"] = 'C++11'
                             else:
                                 entry["language"] = 'Other'
-                            entry["submissionTime"] = datetime.fromtimestamp(submission[4] / 1e3)
+                            entry["submissionTime"] = datetime.fromtimestamp(submission[4])
                             # INSERT SUBMISSION HERE
-                            cursor.callproc('spInsertSubmission', (entry["submissionDate"], entry["result"], entry["language"], entry["problemID"], entry["submitter"], _contestID))
+                            cursor.callproc('spInsertSubmission', (entry["submissionTime"], entry["result"], entry["language"], entry["problemID"], entry["submitter"], _contestID))
                             insertResult = cursor.fetchall()
 
                             if len(insertResult) is not 0:
                                 conn.rollback()
                                 return 100
 
-                            if uvaUserProblemDict[userData[1]][submission[1]]:
+                            if submission[1] in uvaUserProblemDict[userData[1]]:
                                 if uvaUserProblemDict[userData[1]][submission[1]]["result"] < submission[2]:
                                     uvaUserProblemDict[userData[1]][submission[1]]["result"] = submission[2]
                                 if submission[2] < 90:
@@ -357,15 +353,16 @@ def insert_finished_contest_data(contest, conn, cursor):
             icpcResult = icpcRequest.json()
 
             for user in icpcUsernameDict.keys():
-                if icpcResult[str(user)]:
+                if str(user) in icpcResult:
                     userData = icpcUsernameDict.get(user)
                     submissions = icpcResult[str(user)]["subs"]
 
                     for submission in submissions:
                         if contest[1].timestamp() < submission[4] <= contest[2].timestamp():
-                            problemData = uvaProblemDict.get(submission[1])
+                            problemData = icpcProblemDict.get(submission[1])
                             entry = dict()
                             entry["submitter"] = userData[0]
+                            print(problemData)
                             entry["problemID"] = problemData[3]
                             entry["result"] = submission[2]
                             if submission[5] == 1:
@@ -380,16 +377,16 @@ def insert_finished_contest_data(contest, conn, cursor):
                                 entry["language"] = 'C++11'
                             else:
                                 entry["language"] = 'Other'
-                            entry["submissionTime"] = datetime.fromtimestamp(submission[4] / 1e3)
+                            entry["submissionTime"] = datetime.fromtimestamp(submission[4])
                             # INSERT SUBMISSION HERE
-                            cursor.callproc('spInsertSubmission', (entry["submissionDate"], entry["result"], entry["language"], entry["problemID"], entry["submitter"], _contestID))
+                            cursor.callproc('spInsertSubmission', (entry["submissionTime"], entry["result"], entry["language"], entry["problemID"], entry["submitter"], _contestID))
                             insertResult = cursor.fetchall()
 
                             if len(insertResult) is not 0:
                                 conn.rollback()
                                 return 100
 
-                            if icpcUserProblemDict[userData[1]][submission[1]]:
+                            if submission[1] in icpcUserProblemDict[userData[1]]:
                                 if icpcUserProblemDict[userData[1]][submission[1]]["result"] < submission[2]:
                                     icpcUserProblemDict[userData[1]][submission[1]]["result"] = submission[2]
                                 if submission[2] < 90:
@@ -407,14 +404,14 @@ def insert_finished_contest_data(contest, conn, cursor):
         for problem in problemList:
             if problem[1] == 0:
                 for user in icpcUserProblemDict.keys():
-                    if icpcUserProblemDict[user][problem[2]]:
+                    if problem[2] in icpcUserProblemDict[user]:
                         if icpcUserProblemDict[user][problem[2]]["result"] == 90:
                             standingsDict[user]["score"] += 1
                             standingsDict[user]["totalTime"] += icpcUserProblemDict[user][problem[2]]["time"] - contest[1].timestamp() + icpcUserProblemDict[user][problem[2]]["penalty"]
 
             elif problem[1] == 1:
                 for user in uvaUserProblemDict.keys():
-                    if uvaUserProblemDict[user][problem[2]]:
+                    if problem[2] in uvaUserProblemDict[user]:
                         if uvaUserProblemDict[user][problem[2]]["result"] == 90:
                             standingsDict[user]["score"] += 1
                             standingsDict[user]["totalTime"] += uvaUserProblemDict[user][problem[2]]["time"] - contest[1].timestamp() + uvaUserProblemDict[user][problem[2]]["penalty"]
@@ -479,7 +476,7 @@ def update_ongoing_contest_data():
 
         for contest in contests:
             temp_data[contest[0]] = get_new_ongoing_contest_data(contest, cursor)
-            print(temp_data[contest[0]])
+            pp.pprint(temp_data[contest[0]])
 
         global ongoing_contest_data
         ongoing_contest_data = temp_data
@@ -1353,4 +1350,4 @@ def logout():
     return 'You were logged out'
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)
