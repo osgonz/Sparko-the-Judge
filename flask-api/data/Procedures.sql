@@ -369,16 +369,53 @@ BEGIN
 
 END //
 
+-- Get Almost Finished Contest Info
+
+DELIMITER //
+
+CREATE PROCEDURE spGetAlmostFinishedContestInfo()
+BEGIN
+	SELECT contestID, startDate, endDate, CURRENT_TIMESTAMP AS currentDate
+	FROM Contest
+	WHERE status = 1 AND endDate <= CURRENT_TIMESTAMP;
+END //
+
 -- Contest Update Ongoing to Finished
 
 DELIMITER //
 
-Drop Procedure If Exists sspUpdateContestOngoingToFinished;
+Drop Procedure If Exists spUpdateContestOngoingToFinished;
 
-CREATE PROCEDURE spUpdateContestOngoingToFinished()
+CREATE PROCEDURE spUpdateContestOngoingToFinished(IN p_updateDate DATETIME)
 BEGIN
 	UPDATE Contest
 	SET status = 2
-	WHERE status = 1 AND endDate <= CURRENT_TIMESTAMP;
+	WHERE status = 1 AND endDate <= p_updateDate;
+
+END //
+
+-- Insert Finished Contest Submission
+
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS spInsertSubmission;
+
+CREATE PROCEDURE spInsertSubmission(IN p_subDate DATETIME, IN p_result INT, IN p_language VARCHAR(64), IN p_problemID INT, IN p_submitter INT, IN p_contestID INT)
+BEGIN
+  INSERT INTO Submission VALUES
+	(NULL, p_subDate, p_result, p_language, 0, p_problemID, p_submitter, p_contestID);
+END //
+
+-- Update Contest User Info
+
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS spUpdateContestUser;
+
+CREATE PROCEDURE spUpdateContestUser(IN p_score INT, IN p_standing INT, IN p_contestID INT, IN p_userID INT)
+BEGIN
+  UPDATE ContestUser
+  SET score = p_score, standing = p_standing
+  WHERE contestID = p_contestID AND userID = p_userID;
 
 END //
