@@ -9,7 +9,9 @@ import TableBody from "@material-ui/core/TableBody/TableBody";
 import TableCell from "@material-ui/core/TableCell/TableCell";
 import TablePagination from "@material-ui/core/TablePagination/TablePagination";
 import TableRow from "@material-ui/core/TableRow/TableRow";
-
+import Snackbar from '@material-ui/core/Snackbar';
+import RemoveIcon from '@material-ui/icons/Remove';
+import Button from '@material-ui/core/IconButton';
 import '../../style/style.css';
 import axios from 'axios'
 
@@ -43,6 +45,8 @@ class StandingsTab extends Component {
         data: [],
         page: 0,
         rowsPerPage: 10,
+        openSnackbar: false,
+        snackbarMessage: '',
     };
 
     componentDidMount(){
@@ -80,8 +84,19 @@ class StandingsTab extends Component {
         return entryDict.submissionCount + '/--';
     }
 
+    handleRemoveUser = userRemoved => {
+        axios.post('http://127.0.0.1:5000/RemoveUserFromContest', {
+          username: userRemoved,
+          contestID: this.props.contest_id
+        }, {withCredentials: true})
+        .then(response => {
+            this.setState({openSnackbar: true, snackbarMessage: response.data.message})
+            window.location.reload();
+        })
+    }
+
     render() {
-        const { classes, problemList, scores } = this.props;
+        const { classes, problemList, scores, isOwner, isAdmin } = this.props;
         const { data, order, orderBy, date, rowsPerPage, page } = this.state;
         const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
 
@@ -100,6 +115,8 @@ class StandingsTab extends Component {
                             orderBy={orderBy}
                             rows={newRows}
                             onRequestSort={this.handleRequestSort}
+                            isOwner={this.props.isOwner}
+                            isAdmin={this.props.isAdmin}
                         />
                         <TableBody>
                             {stableSort(data, getSorting(order, orderBy, date))
@@ -111,6 +128,15 @@ class StandingsTab extends Component {
                                             tabIndex={-1}
                                             key={n.userID}
                                         >
+                                            { (isAdmin || isOwner) &&
+                                                (<TableCell>                                        
+                                                <Button 
+                                                    onClick={() => {this.handleRemoveUser(n.username)}}
+                                                >
+                                                    <RemoveIcon/>
+                                                </Button>
+                                                </TableCell>)
+                                            }
                                             <TableCell component="th" scope="row" padding="none" numeric={rows[0].numeric}>
                                                 {n.standing}
                                             </TableCell>
@@ -155,6 +181,15 @@ class StandingsTab extends Component {
                     onChangePage={this.handleChangePage}
                     onChangeRowsPerPage={this.handleChangeRowsPerPage}
                 />
+            <Snackbar
+                open={this.state.openSnackbar}
+                onClose={this.handleClose}
+                autoHideDuration={4000}
+                ContentProps={{
+                  'aria-describedby': 'message-id',
+                }}
+                message={<span id="message-id">{this.state.snackbarMessage}</span>}
+            />
             </Paper>
         );
     }

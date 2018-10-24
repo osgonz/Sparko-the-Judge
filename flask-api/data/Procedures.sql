@@ -361,7 +361,7 @@ DELIMITER //
 
 CREATE Procedure spRemoveUserFromContest (IN username varchar(64), IN contestID varchar(64))
 BEGIN
-    IF(SELECT exists (SELECT ContestUser.userID, ContestUser.contestID, Users.username from ContestUser INNER JOIN Users ON Users.userID=ContestUser.userID WHERE contestID=ContestUser.contestID AND username=Users.username)) THEN
+    IF(SELECT EXISTS (SELECT ContestUser.userID, ContestUser.contestID from ContestUser INNER JOIN Users ON (SELECT Users.userID FROM Users where Users.username = username) = ContestUser.userID Where ContestUser.contestID = contestID)) THEN
         DELETE FROM ContestUser WHERE ContestUser.userID IN (SELECT Users.userID FROM Users WHERE username = Users.username) AND contestID = ContestUser.contestID;
     ELSE 
     	SELECT CONCAT(username, ' not registered to Contest');

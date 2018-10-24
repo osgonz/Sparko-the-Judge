@@ -352,10 +352,13 @@ class ContestDetails extends Component {
                             </Tabs>
                             {tabValue === 0 &&
                             <TabContainer>
+                                {console.log(this.props.isAdmin)}
                                 <StandingsTab
                                     contest_id={this.props.match.params.id}
                                     problemList={problemsData}
                                     scores={scoreData}
+                                    isOwner={isOwner}
+                                    isAdmin={this.props.isAdmin}
                                 />
                             </TabContainer>}
                             {tabValue === 1 &&

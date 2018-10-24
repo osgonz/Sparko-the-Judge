@@ -70,7 +70,7 @@ class InviteUsers extends Component {
     handleInviteUsers () {
       console.log(this.state.contestID)
         if(this.state.usernames !== "")
-            var usernames = this.state.usernames.split(', ')
+            var usernames = this.state.usernames.replace(/\s+/g, '').split(', ');
             axios.post('http://127.0.0.1:5000/AddUsersToContest', {
                 contestID: this.state.contestID,
                 usernames: usernames
@@ -80,7 +80,7 @@ class InviteUsers extends Component {
                 if (response.data.StatusCode == 200) {
                     console.log(200);
                     this.handleModalClose(true, response.data.Message)
-                    //window.location.reload();
+                    window.location.reload();
                 }
 
                 if (response.data.StatusCode == 100) {

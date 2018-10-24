@@ -870,9 +870,11 @@ class AddUsersToContest(Resource):
             parser.add_argument('contestID', type=str, help='Id to contest')
 
             args = parser.parse_args()
-            print(args['usernames'])
 
-            _usersAdded = args['usernames']
+            if args['usernames'][0].find(','):
+                _usersAdded = args['usernames'][0].split(',')
+            else:
+                _usersAdded = args['usernames']
             _contestID = args['contestID']
 
             message = ""
@@ -882,11 +884,12 @@ class AddUsersToContest(Resource):
                 if (len(data) > 0):
                     message += data[0][0]
 
+            conn.commit()
             if (len(data) == 0 and message == ""):
                 return {'StatusCode':'200','Message': 'User(s) added to Contest'}
             else:
                 return {'StatusCode':'100','Message': message}
-      
+
         except Exception as e:
             return {'error': str(e)}
     
@@ -894,7 +897,7 @@ class AddUsersToContest(Resource):
             cursor.close()
             conn.close()
 
-class RemoveUsersFromContest(Resource):
+class RemoveUserFromContest(Resource):
     def post(self):
         try:
             # Open MySQL connection
@@ -903,33 +906,27 @@ class RemoveUsersFromContest(Resource):
 
             # Parse request arguments
             parser = reqparse.RequestParser()
-            parser.add_argument('usernames', type=list, action='append', help='Users to ban')
+            parser.add_argument('username', type=str, help='Users to ban')
             parser.add_argument('contestID', type=str, help='Id to contest')
 
             args = parser.parse_args()
-            _usersAdded = args['usernames']
+            _username= args['username']
             _contestID = args['contestID']
 
-            for username in _usersAdded:
-                cursor.callproc('spRemoveUserFromContest',(username, _contestID))
-                data = cursor.fetchall()
-                if(len(data) == 0):
-                    conn.commit()
-                    cursor.close()
-                    conn.close()
-                    return {'status': 200, 'message': 'Password edit succesful'}
-                else:
-                    cursor.close()
-                    conn.close()
-                    return {'status': 100, 'message': data[0][0]}
+            cursor.callproc('spRemoveUserFromContest',(_username, _contestID))
+            data = cursor.fetchall()
+            if(len(data) == 0):
+                conn.commit()
+                return {'status': 200, 'message': 'User removed from contest'}
             else:
-                cursor.close()
-                conn.close()
-                return {'status': 100, 'message': 'Incorrect password'}
+                return {'status': 100, 'message': data[0][0]}
+        
         except Exception as e:
+            raise e
+        
+        finally:
             cursor.close()
             conn.close()
-            raise e
 
 api.add_resource(CreateUser, '/CreateUser')
 api.add_resource(AuthenticateUser, '/AuthenticateUser')
@@ -954,7 +951,7 @@ api.add_resource(ViewInvitedContestList, '/ViewInvitedContestList')
 api.add_resource(EditContest, '/EditContest')
 api.add_resource(GetContestInfoForEdit, '/GetContestInfoForEdit')
 api.add_resource(AddUsersToContest, '/AddUsersToContest')
-api.add_resource(RemoveUsersFromContest, '/RemoveUsersFromContest')
+api.add_resource(RemoveUserFromContest, '/RemoveUserFromContest')
 
 @app.route('/')
 def hello():
