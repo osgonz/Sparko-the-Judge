@@ -283,7 +283,7 @@ Drop Procedure If Exists spGetContestScoresPerProblem;
 
 CREATE PROCEDURE spGetContestScoresPerProblem (IN p_problemID INT, IN p_contestID INT)
 BEGIN
-  SELECT SU.username, SU.result, SU.submissionCount, (TIMESTAMPDIFF(SECOND, C.startDate, SU.submissionTime) + SU.penalty) as TimeDifference
+    SELECT SU.username, SU.result, SU.submissionCount, (TIMESTAMPDIFF(SECOND, C.startDate, SU.submissionTime) + SU.penalty) as TimeDifference
   FROM (
       SELECT C.contestID, C.startDate
       FROM Contest C
@@ -299,12 +299,17 @@ BEGIN
           FROM submission S
           WHERE S.contestID = p_contestID AND S.problemID = p_problemID
       ) S, (
-          SELECT submitter, COUNT(submissionID) * 1200 AS penalty
-          FROM submission
-          WHERE contestID = 3 AND problemID = 3 AND result < 90
-          GROUP BY submitter
+          SELECT userID, IF(penalty, penalty, 0) AS penalty
+          FROM contestuser
+          LEFT OUTER JOIN (
+              SELECT submitter, COUNT(submissionID) * 1200 AS penalty
+              FROM submission
+              WHERE contestID = p_contestID AND problemID = p_problemID AND result < 90
+              GROUP BY submitter
+          ) S ON submitter = userID
+          WHERE contestID = p_contestID
       ) P
-      WHERE U.userID = S.submitter AND S.submitter = P.submitter
+      WHERE U.userID = S.submitter AND S.submitter = P.userID
       GROUP BY U.userID
   ) SU
   WHERE SU.contestID = C.contestID
