@@ -305,7 +305,7 @@ class EditContest extends Component {
                         />
                     </div>
                     <br/><br/>
-                    <AddProblemDropdown problems={this.props.onlineJudgesProblems} handleAddProblem={this.handleAddProblem} handleRemoveProblem={this.handleRemoveProblem} addedProblems={this.state.contestProblems} />
+                    <AddProblemDropdown isEditable={this.state.status === 0} problems={this.props.onlineJudgesProblems} handleAddProblem={this.handleAddProblem} handleRemoveProblem={this.handleRemoveProblem} addedProblems={this.state.contestProblems} />
                     <Button
                         variant="contained"
                         margin="normal"

@@ -49,8 +49,9 @@ function getSorting(order, orderBy) {
 const rows = [
   { id: 'Problem', numeric: false, disablePadding: false, label: 'Problem', sortable: true },
   { id: 'Online Judge', numeric: false, disablePadding: false, label: 'Online Judge', sortable: true },
-  { id: 'Remove', numeric: false, disablePadding: false, label: 'Remove', sortable: false },
 ];
+
+const removeRow = { id: 'Remove', numeric: false, disablePadding: false, label: 'Remove', sortable: false }
 
 /*******************************************************************************/
 /*                                                                             */
@@ -64,6 +65,10 @@ class ProblemsTableHead extends React.Component {
 
   render() {
     const { onSelectAllClick, order, orderBy, numSelected, rowCount } = this.props;
+
+    if (this.props.isEditable && !rows.includes(removeRow)) {
+      rows.push(removeRow)
+    }
 
     return (
       <TableHead>
@@ -253,6 +258,7 @@ class ProblemsTable extends React.Component {
               orderBy={orderBy}
               onRequestSort={this.handleRequestSort}
               rowCount={data.length}
+              isEditable={this.props.isEditable}
             />
             <TableBody>
               {stableSort(data, getSorting(order, orderBy))
@@ -273,13 +279,15 @@ class ProblemsTable extends React.Component {
                         {n.problemName}
                       </TableCell>
                       <TableCell numeric={rows[1].numeric}>{judge}</TableCell>
-                      <TableCell>
-                        <IconButton
-                          onClick={() => this.props.handleRemoveProblem(n)}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </TableCell>
+                      {this.props.isEditable &&
+                        <TableCell>
+                          <IconButton
+                            onClick={() => this.props.handleRemoveProblem(n)}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </TableCell>
+                      }
                     </TableRow>
                   );
                 })}
