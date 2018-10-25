@@ -476,6 +476,7 @@ def update_ongoing_contest_data():
 
         for contest in contests:
             temp_data[contest[0]] = get_new_ongoing_contest_data(contest, cursor)
+            print(contest[0])
             pp.pprint(temp_data[contest[0]])
 
         global ongoing_contest_data
@@ -1288,6 +1289,60 @@ class GetContestInfoForEdit(Resource):
             cursor.close()
             conn.close()
 
+class GetOngoingContestIntermediateData(Resource):
+    def post(self):
+        # Open MySQL connection
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
+        try:
+            # Parse request arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('contest_id', type=int, help='Contest identifier number')
+            parser.add_argument('can_see_all', type=bool, help='Flag to determine which submissions are retrieved')
+
+            args = parser.parse_args()
+
+            _contest = args['contest_id']
+            _submissionsFlag = args['can_see_all']
+
+            username = session.get('loggedUser', 'Session not found')
+
+            if username != 'Session not found':
+                cursor.callproc('spGetUserID', (username,))
+                userData = cursor.fetchall()
+                _userID = userData[0][0]
+
+                if _userID:
+                    global ongoing_contest_data
+                    contestInfo = ongoing_contest_data[_contest]
+
+                    standingsList = contestInfo["standings"]
+                    scoresList = contestInfo["scores"]
+                    submissionsList = []
+                    if _submissionsFlag:
+                        submissionsList = contestInfo["submissions"]
+                    else:
+                        for submission in contestInfo["submissions"]:
+                            if submission["username"] == username:
+                                submissionsList.append(submission)
+                    return jsonify({'status': 200,
+                                    'standingsList': standingsList,
+                                    'scoresList': scoresList,
+                                    'submissionsList': submissionsList
+                                    })
+                else:
+                    return jsonify({'status': 100, 'message': 'User not found'})
+            else:
+                return jsonify({'status': 100, 'message': 'Session not found'})
+
+        except Exception as e:
+            return {'error': str(e)}
+
+        finally:
+            cursor.close()
+            conn.close()
+
 api.add_resource(CreateUser, '/CreateUser')
 api.add_resource(AuthenticateUser, '/AuthenticateUser')
 api.add_resource(EditUserJudgesUsernames, '/EditUserJudgesUsernames')
@@ -1310,6 +1365,7 @@ api.add_resource(ViewOwnedContestList, '/ViewOwnedContestList')
 api.add_resource(ViewInvitedContestList, '/ViewInvitedContestList')
 api.add_resource(EditContest, '/EditContest')
 api.add_resource(GetContestInfoForEdit, '/GetContestInfoForEdit')
+api.add_resource(GetOngoingContestIntermediateData, '/GetOngoingContestIntermediateData')
 
 @app.route('/')
 def hello():
