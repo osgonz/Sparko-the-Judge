@@ -30,6 +30,13 @@ Drop Procedure If Exists spRemoveProblemFromContest;
 Drop Procedure If Exists spGetLastInsertedID;
 Drop Procedure If Exists spBanUser;
 Drop Procedure If Exists spEditContest;
+DROP PROCEDURE IF EXISTS spGetOngoingContestInfo;
+Drop Procedure If Exists spGetOngoingContestUsersInfo;
+Drop Procedure If Exists spUpdateContestUpcomingToOngoing;
+DROP PROCEDURE IF EXISTS spGetAlmostFinishedContestInfo;
+Drop Procedure If Exists spUpdateContestOngoingToFinished;
+DROP PROCEDURE IF EXISTS spInsertSubmission;
+DROP PROCEDURE IF EXISTS spUpdateContestUser;
 
 ################################################################################
 #                                                                              #
@@ -417,8 +424,6 @@ END //
 
 DELIMITER //
 
-Drop Procedure If Exists spGetOngoingContestUsersInfo;
-
 CREATE PROCEDURE spGetOngoingContestUsersInfo (IN p_contestID INT)
 BEGIN
 	SELECT CU.userID, U.username, U.iduva, U.idicpc, C.country_name
@@ -432,8 +437,6 @@ END //
 -- Contest Update Upcoming to Ongoing
 
 DELIMITER //
-
-Drop Procedure If Exists spUpdateContestUpcomingToOngoing;
 
 CREATE PROCEDURE spUpdateContestUpcomingToOngoing()
 BEGIN
@@ -458,8 +461,6 @@ END //
 
 DELIMITER //
 
-Drop Procedure If Exists spUpdateContestOngoingToFinished;
-
 CREATE PROCEDURE spUpdateContestOngoingToFinished(IN p_updateDate DATETIME)
 BEGIN
 	UPDATE Contest
@@ -472,8 +473,6 @@ END //
 
 DELIMITER //
 
-DROP PROCEDURE IF EXISTS spInsertSubmission;
-
 CREATE PROCEDURE spInsertSubmission(IN p_subDate DATETIME, IN p_result INT, IN p_language VARCHAR(64), IN p_problemID INT, IN p_submitter INT, IN p_contestID INT)
 BEGIN
   INSERT INTO Submission VALUES
@@ -483,8 +482,6 @@ END //
 -- Update Contest User Info
 
 DELIMITER //
-
-DROP PROCEDURE IF EXISTS spUpdateContestUser;
 
 CREATE PROCEDURE spUpdateContestUser(IN p_score INT, IN p_standing INT, IN p_contestID INT, IN p_userID INT)
 BEGIN
