@@ -1,44 +1,75 @@
 USE CoProManager;
 
+################################################################################
+#                                                                              #
+#                             DROP ALL PROCEDURES                              #
+#                                                                              #
+################################################################################
+Drop Procedure If Exists spCreateUser;
+Drop Procedure If Exists spAuthentication;
+Drop Procedure If Exists spEditUser;
+Drop Procedure If Exists spEditJudgesUsernames;
+Drop Procedure If Exists spEditPassword;
+Drop Procedure If Exists spGetCountries;
+Drop Procedure If Exists spGetOwnedContests;
+Drop Procedure If Exists spGetInvitedContests;
+Drop Procedure If Exists spGetContestProblems;
+Drop Procedure If Exists spGetUserSubmissionsInContest;
+Drop Procedure If Exists spGetSubmissionsInContest;
+Drop Procedure If Exists spGetContestStandings;
+Drop Procedure If Exists spGetContestOwner;
+Drop Procedure If Exists spGetUserID;
+Drop Procedure If Exists spCreateContest;
+Drop Procedure If Exists spGetContestInformation;
+Drop Procedure If Exists spGetContestUserUsername;
+Drop Procedure If Exists spGetContestScoresPerProblem;
+Drop Procedure If Exists spCreateProblem;
+Drop Procedure If Exists spGetUserList;
+Drop Procedure If Exists spAddProblemToContest;
+Drop Procedure If Exists spRemoveProblemFromContest;
+Drop Procedure If Exists spGetLastInsertedID;
+Drop Procedure If Exists spBanUser;
+Drop Procedure If Exists spEditContest;
+
+################################################################################
+#                                                                              #
+#                             CREATE ALL PROCEDURES                            #
+#                                                                              #
+################################################################################
+
 -- Create User
 DELIMITER //
 
-Drop Procedure If Exists spCreateUser;
-
 CREATE PROCEDURE spCreateUser (IN p_username varchar(64),IN password varchar(255), IN fname varchar(32), IN lname varchar(32),IN p_email varchar(64), IN usertype INT)
 BEGIN
-IF(SELECT exists (SELECT * from Users where p_username = username)) THEN
-    SELECT 'User already exists';
-ELSEIF(SELECT exists (SELECT * from Users where p_email = email)) THEN
-    SELECT 'Email already exists';
-ELSE
-    INSERT into Users
-    (
-        username,
-        password,
-        fname,
-        lname,
-        email,
-        usertype
-    )
-    VALUES
-    (
-        p_username,
-        password,
-        fname,
-        lname,
-        p_email,
-        usertype
-    );
-END IF;
-
+  IF(SELECT exists (SELECT * from Users where p_username = username)) THEN
+      SELECT 'User already exists';
+  ELSEIF(SELECT exists (SELECT * from Users where p_email = email)) THEN
+      SELECT 'Email already exists';
+  ELSE
+      INSERT into Users
+      (
+          username,
+          password,
+          fname,
+          lname,
+          email,
+          usertype
+      )
+      VALUES
+      (
+          p_username,
+          password,
+          fname,
+          lname,
+          p_email,
+          usertype
+      );
+  END IF;
 END //
 
----- Authentication
-
+-- Authentication
 DELIMITER //
-
-Drop Procedure If Exists spAuthentication;
 
 CREATE Procedure spAuthentication (IN p_username varchar(64))
 BEGIN
@@ -46,69 +77,56 @@ BEGIN
 END //
 
 -- Edit user information
-
 DELIMITER //
-
-Drop Procedure If Exists spEditUser;
 
 CREATE Procedure spEditUser (IN p_curr_username varchar(64), IN p_new_username varchar(64), IN p_fname varchar(32), IN p_lname varchar(32), IN p_email varchar(64), IN p_country INT)
 BEGIN
-IF(SELECT exists (SELECT username from Users where p_new_username = username) AND p_curr_username != p_new_username) THEN
-    SELECT CONCAT(p_new_username, ' already registered');
-ELSEIF(p_curr_username != (SELECT username from Users where p_email = email)) THEN
-    SELECT CONCAT(p_email, ' already registered');
-ELSE
-    UPDATE Users
-    SET username = p_new_username,
-        fname = p_fname,
-        lname = p_lname,
-        email = p_email,
-        country = p_country
-    WHERE p_curr_username = username;
-END IF;
+  IF(SELECT exists (SELECT username from Users where p_new_username = username) AND p_curr_username != p_new_username) THEN
+      SELECT CONCAT(p_new_username, ' already registered');
+  ELSEIF(p_curr_username != (SELECT username from Users where p_email = email)) THEN
+      SELECT CONCAT(p_email, ' already registered');
+  ELSE
+      UPDATE Users
+      SET username = p_new_username,
+          fname = p_fname,
+          lname = p_lname,
+          email = p_email,
+          country = p_country
+      WHERE p_curr_username = username;
+  END IF;
 
 END //
 
 -- Edit user online judges usernames
-
 DELIMITER //
-
-Drop Procedure If Exists spEditJudgesUsernames;
 
 CREATE Procedure spEditJudgesUsernames (IN p_username varchar(64), IN p_username_uva varchar(64), IN p_username_icpc varchar(64))
 BEGIN
-IF(p_username != (SELECT username from Users where p_username_uva = iduva)) THEN
-    SELECT CONCAT(p_username_uva, ' already registered (UVA)');
-ELSEIF(p_username != (SELECT username from Users where p_username_icpc = idicpc)) THEN
-    SELECT CONCAT(p_username_icpc, ' already registered (ICPC Live Archive)');
-ELSE
-    UPDATE Users
-    SET iduva = p_username_uva,
-        idicpc = p_username_icpc
-    WHERE p_username = username;
-END IF;
+  IF(p_username != (SELECT username from Users where p_username_uva = iduva)) THEN
+      SELECT CONCAT(p_username_uva, ' already registered (UVA)');
+  ELSEIF(p_username != (SELECT username from Users where p_username_icpc = idicpc)) THEN
+      SELECT CONCAT(p_username_icpc, ' already registered (ICPC Live Archive)');
+  ELSE
+      UPDATE Users
+      SET iduva = p_username_uva,
+          idicpc = p_username_icpc
+      WHERE p_username = username;
+  END IF;
 
 END //
 
 -- Edit password
-
 DELIMITER //
-
-Drop Procedure If Exists spEditPassword;
 
 CREATE PROCEDURE spEditPassword (IN p_username varchar(64), IN p_new_password varchar(255))
 BEGIN
-UPDATE Users
-SET password = p_new_password
-WHERE username = p_username;
-
+  UPDATE Users
+  SET password = p_new_password
+  WHERE username = p_username;
 END //
 
 -- Get Countries
-
 DELIMITER //
-
-Drop Procedure If Exists spGetCountries;
 
 CREATE Procedure spGetCountries ()
 BEGIN
@@ -116,10 +134,7 @@ BEGIN
 END //
 
 -- Get owned Contests
-
 DELIMITER //
-
-Drop Procedure If Exists spGetOwnedContests;
 
 CREATE Procedure spGetOwnedContests (IN p_ownerusername varchar(64))
 BEGIN
@@ -127,10 +142,7 @@ BEGIN
 END //
 
 ---- Get invited Contests
-
 DELIMITER //
-
-Drop Procedure If Exists spGetInvitedContests;
 
 CREATE Procedure spGetInvitedContests (IN p_username varchar(64))
 BEGIN
@@ -138,10 +150,7 @@ BEGIN
 END //
 
 -- Get Contest Problems information
-
 DELIMITER //
-
-Drop Procedure If Exists spGetContestProblems;
 
 CREATE PROCEDURE spGetContestProblems (IN p_contestID INT)
 BEGIN
@@ -149,10 +158,7 @@ BEGIN
 END //
 
 -- Get User's Submissions in Contest
-
 DELIMITER //
-
-Drop Procedure If Exists spGetUserSubmissionsInContest;
 
 CREATE PROCEDURE spGetUserSubmissionsInContest (IN p_userID INT, IN p_contestID INT)
 BEGIN
@@ -160,14 +166,10 @@ BEGIN
 	FROM Submission S, Problems P, Users U
 	WHERE S.contestID = p_contestID AND S.submitter = p_userID AND S.submitter = U.userID AND S.problemID = P.problemID
 	ORDER BY S.submissionTime DESC;
-	
 END //
 
 -- Get All Submissions in Contest
-
 DELIMITER //
-
-Drop Procedure If Exists spGetSubmissionsInContest;
 
 CREATE PROCEDURE spGetSubmissionsInContest (IN p_contestID INT)
 BEGIN
@@ -175,14 +177,10 @@ BEGIN
 	FROM Submission S, Problems P, Users U
 	WHERE S.contestID = p_contestID AND S.submitter = U.userID AND S.problemID = P.problemID
 	ORDER BY S.submissionTime DESC;
-
 END //
 
 -- Get Contest Standings
-
 DELIMITER //
-
-Drop Procedure If Exists spGetContestStandings;
 
 CREATE PROCEDURE spGetContestStandings (IN p_contestID INT)
 BEGIN
@@ -191,14 +189,10 @@ BEGIN
   LEFT OUTER JOIN Countries C ON U.country = C.id
 	WHERE CU.contestID = p_contestID AND CU.userID = U.userID
 	ORDER BY CU.standing;
-	
 END //
 
 -- Get Contest Owner
-
 DELIMITER //
-
-Drop Procedure If Exists spGetContestOwner;
 
 CREATE PROCEDURE spGetContestOwner (IN p_contestID INT)
 BEGIN
@@ -209,10 +203,7 @@ BEGIN
 END //
 
 -- Get User ID
-
 DELIMITER //
-
-Drop Procedure If Exists spGetUserID;
 
 CREATE procedure spGetUserID (IN p_username varchar(64))
 BEGIN
@@ -222,8 +213,6 @@ END //
 
 -- Create Contest
 DELIMITER //
-
-Drop Procedure If Exists spCreateContest;
 
 CREATE PROCEDURE spCreateContest (IN contestName varchar(255), IN description varchar(255), IN startDate DATETIME, IN endDate DATETIME, IN status INT, in p_username varchar(64))
 BEGIN
@@ -248,10 +237,7 @@ BEGIN
 END //
 
 -- Get Contest Information
-
 DELIMITER //
-
-Drop Procedure If Exists spGetContestInformation;
 
 CREATE PROCEDURE spGetContestInformation (IN p_contestID INT)
 BEGIN
@@ -262,10 +248,7 @@ BEGIN
 END //
 
 -- Get Contest User's Username
-
 DELIMITER //
-
-Drop Procedure If Exists spGetContestUserUsername;
 
 CREATE PROCEDURE spGetContestUserUsername (IN p_userID INT, IN p_contestID INT)
 BEGIN
@@ -276,10 +259,7 @@ BEGIN
 END //
 
 -- Get Contest Scores Per Problem
-
 DELIMITER //
-
-Drop Procedure If Exists spGetContestScoresPerProblem;
 
 CREATE PROCEDURE spGetContestScoresPerProblem (IN p_problemID INT, IN p_contestID INT)
 BEGIN
@@ -316,11 +296,100 @@ BEGIN
   ORDER BY SU.userID, TimeDifference DESC;
 END //
 
--- Edit contest information
+DELIMITER //
+
+CREATE PROCEDURE spCreateProblem (IN p_judge INT, IN p_judge_problemID INT, IN p_problemName VARCHAR(255), IN p_url VARCHAR(255))
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM Problems WHERE problemName = p_problemName) THEN
+    INSERT INTO Problems
+    (
+      judge,
+      judgeProblemID,
+      problemName,
+      url
+    )
+    VALUES
+    (
+      p_judge,
+      p_judge_problemID,
+      p_problemName,
+      p_url
+    );
+
+  END IF;
+END //
 
 DELIMITER //
 
-Drop Procedure If Exists spEditContest;
+CREATE Procedure spGetUserList (IN p_userType INT)
+BEGIN
+    IF(p_userType = 0) THEN
+        SELECT userID AS id, username, CONCAT(fname, " ",lname) AS fullName, usertype AS userType, iduva AS uvaUsername, idicpc AS icpcUsername 
+        FROM Users
+        WHERE usertype != 0;
+    ELSE
+        SELECT userID AS id, username, CONCAT(fname, " ",lname) AS fullName, usertype AS userType, iduva AS uvaUsername, idicpc AS icpcUsername 
+        FROM Users
+        WHERE usertype = 1;
+    END IF;
+END //
+
+DELIMITER //
+
+CREATE PROCEDURE spAddProblemToContest (IN p_contestID INT, IN p_problemName VARCHAR(255))
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM ContestProblem WHERE contestID = p_contestID AND problemID = (SELECT problemID FROM Problems WHERE problemName = p_problemName)) THEN
+    INSERT INTO ContestProblem
+    (
+      contestID,
+      problemID
+    )
+    VALUES
+    (
+      p_contestID,
+      (SELECT problemID FROM Problems WHERE problemName = p_problemName)
+    );
+  END IF;
+END //
+
+DELIMITER //
+
+CREATE PROCEDURE spRemoveProblemFromContest (IN p_contestID INT, IN p_problemName VARCHAR(255))
+BEGIN
+  IF EXISTS (SELECT 1 FROM ContestProblem WHERE contestID = p_contestID AND problemID = (SELECT problemID FROM Problems WHERE problemName = p_problemName)) THEN
+    DELETE FROM ContestProblem
+    WHERE contestID = p_contestID
+    AND problemID = (SELECT problemID FROM Problems WHERE problemName = p_problemName);
+  END IF;
+END //
+
+-- Get last inserted auto increment ID
+DELIMITER //
+
+CREATE PROCEDURE spGetLastInsertedID ()
+BEGIN
+  SELECT LAST_INSERT_ID();
+END //
+
+-- Ban a user
+DELIMITER //
+
+CREATE Procedure spBanUser (IN p_userID varchar(64))
+BEGIN
+    IF(SELECT exists (SELECT * FROM Users WHERE userID=p_userID AND usertype=0)) THEN
+        SELECT 'You cant ban an administrator';
+    ELSEIF(SELECT exists (SELECT * FROM Users WHERE userID=p_userID AND usertype=2)) THEN
+        SELECT 'User already banned';
+    ELSE
+        UPDATE Users 
+        SET Users.usertype = 2
+        WHERE Users.userID = p_userID;
+    END IF;
+END //
+
+                          
+-- Edit contest information
+DELIMITER //
 
 CREATE Procedure spEditContest (IN p_contestID INT, IN p_new_contestName varchar(255), IN p_new_description varchar(255), IN p_new_startDate DATETIME, IN p_new_endDate DATETIME, IN p_new_status INT)
 BEGIN

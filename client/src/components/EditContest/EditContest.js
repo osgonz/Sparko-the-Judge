@@ -2,6 +2,8 @@ import React, { Component } from "react";
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 
+import AddProblemDropdown from '../AddProblem/AddProblemDropdown'
+
 import axios from 'axios'
 
 function formatDate(date)
@@ -64,8 +66,14 @@ class EditContest extends Component {
             endDate: tomorrow,
 			contestID: -1,
             status: -1,
-            attemptedEdit: false
+            attemptedEdit: false,
+            contestProblems: props.addedProblems,
         };
+
+        this.originalContestProblems = new Set()
+        this.contestProblemsInEditTable = new Set()
+        this.problemsToAdd = new Set()
+        this.problemsToDelete = new Set()
 
         this.handleEditContest = this.handleEditContest.bind(this);
         this.contestNameChange = this.contestNameChange.bind(this);
@@ -73,6 +81,8 @@ class EditContest extends Component {
         this.startDateChange = this.startDateChange.bind(this);
         this.endDateChange = this.endDateChange.bind(this);
         this.handleModalClose = this.props.handleClose.bind(this);
+        this.handleAddProblem = this.handleAddProblem.bind(this)
+        this.handleRemoveProblem = this.handleRemoveProblem.bind(this)
     }
 
     componentWillMount() {
@@ -91,11 +101,56 @@ class EditContest extends Component {
             startDate: startDate,
             endDate: endDate,
             status: this.props.status,
+            selectedProblems: this.props.addedProblems
         });
+
+        for (let problem of this.props.addedProblems) {
+            this.originalContestProblems.add(problem)
+            this.contestProblemsInEditTable.add(problem)
+        }
+    }
+
+    handleAddProblem (problem) {
+        // Handle problems in the problem table shown in the edit modal
+        var currentSelectedProblems = this.state.contestProblems
+        if (!this.contestProblemsInEditTable.has(problem)){
+          currentSelectedProblems.push(problem)
+          this.contestProblemsInEditTable.add(problem)
+          this.setState({contestProblems: currentSelectedProblems})
+        }
+
+        // Handle problems to add when done editing
+        if (!this.originalContestProblems.has(problem)){
+            this.problemsToAdd.add(problem)
+        }
+
+        this.problemsToDelete.delete(problem)
+    }
+
+    handleRemoveProblem (problem) {
+
+        // Handle problems in the problem table shown in the edit modal
+        var currentSelectedProblems = this.state.contestProblems
+        var index = currentSelectedProblems.indexOf(problem)
+        currentSelectedProblems.splice(index, 1)
+        this.contestProblemsInEditTable.delete(problem)
+        this.setState({contestProblems: currentSelectedProblems})
+
+        // Handle problems to delete when done editing
+        if (this.originalContestProblems.has(problem)){
+            this.problemsToDelete.add(problem)
+        }
+
+        this.problemsToAdd.delete(problem)
     }
 
     handleEditContest () {
-		console.log("GOT IN");
+
+        let problemsToAdd = Array.from(this.problemsToAdd)
+        let problemsToDelete = Array.from(this.problemsToDelete)
+
+        console.log(problemsToAdd)
+        console.log(problemsToDelete)
 
 		this.setState({attemptedEdit: true})
 
@@ -112,31 +167,40 @@ class EditContest extends Component {
             startDate = formatDate(startDate)
             endDate = formatDate(endDate)
 
-            console.log("CALLING AXIOS")
-            axios.post('http://127.0.0.1:5000/EditContest', {
-                contestID: contestID,
-                contestName: contestName,
-                description: description,
-                startDate: startDate,
-                endDate: endDate,
-                status: status,
+            // Add any missing problems to the database
+            axios.post('http://127.0.0.1:5000/CreateProblems', {
+                problems: problemsToAdd,
             }, {withCredentials: true})
-            .then(response => {
-                if (response.data.status == 200) {
-                    console.log(200);
-                    this.handleModalClose(true, "Contest edited successfully")
-                    window.location.reload();
-                }
+            .then(() => {
+                    // Edit contest details (also adds and removes any needed problems)
+                    axios.post('http://127.0.0.1:5000/EditContest', {
+                        contestID: contestID,
+                        contestName: contestName,
+                        description: description,
+                        startDate: startDate,
+                        endDate: endDate,
+                        status: status,
+                        problemsToAdd: problemsToAdd,
+                        problemsToDelete: problemsToDelete
+                    }, {withCredentials: true})
+                    .then(response => {
+                        if (response.data.status == 200) {
+                            console.log(200);
+                            this.handleModalClose(true, "Contest edited successfully")
+                            window.location.reload();
+                        }
 
-                if (response.data.status == 100) {
-                    //Display error message
-                    console.log(100);
-                    this.handleModalClose(true, response.data.message)
+                        if (response.data.status == 100) {
+                            //Display error message
+                            console.log(100);
+                            this.handleModalClose(true, response.data.message)
+                        }
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    });
                 }
-            })
-            .catch((error) => {
-                console.log(error);
-            });
+            )
         }
     }
 
@@ -241,6 +305,7 @@ class EditContest extends Component {
                         />
                     </div>
                     <br/><br/>
+                    <AddProblemDropdown problems={this.props.onlineJudgesProblems} handleAddProblem={this.handleAddProblem} handleRemoveProblem={this.handleRemoveProblem} addedProblems={this.state.contestProblems} />
                     <Button
                         variant="contained"
                         margin="normal"
