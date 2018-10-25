@@ -116,10 +116,10 @@ INSERT INTO Users VALUES
 	(NULL, "ebustillos", "Edgar", "Bustillos", "holahola", "ebustillos@hotmail.com", 1, NULL, NULL, NULL);
 
 INSERT INTO Problems VALUES
-	(NULL, 0, "Weather Report", "https://icpcarchive.ecs.baylor.edu/index.php?option=com_onlinejudge&Itemid=8&category=671&page=show_problem&problem=5173"),
-	(NULL, 0, "Keyboarding", "https://icpcarchive.ecs.baylor.edu/index.php?option=com_onlinejudge&Itemid=8&category=671&page=show_problem&problem=5167"),
-	(NULL, 0, "Cutting Cheese", "https://icpcarchive.ecs.baylor.edu/index.php?option=com_onlinejudge&Itemid=8&category=671&page=show_problem&problem=5165"),
-	(NULL, 0, "Tile Cutting", "https://icpcarchive.ecs.baylor.edu/index.php?option=com_onlinejudge&Itemid=8&category=671&page=show_problem&problem=5171");
+	(NULL, 0, 5173, "Weather Report", "https://icpcarchive.ecs.baylor.edu/index.php?option=com_onlinejudge&Itemid=8&category=671&page=show_problem&problem=5173"),
+	(NULL, 0, 5167, "Keyboarding", "https://icpcarchive.ecs.baylor.edu/index.php?option=com_onlinejudge&Itemid=8&category=671&page=show_problem&problem=5167"),
+	(NULL, 0, 5165, "Cutting Cheese", "https://icpcarchive.ecs.baylor.edu/index.php?option=com_onlinejudge&Itemid=8&category=671&page=show_problem&problem=5165"),
+	(NULL, 0, 5171, "Tile Cutting", "https://icpcarchive.ecs.baylor.edu/index.php?option=com_onlinejudge&Itemid=8&category=671&page=show_problem&problem=5171");
 
 INSERT INTO Contest VALUES
 	(NULL, "Concurso de Gerardo", "Mi primer concurso (Gerardo)", "2018-12-15 13:00:00", "2019-01-22 13:00:00", 0, (SELECT userID FROM Users WHERE email = "ggalvez@hotmail.com")),
