@@ -491,7 +491,7 @@ class GetContestScoresPerProblem(Resource):
             # Parse request arguments
             parser = reqparse.RequestParser()
             parser.add_argument('contest_id', type=int, help='Contest identifier number')
-            parser.add_argument('problem_id_list', type=list, help='List of problem identifier numbers', action='append')
+            parser.add_argument('problem_id_list', type=str, help='List of problem identifier numbers', action='append')
 
             args = parser.parse_args()
 
@@ -638,7 +638,10 @@ class CreateContest(Resource):
 
             if len(data) is 0:
                 conn.commit()
-                return {'StatusCode': 200, 'Message': 'Contest creation success'}
+                cursor.callproc('spGetLastInsertedID')
+                data = cursor.fetchall()
+                contestID = data[0][0]
+                return {'StatusCode':200,'Message': 'Contest creation success', 'contestID': contestID}
             else:
                 return {'StatusCode': 1000, 'Message': str(data[0])}
 
@@ -675,7 +678,6 @@ class GetUserID(Resource):
         except Exception as e:
             return {'error': str(e)}
         
-        
         finally:
             cursor.close()
             conn.close()
@@ -707,7 +709,6 @@ class ViewOwnedContestList(Resource):
         except Exception as e:
             print(str(e))
             return {'error': str(e)}
-          
        
         finally:
             cursor.close()
@@ -760,6 +761,8 @@ class EditContest(Resource):
             parser.add_argument('startDate', help='startDate')
             parser.add_argument('endDate', help='endDate')
             parser.add_argument('status', type=int, help='status')
+            parser.add_argument('problemsToAdd', type=dict, action='append', help='Problems to add to contest.')
+            parser.add_argument('problemsToDelete', type=dict, action='append', help='Problems to delete from contest.')
 
             args = parser.parse_args()
 
@@ -769,11 +772,23 @@ class EditContest(Resource):
             _startDate = args['startDate']
             _endDate = args['endDate']
             _status = args['status']
+            _problemsToAdd = args['problemsToAdd']
+            _problemsToDelete = args['problemsToDelete']
 
             cursor.callproc('spEditContest', (_contestID, _contestName, _description, _startDate, _endDate, _status))
             data = cursor.fetchall()
 
             if (len(data) == 0):
+                # Checking for None because if no probles is added, Javascript sends an empty list and Flask receives it as None
+                if _problemsToAdd is not None:
+                    for problem in _problemsToAdd:
+                        cursor.callproc('spAddProblemToContest', (_contestID, problem['problemName']))
+
+                # Same as above
+                if _problemsToDelete is not None:
+                    for problem in _problemsToDelete:
+                        cursor.callproc('spRemoveProblemFromContest', (_contestID, problem['problemName']))
+
                 conn.commit()
                 return {'status': 200, 'message': 'Contest edit succesful'}
             else:
@@ -820,6 +835,79 @@ class GetContestInfoForEdit(Resource):
             cursor.close()
             conn.close()
 
+class AddProblemsToContest(Resource):
+    def post(self):
+        # Open MySQL connection
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
+        try:
+            # Parse the arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('contestID', type=str, help='List of dictionaries of problems to add')
+            parser.add_argument('problems', type=dict, action='append', help='List of dictionaries of problems to add')
+
+            args = parser.parse_args()
+
+            _contestID = args['contestID']
+            _problems = args['problems']
+
+            for _problem in _problems:
+                cursor.callproc('spAddProblemToContest', (_contestID, _problem['problemName']))
+
+            conn.commit()
+            return {'StatusCode': 200}
+
+        except Exception as e:
+            return {'error': str(e)}
+
+        finally:
+            cursor.close()
+            conn.close()
+
+class CreateProblems(Resource):
+    def __init__ (self):
+        self.onlineJudgeToInt = {
+            'ICPC Live Archive': 0,
+            'UVa': 1,
+        }
+
+        self.onlineJudgeBaseURL = {
+            'ICPC Live Archive': 'https://icpcarchive.ecs.baylor.edu/index.php?option=com_onlinejudge&Itemid=8&page=show_problem&problem=',
+            'UVa': 'https://uva.onlinejudge.org/index.php?option=com_onlinejudge&Itemid=8&page=show_problem&problem='
+        }
+
+    def post(self):
+        # Open MySQL connection
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
+        try:
+            # Parse the arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('problems', type=dict, action='append', help='List of dictionaries of problems to add')
+
+            args = parser.parse_args()
+
+            _problems = args['problems']
+
+            for _problem in _problems:
+                problemName = _problem['problemName']
+                onlineJudgeProblemID = _problem['problemID']
+                onlineJudge = self.onlineJudgeToInt[_problem['judge']]
+                url = self.onlineJudgeBaseURL[_problem['judge']] + str(onlineJudgeProblemID)
+                cursor.callproc('spCreateProblem', (onlineJudge, onlineJudgeProblemID, problemName, url))
+
+            conn.commit()
+            return {'StatusCode': 200}
+
+        except Exception as e:
+            return {'error': str(e)}
+
+        finally:
+            cursor.close()
+            conn.close()
+
 api.add_resource(CreateUser, '/CreateUser')
 api.add_resource(AuthenticateUser, '/AuthenticateUser')
 api.add_resource(EditUserJudgesUsernames, '/EditUserJudgesUsernames')
@@ -842,6 +930,8 @@ api.add_resource(ViewOwnedContestList, '/ViewOwnedContestList')
 api.add_resource(ViewInvitedContestList, '/ViewInvitedContestList')
 api.add_resource(EditContest, '/EditContest')
 api.add_resource(GetContestInfoForEdit, '/GetContestInfoForEdit')
+api.add_resource(AddProblemsToContest, '/AddProblemsToContest')
+api.add_resource(CreateProblems, '/CreateProblems')
 
 @app.route('/')
 def hello():

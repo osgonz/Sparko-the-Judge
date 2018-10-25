@@ -23,10 +23,13 @@ Drop Procedure If Exists spCreateContest;
 Drop Procedure If Exists spGetContestInformation;
 Drop Procedure If Exists spGetContestUserUsername;
 Drop Procedure If Exists spGetContestScoresPerProblem;
+Drop Procedure If Exists spCreateProblem;
 Drop Procedure If Exists spGetUserList;
+Drop Procedure If Exists spAddProblemToContest;
+Drop Procedure If Exists spRemoveProblemFromContest;
+Drop Procedure If Exists spGetLastInsertedID;
 Drop Procedure If Exists spBanUser;
 Drop Procedure If Exists spEditContest;
-
 
 ################################################################################
 #                                                                              #
@@ -163,7 +166,6 @@ BEGIN
 	FROM Submission S, Problems P, Users U
 	WHERE S.contestID = p_contestID AND S.submitter = p_userID AND S.submitter = U.userID AND S.problemID = P.problemID
 	ORDER BY S.submissionTime DESC;
-	
 END //
 
 -- Get All Submissions in Contest
@@ -175,7 +177,6 @@ BEGIN
 	FROM Submission S, Problems P, Users U
 	WHERE S.contestID = p_contestID AND S.submitter = U.userID AND S.problemID = P.problemID
 	ORDER BY S.submissionTime DESC;
-
 END //
 
 -- Get Contest Standings
@@ -188,7 +189,6 @@ BEGIN
   LEFT OUTER JOIN Countries C ON U.country = C.id
 	WHERE CU.contestID = p_contestID AND CU.userID = U.userID
 	ORDER BY CU.standing;
-	
 END //
 
 -- Get Contest Owner
@@ -286,6 +286,28 @@ BEGIN
   ORDER BY SU.userID, SU.submissionTime DESC;
 END //
 
+DELIMITER //
+
+CREATE PROCEDURE spCreateProblem (IN p_judge INT, IN p_judge_problemID INT, IN p_problemName VARCHAR(255), IN p_url VARCHAR(255))
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM Problems WHERE problemName = p_problemName) THEN
+    INSERT INTO Problems
+    (
+      judge,
+      judgeProblemID,
+      problemName,
+      url
+    )
+    VALUES
+    (
+      p_judge,
+      p_judge_problemID,
+      p_problemName,
+      p_url
+    );
+
+  END IF;
+END //
 
 DELIMITER //
 
@@ -302,6 +324,44 @@ BEGIN
     END IF;
 END //
 
+DELIMITER //
+
+CREATE PROCEDURE spAddProblemToContest (IN p_contestID INT, IN p_problemName VARCHAR(255))
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM ContestProblem WHERE contestID = p_contestID AND problemID = (SELECT problemID FROM Problems WHERE problemName = p_problemName)) THEN
+    INSERT INTO ContestProblem
+    (
+      contestID,
+      problemID
+    )
+    VALUES
+    (
+      p_contestID,
+      (SELECT problemID FROM Problems WHERE problemName = p_problemName)
+    );
+  END IF;
+END //
+
+DELIMITER //
+
+CREATE PROCEDURE spRemoveProblemFromContest (IN p_contestID INT, IN p_problemName VARCHAR(255))
+BEGIN
+  IF EXISTS (SELECT 1 FROM ContestProblem WHERE contestID = p_contestID AND problemID = (SELECT problemID FROM Problems WHERE problemName = p_problemName)) THEN
+    DELETE FROM ContestProblem
+    WHERE contestID = p_contestID
+    AND problemID = (SELECT problemID FROM Problems WHERE problemName = p_problemName);
+  END IF;
+END //
+
+-- Get last inserted auto increment ID
+DELIMITER //
+
+CREATE PROCEDURE spGetLastInsertedID ()
+BEGIN
+  SELECT LAST_INSERT_ID();
+END //
+
+-- Ban a user
 DELIMITER //
 
 CREATE Procedure spBanUser (IN p_userID varchar(64))

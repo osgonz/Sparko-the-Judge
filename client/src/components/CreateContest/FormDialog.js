@@ -5,16 +5,26 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Snackbar from '@material-ui/core/Snackbar';
 
-import AddIcon from '@material-ui/icons/Add';
-
 import CreateContest from './CreateContest';
 
 export default class FormDialog extends React.Component {
-  state = {
-    open: false,
-    openSnackbar: false,
-    snackbarMessage: '',
-  };
+  constructor(props){
+    super(props)
+    this.state = {
+      open: false,
+      openSnackbar: false,
+      snackbarMessage: '',
+      component: null,
+      button: null
+    };
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.setState({
+      component: React.cloneElement(nextProps.component, {handleClose: this.handleClose}),
+      button: React.cloneElement(nextProps.button, {onClick: this.handleClickOpen})
+    })
+  }
 
   handleClickOpen = () => {
     this.setState({ open: true });
@@ -33,21 +43,19 @@ export default class FormDialog extends React.Component {
 
   render() {
     return (
-      <span style={{margin: '0.5% 0.5%'}}>
-        <Button variant="fab" mini color="primary" aria-label="Create Contest" onClick={this.handleClickOpen}>
-            <AddIcon/>
-        </Button>
+      <span>
+        {this.state.button}
         <Dialog
           open={this.state.open}
           onClose={() => this.handleClose(false, "")}
           aria-labelledby="form-dialog-title"
         >
-            <center>
-                <DialogTitle id="form-dialog-title">Create Contest</DialogTitle>
-                <DialogContent>
-                <CreateContest handleClose={this.handleClose} />
-                </DialogContent>
-            </center>
+          <center>
+            <DialogTitle id="form-dialog-title">{this.props.modalTitle}</DialogTitle>
+            <DialogContent>
+            {this.state.component}
+            </DialogContent>
+          </center>
         </Dialog>
         <Snackbar
             open={this.state.openSnackbar}
