@@ -263,13 +263,13 @@ DELIMITER //
 
 CREATE PROCEDURE spGetContestScoresPerProblem (IN p_problemID INT, IN p_contestID INT)
 BEGIN
-  SELECT SU.username, SU.result, SU.submissionCount, TIMESTAMPDIFF(SECOND, C.startDate, SU.submissionTime) as TimeDifference
+    SELECT SU.username, SU.result, SU.submissionCount, (TIMESTAMPDIFF(SECOND, C.startDate, SU.submissionTime) + SU.penalty) as TimeDifference
   FROM (
       SELECT C.contestID, C.startDate
       FROM Contest C
       WHERE C.contestID = p_contestID
   ) C, (
-      SELECT U.userID, S.contestID, U.username, COUNT(S.submissionID) AS submissionCount, MAX(S.result) AS result, MAX(S.submissionTime) AS submissionTime
+      SELECT U.userID, S.contestID, U.username, COUNT(S.submissionID) AS submissionCount, MAX(S.result) AS result, MAX(S.submissionTime) AS submissionTime, P.penalty
       FROM (
           SELECT CU.userID, U.username
           FROM ContestUser CU, Users U
@@ -278,12 +278,22 @@ BEGIN
           SELECT S.contestID, S.submissionID, S.result, S.submissionTime, S.submitter
           FROM submission S
           WHERE S.contestID = p_contestID AND S.problemID = p_problemID
-      ) S
-      WHERE U.userID = S.submitter
+      ) S, (
+          SELECT userID, IF(penalty, penalty, 0) AS penalty
+          FROM contestuser
+          LEFT OUTER JOIN (
+              SELECT submitter, COUNT(submissionID) * 1200 AS penalty
+              FROM submission
+              WHERE contestID = p_contestID AND problemID = p_problemID AND result < 90
+              GROUP BY submitter
+          ) S ON submitter = userID
+          WHERE contestID = p_contestID
+      ) P
+      WHERE U.userID = S.submitter AND S.submitter = P.userID
       GROUP BY U.userID
   ) SU
   WHERE SU.contestID = C.contestID
-  ORDER BY SU.userID, SU.submissionTime DESC;
+  ORDER BY SU.userID, TimeDifference DESC;
 END //
 
 DELIMITER //
@@ -390,4 +400,96 @@ BEGIN
         endDate = p_new_endDate,
         status = p_new_status
     WHERE p_contestID = contestID;
+END //
+
+-- Get Ongoing Contest Info
+
+DELIMITER //
+
+CREATE PROCEDURE spGetOngoingContestInfo()
+BEGIN
+	SELECT contestID, startDate, endDate
+	FROM Contest
+	WHERE status = 1;
+END //
+
+-- Get Ongoing Contest Users Info
+
+DELIMITER //
+
+Drop Procedure If Exists spGetOngoingContestUsersInfo;
+
+CREATE PROCEDURE spGetOngoingContestUsersInfo (IN p_contestID INT)
+BEGIN
+	SELECT CU.userID, U.username, U.iduva, U.idicpc, C.country_name
+	FROM ContestUser CU, Users U
+	LEFT OUTER JOIN Countries C ON U.country = C.id
+	WHERE CU.contestID = p_contestID AND CU.userID = U.userID
+	ORDER BY CU.userID;
+
+END //
+
+-- Contest Update Upcoming to Ongoing
+
+DELIMITER //
+
+Drop Procedure If Exists spUpdateContestUpcomingToOngoing;
+
+CREATE PROCEDURE spUpdateContestUpcomingToOngoing()
+BEGIN
+	UPDATE Contest
+	SET status = 1
+	WHERE status = 0 AND startDate < CURRENT_TIMESTAMP AND endDate > CURRENT_TIMESTAMP;
+
+END //
+
+-- Get Almost Finished Contest Info
+
+DELIMITER //
+
+CREATE PROCEDURE spGetAlmostFinishedContestInfo()
+BEGIN
+	SELECT contestID, startDate, endDate, CURRENT_TIMESTAMP AS currentDate
+	FROM Contest
+	WHERE status = 1 AND endDate <= CURRENT_TIMESTAMP;
+END //
+
+-- Contest Update Ongoing to Finished
+
+DELIMITER //
+
+Drop Procedure If Exists spUpdateContestOngoingToFinished;
+
+CREATE PROCEDURE spUpdateContestOngoingToFinished(IN p_updateDate DATETIME)
+BEGIN
+	UPDATE Contest
+	SET status = 2
+	WHERE status = 1 AND endDate <= p_updateDate;
+
+END //
+
+-- Insert Finished Contest Submission
+
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS spInsertSubmission;
+
+CREATE PROCEDURE spInsertSubmission(IN p_subDate DATETIME, IN p_result INT, IN p_language VARCHAR(64), IN p_problemID INT, IN p_submitter INT, IN p_contestID INT)
+BEGIN
+  INSERT INTO Submission VALUES
+	(NULL, p_subDate, p_result, p_language, 0, p_problemID, p_submitter, p_contestID);
+END //
+
+-- Update Contest User Info
+
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS spUpdateContestUser;
+
+CREATE PROCEDURE spUpdateContestUser(IN p_score INT, IN p_standing INT, IN p_contestID INT, IN p_userID INT)
+BEGIN
+  UPDATE ContestUser
+  SET score = p_score, standing = p_standing
+  WHERE contestID = p_contestID AND userID = p_userID;
+
 END //

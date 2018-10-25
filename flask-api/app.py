@@ -1,11 +1,14 @@
 import os
 import bcrypt
-import datetime
+import requests
+import pprint as pp
+from datetime import datetime
 from flask import Flask, jsonify, session
 from flaskext.mysql import MySQL
 from flask_cors import CORS, cross_origin
 from flask_restful import Resource, Api, reqparse
 from dotenv import load_dotenv
+from apscheduler.schedulers.background import BackgroundScheduler
 
 SESSION_NOT_FOUND = 'Session not found'
 
@@ -33,6 +36,465 @@ app.config['MYSQL_DATABASE_HOST'] = os.getenv('MYSQL_DATABASE_HOST')
 app.config['SECRET_KEY'] = 'My secret placeholder string'
 
 mysql.init_app(app)
+
+ongoing_contest_data = dict()
+
+# Scheduler object
+sched = BackgroundScheduler(daemon=True)
+
+def get_new_ongoing_contest_data(contest, cursor):
+    try:
+        _contestID = contest[0]
+        # Get Ongoing Contest's Users and Problems data
+        cursor.callproc('spGetOngoingContestUsersInfo', (_contestID,))
+        usernameList = cursor.fetchall()
+        cursor.callproc('spGetContestProblems', (_contestID,))
+        problemList = cursor.fetchall()
+        uvaUsernameDict = dict()
+        icpcUsernameDict = dict()
+        uvaProblemDict = dict()
+        icpcProblemDict = dict()
+        uvaUserProblemDict = dict()
+        icpcUserProblemDict = dict()
+        standingsDict = dict()
+
+        # Extract each user's judges ids
+        for username in usernameList:
+            standingsDict[username[1]] = dict()
+            standingsDict[username[1]]["score"] = 0
+            standingsDict[username[1]]["totalTime"] = 0
+
+            if username[2]:
+                uvaUsernameDict[username[2]] = [username[0], username[1], username[4]]
+                uvaUserProblemDict[username[1]] = dict()
+
+            if username[3]:
+                icpcUsernameDict[username[3]] = [username[0], username[1], username[4]]
+                icpcUserProblemDict[username[1]] = dict()
+
+        uvaUsernameCall = ','.join(str(x) for x in uvaUsernameDict.keys())
+        icpcUsernameCall = ','.join(str(x) for x in icpcUsernameDict.keys())
+
+        # Divide problems by judge
+        for problem in problemList:
+            if problem[1] == 0:
+                icpcProblemDict[problem[2]] = [problem[3], problem[1], problem[4]]
+            elif problem[1] == 1:
+                uvaProblemDict[problem[2]] = [problem[3], problem[1], problem[4]]
+
+        uvaProblemCall = ','.join(str(x) for x in uvaProblemDict.keys())
+        icpcProblemCall = ','.join(str(x) for x in icpcProblemDict.keys())
+
+        submissionsData = []
+
+        # Get UVA submissions
+        if uvaUsernameCall and uvaProblemCall:
+            uvaCall = 'https://uhunt.onlinejudge.org/api/subs-pids/' + uvaUsernameCall + '/' + uvaProblemCall + '/0'
+            uvaRequest = requests.get(uvaCall)
+            uvaResult = uvaRequest.json()
+
+            for user in uvaUsernameDict.keys():
+                if str(user) in uvaResult:
+                    userData = uvaUsernameDict.get(user)
+                    submissions = uvaResult[str(user)]["subs"]
+
+                    for submission in submissions:
+                        if contest[1].timestamp() < submission[4] <= contest[2].timestamp():
+                            problemData = uvaProblemDict.get(submission[1])
+                            entry = dict()
+                            entry["username"] = userData[1]
+                            entry["problemName"] = problemData[0]
+                            entry["judge"] = problemData[1]
+                            entry["url"] = problemData[2]
+                            entry["result"] = submission[2]
+                            if submission[5] == 1:
+                                entry["language"] = 'ANSI C'
+                            elif submission[5] == 2:
+                                entry["language"] = 'Java'
+                            elif submission[5] == 3:
+                                entry["language"] = 'C++'
+                            elif submission[5] == 4:
+                                entry["language"] = 'Pascal'
+                            elif submission[5] == 5:
+                                entry["language"] = 'C++11'
+                            else:
+                                entry["language"] = 'Other'
+                            entry["submissionTime"] = datetime.fromtimestamp(submission[4])
+                            submissionsData.append(entry)
+
+                            if submission[1] in uvaUserProblemDict[userData[1]]:
+                                if uvaUserProblemDict[userData[1]][submission[1]]["result"] < submission[2]:
+                                    uvaUserProblemDict[userData[1]][submission[1]]["result"] = submission[2]
+                                if submission[2] < 90:
+                                    uvaUserProblemDict[userData[1]][submission[1]]["penalty"] += 1200
+                                uvaUserProblemDict[userData[1]][submission[1]]["submissionCount"] += 1
+                                if uvaUserProblemDict[userData[1]][submission[1]]["time"] < submission[4]:
+                                    uvaUserProblemDict[userData[1]][submission[1]]["time"] = submission[4]
+                            else:
+                                userProblemInfo = dict()
+                                userProblemInfo["result"] = submission[2]
+                                userProblemInfo["penalty"] = 1200 if submission[2] < 90 else 0
+                                userProblemInfo["submissionCount"] = 1
+                                userProblemInfo["time"] = submission[4]
+                                uvaUserProblemDict[userData[1]][submission[1]] = userProblemInfo
+
+        # Get ICPC submissions
+        if icpcUsernameCall and icpcProblemCall:
+            icpcCall = 'https://icpcarchive.ecs.baylor.edu/uhunt/api/subs-pids/' + icpcUsernameCall + '/' + icpcProblemCall + '/0'
+            icpcRequest = requests.get(icpcCall)
+            icpcResult = icpcRequest.json()
+
+            for user in icpcUsernameDict.keys():
+                if str(user) in icpcResult:
+                    userData = icpcUsernameDict.get(user)
+                    submissions = icpcResult[str(user)]["subs"]
+
+                    for submission in submissions:
+                        if contest[1].timestamp() < submission[4] <= contest[2].timestamp():
+                            problemData = icpcProblemDict.get(submission[1])
+                            entry = dict()
+                            entry["username"] = userData[1]
+                            entry["problemName"] = problemData[0]
+                            entry["judge"] = problemData[1]
+                            entry["url"] = problemData[2]
+                            entry["result"] = submission[2]
+                            if submission[5] == 1:
+                                entry["language"] = 'ANSI C'
+                            elif submission[5] == 2:
+                                entry["language"] = 'Java'
+                            elif submission[5] == 3:
+                                entry["language"] = 'C++'
+                            elif submission[5] == 4:
+                                entry["language"] = 'Pascal'
+                            elif submission[5] == 5:
+                                entry["language"] = 'C++11'
+                            else:
+                                entry["language"] = 'Other'
+                            entry["submissionTime"] = datetime.fromtimestamp(submission[4])
+                            submissionsData.append(entry)
+
+                            if submission[1] in icpcUserProblemDict[userData[1]]:
+                                if icpcUserProblemDict[userData[1]][submission[1]]["result"] < submission[2]:
+                                    icpcUserProblemDict[userData[1]][submission[1]]["result"] = submission[2]
+                                if submission[2] < 90:
+                                    icpcUserProblemDict[userData[1]][submission[1]]["penalty"] += 1200
+                                icpcUserProblemDict[userData[1]][submission[1]]["submissionCount"] += 1
+                                if icpcUserProblemDict[userData[1]][submission[1]]["time"] < submission[4]:
+                                    icpcUserProblemDict[userData[1]][submission[1]]["time"] = submission[4]
+                            else:
+                                userProblemInfo = dict()
+                                userProblemInfo["result"] = submission[2]
+                                userProblemInfo["penalty"] = 1200 if submission[2] < 90 else 0
+                                userProblemInfo["submissionCount"] = 1
+                                userProblemInfo["time"] = submission[4]
+                                icpcUserProblemDict[userData[1]][submission[1]] = userProblemInfo
+
+        scoresData = []
+
+        # Calculate users' results for each problem
+        for problem in problemList:
+            scoreEntry = dict()
+            if problem[1] == 0:
+                for user in icpcUserProblemDict.keys():
+                    if problem[2] in icpcUserProblemDict[user]:
+                        entry = dict()
+                        entry["username"] = user
+                        entry["result"] = icpcUserProblemDict[user][problem[2]]["result"]
+                        entry["submissionCount"] = icpcUserProblemDict[user][problem[2]]["submissionCount"]
+                        entry["TimeDifference"] = icpcUserProblemDict[user][problem[2]]["time"] - contest[1].timestamp() + \
+                                                  icpcUserProblemDict[user][problem[2]]["penalty"]
+                        if entry["result"] == 90:
+                            standingsDict[user]["score"] += 1
+                            standingsDict[user]["totalTime"] += entry["TimeDifference"]
+                        scoreEntry[user] = entry
+
+            elif problem[1] == 1:
+                for user in uvaUserProblemDict.keys():
+                    if problem[2] in uvaUserProblemDict[user]:
+                        entry = dict()
+                        entry["username"] = user
+                        entry["result"] = uvaUserProblemDict[user][problem[2]]["result"]
+                        entry["submissionCount"] = uvaUserProblemDict[user][problem[2]]["submissionCount"]
+                        entry["TimeDifference"] = uvaUserProblemDict[user][problem[2]]["time"] - contest[1].timestamp() + \
+                                                  uvaUserProblemDict[user][problem[2]]["penalty"]
+                        if entry["result"] == 90:
+                            standingsDict[user]["score"] += 1
+                            standingsDict[user]["totalTime"] += entry["TimeDifference"]
+                        scoreEntry[user] = entry
+
+            scoresData.append(scoreEntry)
+
+        # Calculate standings positions for contest
+        pos = 1
+        for user in sorted(sorted(standingsDict, key=lambda k: standingsDict[k]["totalTime"]),
+                           key=lambda k: standingsDict[k]["score"], reverse=True):
+            standingsDict[user]["position"] = pos
+            pos += 1
+
+        standingsData = []
+        # Gather standings info for contest
+        for user in usernameList:
+            entry = dict()
+            entry["userID"] = user[0]
+            entry["username"] = user[1]
+            entry["country_name"] = user[4]
+            entry["score"] = standingsDict[user[1]]["score"]
+            entry["standing"] = standingsDict[user[1]]["position"]
+            standingsData.append(entry)
+
+        result = dict()
+        result["submissions"] = submissionsData
+        result["scores"] = scoresData
+        result["standings"] = standingsData
+        return result
+
+    except Exception as e:
+        raise e
+
+def insert_finished_contest_data(contest, conn, cursor):
+    try:
+        _contestID = contest[0]
+        # Get Finished Contest's Users and Problems data
+        cursor.callproc('spGetOngoingContestUsersInfo', (_contestID,))
+        usernameList = cursor.fetchall()
+        cursor.callproc('spGetContestProblems', (_contestID,))
+        problemList = cursor.fetchall()
+        uvaUsernameDict = dict()
+        icpcUsernameDict = dict()
+        uvaProblemDict = dict()
+        icpcProblemDict = dict()
+        uvaUserProblemDict = dict()
+        icpcUserProblemDict = dict()
+        standingsDict = dict()
+
+        # Extract each user's judges ids
+        for username in usernameList:
+            standingsDict[username[1]] = dict()
+            standingsDict[username[1]]["score"] = 0
+            standingsDict[username[1]]["totalTime"] = 0
+
+            if username[2]:
+                uvaUsernameDict[username[2]] = [username[0], username[1], username[4]]
+                uvaUserProblemDict[username[1]] = dict()
+
+            if username[3]:
+                icpcUsernameDict[username[3]] = [username[0], username[1], username[4]]
+                icpcUserProblemDict[username[1]] = dict()
+
+        uvaUsernameCall = ','.join(str(x) for x in uvaUsernameDict.keys())
+        icpcUsernameCall = ','.join(str(x) for x in icpcUsernameDict.keys())
+
+        # Divide problems by judge
+        for problem in problemList:
+            if problem[1] == 0:
+                icpcProblemDict[problem[2]] = [problem[3], problem[1], problem[4], problem[0]]
+            elif problem[1] == 1:
+                uvaProblemDict[problem[2]] = [problem[3], problem[1], problem[4], problem[0]]
+
+        uvaProblemCall = ','.join(str(x) for x in uvaProblemDict.keys())
+        icpcProblemCall = ','.join(str(x) for x in icpcProblemDict.keys())
+
+        # Get UVA submissions
+        if uvaUsernameCall and uvaProblemCall:
+            uvaCall = 'https://uhunt.onlinejudge.org/api/subs-pids/' + uvaUsernameCall + '/' + uvaProblemCall + '/0'
+            uvaRequest = requests.get(uvaCall)
+            uvaResult = uvaRequest.json()
+
+            for user in uvaUsernameDict.keys():
+                if str(user) in uvaResult:
+                    userData = uvaUsernameDict.get(user)
+                    submissions = uvaResult[str(user)]["subs"]
+
+                    for submission in submissions:
+                        if contest[1].timestamp() < submission[4] <= contest[2].timestamp():
+                            problemData = uvaProblemDict.get(submission[1])
+                            entry = dict()
+                            entry["submitter"] = userData[0]
+                            entry["problemID"] = problemData[3]
+                            entry["result"] = submission[2]
+                            if submission[5] == 1:
+                                entry["language"] = 'ANSI C'
+                            elif submission[5] == 2:
+                                entry["language"] = 'Java'
+                            elif submission[5] == 3:
+                                entry["language"] = 'C++'
+                            elif submission[5] == 4:
+                                entry["language"] = 'Pascal'
+                            elif submission[5] == 5:
+                                entry["language"] = 'C++11'
+                            else:
+                                entry["language"] = 'Other'
+                            entry["submissionTime"] = datetime.fromtimestamp(submission[4])
+                            # INSERT SUBMISSION HERE
+                            cursor.callproc('spInsertSubmission', (entry["submissionTime"], entry["result"], entry["language"], entry["problemID"], entry["submitter"], _contestID))
+                            insertResult = cursor.fetchall()
+
+                            if len(insertResult) is not 0:
+                                conn.rollback()
+                                return 100
+
+                            if submission[1] in uvaUserProblemDict[userData[1]]:
+                                if uvaUserProblemDict[userData[1]][submission[1]]["result"] < submission[2]:
+                                    uvaUserProblemDict[userData[1]][submission[1]]["result"] = submission[2]
+                                if submission[2] < 90:
+                                    uvaUserProblemDict[userData[1]][submission[1]]["penalty"] += 1200
+                                if uvaUserProblemDict[userData[1]][submission[1]]["time"] < submission[4]:
+                                    uvaUserProblemDict[userData[1]][submission[1]]["time"] = submission[4]
+                            else:
+                                userProblemInfo = dict()
+                                userProblemInfo["result"] = submission[2]
+                                userProblemInfo["penalty"] = 1200 if submission[2] < 90 else 0
+                                userProblemInfo["time"] = submission[4]
+                                uvaUserProblemDict[userData[1]][submission[1]] = userProblemInfo
+
+        # Get ICPC submissions
+        if icpcUsernameCall and icpcProblemCall:
+            icpcCall = 'https://icpcarchive.ecs.baylor.edu/uhunt/api/subs-pids/' + icpcUsernameCall + '/' + icpcProblemCall + '/0'
+            icpcRequest = requests.get(icpcCall)
+            icpcResult = icpcRequest.json()
+
+            for user in icpcUsernameDict.keys():
+                if str(user) in icpcResult:
+                    userData = icpcUsernameDict.get(user)
+                    submissions = icpcResult[str(user)]["subs"]
+
+                    for submission in submissions:
+                        if contest[1].timestamp() < submission[4] <= contest[2].timestamp():
+                            problemData = icpcProblemDict.get(submission[1])
+                            entry = dict()
+                            entry["submitter"] = userData[0]
+                            print(problemData)
+                            entry["problemID"] = problemData[3]
+                            entry["result"] = submission[2]
+                            if submission[5] == 1:
+                                entry["language"] = 'ANSI C'
+                            elif submission[5] == 2:
+                                entry["language"] = 'Java'
+                            elif submission[5] == 3:
+                                entry["language"] = 'C++'
+                            elif submission[5] == 4:
+                                entry["language"] = 'Pascal'
+                            elif submission[5] == 5:
+                                entry["language"] = 'C++11'
+                            else:
+                                entry["language"] = 'Other'
+                            entry["submissionTime"] = datetime.fromtimestamp(submission[4])
+                            # INSERT SUBMISSION HERE
+                            cursor.callproc('spInsertSubmission', (entry["submissionTime"], entry["result"], entry["language"], entry["problemID"], entry["submitter"], _contestID))
+                            insertResult = cursor.fetchall()
+
+                            if len(insertResult) is not 0:
+                                conn.rollback()
+                                return 100
+
+                            if submission[1] in icpcUserProblemDict[userData[1]]:
+                                if icpcUserProblemDict[userData[1]][submission[1]]["result"] < submission[2]:
+                                    icpcUserProblemDict[userData[1]][submission[1]]["result"] = submission[2]
+                                if submission[2] < 90:
+                                    icpcUserProblemDict[userData[1]][submission[1]]["penalty"] += 1200
+                                if icpcUserProblemDict[userData[1]][submission[1]]["time"] < submission[4]:
+                                    icpcUserProblemDict[userData[1]][submission[1]]["time"] = submission[4]
+                            else:
+                                userProblemInfo = dict()
+                                userProblemInfo["result"] = submission[2]
+                                userProblemInfo["penalty"] = 1200 if submission[2] < 90 else 0
+                                userProblemInfo["time"] = submission[4]
+                                icpcUserProblemDict[userData[1]][submission[1]] = userProblemInfo
+
+        # Calculate users' results for each problem
+        for problem in problemList:
+            if problem[1] == 0:
+                for user in icpcUserProblemDict.keys():
+                    if problem[2] in icpcUserProblemDict[user]:
+                        if icpcUserProblemDict[user][problem[2]]["result"] == 90:
+                            standingsDict[user]["score"] += 1
+                            standingsDict[user]["totalTime"] += icpcUserProblemDict[user][problem[2]]["time"] - contest[1].timestamp() + icpcUserProblemDict[user][problem[2]]["penalty"]
+
+            elif problem[1] == 1:
+                for user in uvaUserProblemDict.keys():
+                    if problem[2] in uvaUserProblemDict[user]:
+                        if uvaUserProblemDict[user][problem[2]]["result"] == 90:
+                            standingsDict[user]["score"] += 1
+                            standingsDict[user]["totalTime"] += uvaUserProblemDict[user][problem[2]]["time"] - contest[1].timestamp() + uvaUserProblemDict[user][problem[2]]["penalty"]
+
+        # Calculate standings positions for contest
+        pos = 1
+        for user in sorted(sorted(standingsDict, key=lambda k: standingsDict[k]["totalTime"]),
+                           key=lambda k: standingsDict[k]["score"], reverse=True):
+            standingsDict[user]["position"] = pos
+            pos += 1
+
+        # Gather standings info for contest
+        for user in usernameList:
+            # UPDATE ContestUser
+            cursor.callproc('spUpdateContestUser', (standingsDict[user[1]]["score"], standingsDict[user[1]]["position"], _contestID, user[0]))
+            updateResult = cursor.fetchall()
+
+            if len(updateResult) is not 0:
+                conn.rollback()
+                return 100
+
+        cursor.callproc('spUpdateContestOngoingToFinished', (contest[3],))
+        updateResult = cursor.fetchall()
+
+        if len(updateResult) is 0:
+            conn.commit()
+            print(_contestID)
+            return 200
+        else:
+            conn.rollback()
+            return 100
+    except Exception as e:
+        raise e
+
+def update_ongoing_contest_data():
+    print('Hello Job! The time is: %s' % datetime.now())
+    # Open MySQL connection
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    temp_data = dict()
+
+    try:
+        # Check if any Upcoming contests have started
+        cursor.callproc('spUpdateContestUpcomingToOngoing')
+        updateData = cursor.fetchall()
+
+        if len(updateData) is 0:
+            conn.commit()
+
+        # Get Almost Finished Contests data
+        cursor.callproc('spGetAlmostFinishedContestInfo')
+        finished = cursor.fetchall()
+
+        for contest in finished:
+            result = insert_finished_contest_data(contest, conn, cursor)
+            print(result)
+
+        # Get Ongoing Contests data
+        cursor.callproc('spGetOngoingContestInfo')
+        contests = cursor.fetchall()
+
+        for contest in contests:
+            temp_data[contest[0]] = get_new_ongoing_contest_data(contest, cursor)
+            print(contest[0])
+            pp.pprint(temp_data[contest[0]])
+
+        global ongoing_contest_data
+        ongoing_contest_data = temp_data
+
+    except Exception as e:
+        raise e
+
+    finally:
+        cursor.close()
+        conn.close()
+        print('Bye Job! The time is: %s' % datetime.now())
+
+sched.add_job(update_ongoing_contest_data, 'interval', minutes=5)
+
+sched.start()
+update_ongoing_contest_data()
 
 class CreateUser(Resource):
     def post(self):
@@ -835,6 +1297,60 @@ class GetContestInfoForEdit(Resource):
             cursor.close()
             conn.close()
 
+class GetOngoingContestIntermediateData(Resource):
+    def post(self):
+        # Open MySQL connection
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
+        try:
+            # Parse request arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('contest_id', type=int, help='Contest identifier number')
+            parser.add_argument('can_see_all', type=bool, help='Flag to determine which submissions are retrieved')
+
+            args = parser.parse_args()
+
+            _contest = args['contest_id']
+            _submissionsFlag = args['can_see_all']
+
+            username = session.get('loggedUser', 'Session not found')
+
+            if username != 'Session not found':
+                cursor.callproc('spGetUserID', (username,))
+                userData = cursor.fetchall()
+                _userID = userData[0][0]
+
+                if _userID:
+                    global ongoing_contest_data
+                    contestInfo = ongoing_contest_data[_contest]
+
+                    standingsList = contestInfo["standings"]
+                    scoresList = contestInfo["scores"]
+                    submissionsList = []
+                    if _submissionsFlag:
+                        submissionsList = contestInfo["submissions"]
+                    else:
+                        for submission in contestInfo["submissions"]:
+                            if submission["username"] == username:
+                                submissionsList.append(submission)
+                    return jsonify({'status': 200,
+                                    'standingsList': standingsList,
+                                    'scoresList': scoresList,
+                                    'submissionsList': submissionsList
+                                    })
+                else:
+                    return jsonify({'status': 100, 'message': 'User not found'})
+            else:
+                return jsonify({'status': 100, 'message': 'Session not found'})
+
+        except Exception as e:
+            return {'error': str(e)}
+
+        finally:
+            cursor.close()
+            conn.close()
+
 class AddProblemsToContest(Resource):
     def post(self):
         # Open MySQL connection
@@ -930,6 +1446,7 @@ api.add_resource(ViewOwnedContestList, '/ViewOwnedContestList')
 api.add_resource(ViewInvitedContestList, '/ViewInvitedContestList')
 api.add_resource(EditContest, '/EditContest')
 api.add_resource(GetContestInfoForEdit, '/GetContestInfoForEdit')
+api.add_resource(GetOngoingContestIntermediateData, '/GetOngoingContestIntermediateData')
 api.add_resource(AddProblemsToContest, '/AddProblemsToContest')
 api.add_resource(CreateProblems, '/CreateProblems')
 
@@ -972,4 +1489,4 @@ def logout():
     return 'You were logged out'
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)
