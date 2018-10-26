@@ -50,13 +50,17 @@ class StandingsTab extends Component {
     };
 
     componentDidMount(){
-        axios.post('http://127.0.0.1:5000/GetContestStandings', {
-            contest_id: this.props.contest_id
-        }).then(response => {
-            if (response.data.status == 200){
-                this.setState({ data: response.data.standingsList });
-            }
-        });
+        if (this.props.status == 1) {
+            this.setState({data: this.props.standingsData})
+        } else {
+            axios.post('http://127.0.0.1:5000/GetContestStandings', {
+                contest_id: this.props.contest_id
+            }).then(response => {
+                if (response.data.status == 200) {
+                    this.setState({data: response.data.standingsList});
+                }
+            });
+        }
     };
 
     handleRequestSort = (event, property, date) => {
@@ -80,7 +84,7 @@ class StandingsTab extends Component {
 
     handleScoreDisplay = entryDict => {
         if (entryDict.result == '90')
-            return entryDict.submissionCount + '/' + (entryDict.TimeDifference + ((entryDict.submissionCount - 1) * 1200));
+            return entryDict.submissionCount + '/' + (entryDict.TimeDifference);
         return entryDict.submissionCount + '/--';
     }
 

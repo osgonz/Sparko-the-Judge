@@ -24,12 +24,22 @@ Drop Procedure If Exists spCreateContest;
 Drop Procedure If Exists spGetContestInformation;
 Drop Procedure If Exists spGetContestUserUsername;
 Drop Procedure If Exists spGetContestScoresPerProblem;
+Drop Procedure If Exists spCreateProblem;
 Drop Procedure If Exists spGetUserList;
+Drop Procedure If Exists spAddProblemToContest;
+Drop Procedure If Exists spRemoveProblemFromContest;
+Drop Procedure If Exists spGetLastInsertedID;
 Drop Procedure If Exists spBanUser;
 Drop Procedure If Exists spEditContest;
 Drop Procedure If Exists spRemoveUserFromContest;
 Drop Procedure If Exists spAddUserToContest;
-
+DROP PROCEDURE IF EXISTS spGetOngoingContestInfo;
+Drop Procedure If Exists spGetOngoingContestUsersInfo;
+Drop Procedure If Exists spUpdateContestUpcomingToOngoing;
+DROP PROCEDURE IF EXISTS spGetAlmostFinishedContestInfo;
+Drop Procedure If Exists spUpdateContestOngoingToFinished;
+DROP PROCEDURE IF EXISTS spInsertSubmission;
+DROP PROCEDURE IF EXISTS spUpdateContestUser;
 
 ################################################################################
 #                                                                              #
@@ -175,7 +185,6 @@ BEGIN
 	FROM Submission S, Problems P, Users U
 	WHERE S.contestID = p_contestID AND S.submitter = p_userID AND S.submitter = U.userID AND S.problemID = P.problemID
 	ORDER BY S.submissionTime DESC;
-	
 END //
 
 -- Get All Submissions in Contest
@@ -187,7 +196,6 @@ BEGIN
 	FROM Submission S, Problems P, Users U
 	WHERE S.contestID = p_contestID AND S.submitter = U.userID AND S.problemID = P.problemID
 	ORDER BY S.submissionTime DESC;
-
 END //
 
 -- Get Contest Standings
@@ -200,7 +208,6 @@ BEGIN
   LEFT OUTER JOIN Countries C ON U.country = C.id
 	WHERE CU.contestID = p_contestID AND CU.userID = U.userID
 	ORDER BY CU.standing;
-	
 END //
 
 -- Get Contest Owner
@@ -275,13 +282,13 @@ DELIMITER //
 
 CREATE PROCEDURE spGetContestScoresPerProblem (IN p_problemID INT, IN p_contestID INT)
 BEGIN
-  SELECT SU.username, SU.result, SU.submissionCount, TIMESTAMPDIFF(SECOND, C.startDate, SU.submissionTime) as TimeDifference
+    SELECT SU.username, SU.result, SU.submissionCount, (TIMESTAMPDIFF(SECOND, C.startDate, SU.submissionTime) + SU.penalty) as TimeDifference
   FROM (
       SELECT C.contestID, C.startDate
       FROM Contest C
       WHERE C.contestID = p_contestID
   ) C, (
-      SELECT U.userID, S.contestID, U.username, COUNT(S.submissionID) AS submissionCount, MAX(S.result) AS result, MAX(S.submissionTime) AS submissionTime
+      SELECT U.userID, S.contestID, U.username, COUNT(S.submissionID) AS submissionCount, MAX(S.result) AS result, MAX(S.submissionTime) AS submissionTime, P.penalty
       FROM (
           SELECT CU.userID, U.username
           FROM ContestUser CU, Users U
@@ -290,14 +297,46 @@ BEGIN
           SELECT S.contestID, S.submissionID, S.result, S.submissionTime, S.submitter
           FROM submission S
           WHERE S.contestID = p_contestID AND S.problemID = p_problemID
-      ) S
-      WHERE U.userID = S.submitter
+      ) S, (
+          SELECT userID, IF(penalty, penalty, 0) AS penalty
+          FROM contestuser
+          LEFT OUTER JOIN (
+              SELECT submitter, COUNT(submissionID) * 1200 AS penalty
+              FROM submission
+              WHERE contestID = p_contestID AND problemID = p_problemID AND result < 90
+              GROUP BY submitter
+          ) S ON submitter = userID
+          WHERE contestID = p_contestID
+      ) P
+      WHERE U.userID = S.submitter AND S.submitter = P.userID
       GROUP BY U.userID
   ) SU
   WHERE SU.contestID = C.contestID
-  ORDER BY SU.userID, SU.submissionTime DESC;
+  ORDER BY SU.userID, TimeDifference DESC;
 END //
 
+DELIMITER //
+
+CREATE PROCEDURE spCreateProblem (IN p_judge INT, IN p_judge_problemID INT, IN p_problemName VARCHAR(255), IN p_url VARCHAR(255))
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM Problems WHERE problemName = p_problemName) THEN
+    INSERT INTO Problems
+    (
+      judge,
+      judgeProblemID,
+      problemName,
+      url
+    )
+    VALUES
+    (
+      p_judge,
+      p_judge_problemID,
+      p_problemName,
+      p_url
+    );
+
+  END IF;
+END //
 
 DELIMITER //
 
@@ -314,6 +353,44 @@ BEGIN
     END IF;
 END //
 
+DELIMITER //
+
+CREATE PROCEDURE spAddProblemToContest (IN p_contestID INT, IN p_problemName VARCHAR(255))
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM ContestProblem WHERE contestID = p_contestID AND problemID = (SELECT problemID FROM Problems WHERE problemName = p_problemName)) THEN
+    INSERT INTO ContestProblem
+    (
+      contestID,
+      problemID
+    )
+    VALUES
+    (
+      p_contestID,
+      (SELECT problemID FROM Problems WHERE problemName = p_problemName)
+    );
+  END IF;
+END //
+
+DELIMITER //
+
+CREATE PROCEDURE spRemoveProblemFromContest (IN p_contestID INT, IN p_problemName VARCHAR(255))
+BEGIN
+  IF EXISTS (SELECT 1 FROM ContestProblem WHERE contestID = p_contestID AND problemID = (SELECT problemID FROM Problems WHERE problemName = p_problemName)) THEN
+    DELETE FROM ContestProblem
+    WHERE contestID = p_contestID
+    AND problemID = (SELECT problemID FROM Problems WHERE problemName = p_problemName);
+  END IF;
+END //
+
+-- Get last inserted auto increment ID
+DELIMITER //
+
+CREATE PROCEDURE spGetLastInsertedID ()
+BEGIN
+  SELECT LAST_INSERT_ID();
+END //
+
+-- Ban a user
 DELIMITER //
 
 CREATE Procedure spBanUser (IN p_userID varchar(64))
@@ -367,3 +444,78 @@ BEGIN
     	SELECT CONCAT(username, ' not registered to Contest');
     END IF;
 END
+
+-- Get Ongoing Contest Info
+DELIMITER //
+
+CREATE PROCEDURE spGetOngoingContestInfo()
+BEGIN
+	SELECT contestID, startDate, endDate
+	FROM Contest
+	WHERE status = 1;
+END //
+
+-- Get Ongoing Contest Users Info
+DELIMITER //
+
+CREATE PROCEDURE spGetOngoingContestUsersInfo (IN p_contestID INT)
+BEGIN
+	SELECT CU.userID, U.username, U.iduva, U.idicpc, C.country_name
+	FROM ContestUser CU, Users U
+	LEFT OUTER JOIN Countries C ON U.country = C.id
+	WHERE CU.contestID = p_contestID AND CU.userID = U.userID
+	ORDER BY CU.userID;
+
+END //
+
+-- Contest Update Upcoming to Ongoing
+DELIMITER //
+
+CREATE PROCEDURE spUpdateContestUpcomingToOngoing()
+BEGIN
+	UPDATE Contest
+	SET status = 1
+	WHERE status = 0 AND startDate < CURRENT_TIMESTAMP AND endDate > CURRENT_TIMESTAMP;
+
+END //
+
+-- Get Almost Finished Contest Info
+DELIMITER //
+
+CREATE PROCEDURE spGetAlmostFinishedContestInfo()
+BEGIN
+	SELECT contestID, startDate, endDate, CURRENT_TIMESTAMP AS currentDate
+	FROM Contest
+	WHERE status = 1 AND endDate <= CURRENT_TIMESTAMP;
+END //
+
+-- Contest Update Ongoing to Finished
+DELIMITER //
+
+CREATE PROCEDURE spUpdateContestOngoingToFinished(IN p_updateDate DATETIME)
+BEGIN
+	UPDATE Contest
+	SET status = 2
+	WHERE status = 1 AND endDate <= p_updateDate;
+
+END //
+
+-- Insert Finished Contest Submission
+DELIMITER //
+
+CREATE PROCEDURE spInsertSubmission(IN p_subDate DATETIME, IN p_result INT, IN p_language VARCHAR(64), IN p_problemID INT, IN p_submitter INT, IN p_contestID INT)
+BEGIN
+  INSERT INTO Submission VALUES
+	(NULL, p_subDate, p_result, p_language, 0, p_problemID, p_submitter, p_contestID);
+END //
+
+-- Update Contest User Info
+DELIMITER //
+
+CREATE PROCEDURE spUpdateContestUser(IN p_score INT, IN p_standing INT, IN p_contestID INT, IN p_userID INT)
+BEGIN
+  UPDATE ContestUser
+  SET score = p_score, standing = p_standing
+  WHERE contestID = p_contestID AND userID = p_userID;
+
+END //

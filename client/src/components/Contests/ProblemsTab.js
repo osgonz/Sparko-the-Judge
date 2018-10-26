@@ -34,6 +34,11 @@ let rows = [
 ];
 
 class ProblemsTab extends Component {
+
+    constructor(props){
+        super(props)
+    }
+
     state = {
         order: 'asc',
         orderBy: 'local_id',

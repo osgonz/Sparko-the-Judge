@@ -4,6 +4,8 @@ import TextField from '@material-ui/core/TextField';
 
 import axios from 'axios'
 
+import AddProblemDropdown from '../AddProblem/AddProblemDropdown'
+
 function formatDate(date)
 {
 	var today = date;
@@ -33,9 +35,7 @@ class CreateContest extends Component {
         var tomorrow = new Date();
         tomorrow = tomorrow.setDate(tomorrow.getDate()+1);
         tomorrow = new Date(tomorrow);
-
-        console.log(today)
-        console.log(tomorrow)
+        
         this.state = {
             contestName: '',
             description: '',
@@ -43,8 +43,11 @@ class CreateContest extends Component {
             startDate: today,
             endDate: tomorrow,
 			ownerID: '',
-            attemptedCreate: false
+            attemptedCreate: false,
+            selectedProblems: [],
         }
+
+        this.selectedProblems = new Set() // Problems in the Add Problem table, prevents having duplicar problems
 
         this.handleCreateContest = this.handleCreateContest.bind(this)
         this.contestNameChange = this.contestNameChange.bind(this)
@@ -52,10 +55,34 @@ class CreateContest extends Component {
         this.startDateChange = this.startDateChange.bind(this)
         this.endDateChange = this.endDateChange.bind(this)
         this.handleModalClose = this.props.handleClose.bind(this)
+        this.handleAddProblem = this.handleAddProblem.bind(this)
+        this.handleRemoveProblem = this.handleRemoveProblem.bind(this)
+    }
+
+    handleAddProblem (problem) {
+        var currentSelectedProblems = this.state.selectedProblems
+
+        // Add problem if not present already
+        if (!this.selectedProblems.has(problem.problemName)){
+          currentSelectedProblems.push(problem)
+          this.selectedProblems.add(problem.problemName) // Add it to the set
+          this.setState({selectedProblems: currentSelectedProblems}) // Update state
+        }
+    }
+
+    handleRemoveProblem (problem) {
+        // Currently selected problems
+        var currentSelectedProblems = this.state.selectedProblems
+
+        // Find problem to delete and remove it from the table and set
+        var index = currentSelectedProblems.indexOf(problem)
+        currentSelectedProblems.splice(index, 1)
+        this.selectedProblems.delete(problem.problemName)
+
+        this.setState({selectedProblems: currentSelectedProblems}) // Update state
     }
 
     handleCreateContest () {
-		console.log("GOT IN");
 
 		this.setState({attemptedCreate: true})
 
@@ -67,12 +94,11 @@ class CreateContest extends Component {
         if(this.state.contestName !== "" && this.state.description !=="" && this.state.startDate < this.state.endDate &&
             this.state.startDate >= this.state.currentDate) {
             // Parsing date times
-            const {contestName, description} = this.state;
+            const {contestName, description, ownerID, selectedProblems} = this.state;
             let {startDate, endDate} = this.state;
             startDate = formatDate(startDate)
             endDate = formatDate(endDate)
 
-            console.log("CALLING AXIOS")
             axios.post('http://127.0.0.1:5000/CreateContest', {
                 contestName: contestName,
                 description: description,
@@ -82,8 +108,19 @@ class CreateContest extends Component {
             }, {withCredentials: true})
             .then(response => {
                 if (response.data.StatusCode == 200) {
-                    this.handleModalClose(true, "Contest created successfully")
-                    window.location.reload();
+                    var contestID = response.data.contestID
+                    axios.post('http://127.0.0.1:5000/CreateProblems', {
+                        problems: selectedProblems,
+                    }, {withCredentials: true})
+                    .then(response => {
+                        axios.post('http://127.0.0.1:5000/AddProblemsToContest', {
+                            contestID: contestID,
+                            problems: selectedProblems,
+                        }, {withCredentials: true})
+
+                        this.handleModalClose(true, "Contest created successfully")
+                        window.location.reload();
+                    })
                 }
 
                 if (response.data.StatusCode == 1000) {
@@ -141,71 +178,71 @@ class CreateContest extends Component {
 
         return (
             <div>
+                <TextField
+                    id="contestName"
+                    label="Contest Name"
+                    margin="none"
+                    error={this.state.contestName === "" && this.state.attemptedCreate}
+                    helperText={this.state.contestName === "" && this.state.attemptedCreate ? "Name is required" : ""}
+                    style = {{width: '92%'}}
+                    onChange={this.contestNameChange}
+                />
+                <br/>
+                <TextField
+                    id="description"
+                    type="description"
+                    label="Description"
+                    margin="none"
+                    error={this.state.description === "" && this.state.attemptedCreate}
+                    helperText={this.state.description === "" && this.state.attemptedCreate ? "Description is required" : ""}
+                    style = {{width: '92%'}}
+                    onChange={this.descriptionChange}
+                />
+                <br/><br/>
+                <div className='contest-form-content'>
                     <TextField
-                        id="contestName"
-                        label="Contest Name"
+                        id="startDate"
+                        label="Start Date"
                         margin="none"
-                        error={this.state.contestName === "" && this.state.attemptedCreate}
-                        helperText={this.state.contestName === "" && this.state.attemptedCreate ? "Name is required" : ""}
-                        style = {{width: '92%'}}
-                        onChange={this.contestNameChange}
+                        type="datetime-local"
+                        InputLabelProps={{
+                          shrink: true,
+                        }}
+                        defaultValue={formatDate(this.state.startDate)}
+                        error={(isNaN(startDate.getTime()) || startDate >= endDate || startDate < todayDate) && this.state.attemptedCreate}
+                        helperText={startDateErrorText}
+                        style = {{width: '50%'}}
+                        onChange={this.startDateChange}
                     />
-                    <br/>
+
                     <TextField
-                        id="description"
-                        type="description"
-                        label="Description"
+                        id="endDate"
+                        label="End Date"
                         margin="none"
-                        error={this.state.description === "" && this.state.attemptedCreate}
-                        helperText={this.state.description === "" && this.state.attemptedCreate ? "Description is required" : ""}
-                        style = {{width: '92%'}}
-                        onChange={this.descriptionChange}
+                        type="datetime-local"
+                        InputLabelProps={{
+                          shrink: true,
+                        }}
+                        defaultValue={formatDate(this.state.endDate)}
+                        error={(isNaN(endDate.getTime()) || endDate <= startDate) && this.state.attemptedCreate}
+                        helperText={endDateErrorText}
+                        //style = {{width: '35%'}}
+                        style={{marginLeft: '3%', width:'50%'}}
+                        onChange={this.endDateChange}
                     />
-                    <br/><br/>
-                    <div className='contest-form-content'>
-                        <TextField
-                            id="startDate"
-                            label="Start Date"
-                            margin="none"
-                            type="datetime-local"
-                            InputLabelProps={{
-                              shrink: true,
-                            }}
-                            defaultValue={formatDate(this.state.startDate)}
-                            error={(isNaN(startDate.getTime()) || startDate >= endDate || startDate < todayDate) && this.state.attemptedCreate}
-                            helperText={startDateErrorText}
-                            style = {{width: '50%'}}
-                            onChange={this.startDateChange}
-                        />
-
-                        <TextField
-                            id="endDate"
-                            label="End Date"
-                            margin="none"
-                            type="datetime-local"
-                            InputLabelProps={{
-                              shrink: true,
-                            }}
-                            defaultValue={formatDate(this.state.endDate)}
-                            error={(isNaN(endDate.getTime()) || endDate <= startDate) && this.state.attemptedCreate}
-                            helperText={endDateErrorText}
-                            //style = {{width: '35%'}}
-                            style={{marginLeft: '3%', width:'50%'}}
-                            onChange={this.endDateChange}
-                        />
-                    </div>
-                    <br/><br/>
-                    <Button
-                        variant="contained"
-                        margin="normal"
-                        color="primary"
-                        type="submit"
-                        style={{display:'block', width:'100%'}}
-                        onClick={this.handleCreateContest.bind()}
-                    >
-                    Create
-                    </Button>
-
+                </div>
+                <br/><br/>
+                <AddProblemDropdown isEditable={true} problems={this.props.onlineJudgesProblems} handleAddProblem={this.handleAddProblem} handleRemoveProblem={this.handleRemoveProblem} addedProblems={this.state.selectedProblems} />
+                <Button
+                    variant="contained"
+                    margin="normal"
+                    color="primary"
+                    type="submit"
+                    style={{display:'block', width:'100%'}}
+                    onClick={this.handleCreateContest.bind()}
+                >
+                Create
+                </Button>
             </div>
         );
       }

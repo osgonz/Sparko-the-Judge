@@ -11,6 +11,7 @@ import Typography from '@material-ui/core/Typography';
 
 import DeleteIcon from '@material-ui/icons/Delete';
 import AddIcon from '@material-ui/icons/Add';
+import EditIcon from '@material-ui/icons/Edit';
 import '../../style/style.css';
 import axios from 'axios'
 
@@ -18,16 +19,9 @@ import StandingsTab from './StandingsTab';
 import ProblemsTab from './ProblemsTab';
 import SubmissionsTab from './SubmissionsTab';
 import Error404 from '../Error404/Error404';
-import EditContestButton from '../EditContest/FormDialog';
+import EditContestButton from '../CreateContest/FormDialog';
+import EditContest from '../EditContest/EditContest';
 import InviteUsersButton from '../InviteUsers/FormDialog';
-
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import CreateContest from '../CreateContest/CreateContest';
-import TextField from '@material-ui/core/TextField';
 
 const styles = {
     root: {
@@ -44,30 +38,22 @@ function TabContainer(props) {
 }
 
 class ContestDetails extends Component {
-    constructor(props) {
-        super(props)
-        this.state = {
-            tabValue: 0,
-            contestName: null,
-            description: null,
-            startDate: null,
-            endDate: null,
-            status: null,
-            problemsData: [],
-            submissionsData: [],
-            scoreData: [],
-            isOwner: null,
-            isParticipant: null,
-            isValidated: null
-        };
-
-        this.handleEditContest = this.handleEditContest.bind(this)
-        this.contestNameChange = this.contestNameChange.bind(this)
-        this.descriptionChange = this.descriptionChange.bind(this)
-        this.startDateChange = this.startDateChange.bind(this)
-        this.endDateChange = this.endDateChange.bind(this)
-        this.handleClose = this.handleClose.bind(this)
-    }
+    state = {
+        tabValue: 0,
+        contestName: null,
+        description: null,
+        startDate: null,
+        endDate: null,
+        status: null,
+        problemsData: [],
+        submissionsData: [],
+        scoreData: [],
+        standingsData: [],
+        isOwner: null,
+        isParticipant: null,
+        isValidated: null,
+        onlineJudgesProblems: []
+    };
 
     componentDidMount(){
         axios.post('http://127.0.0.1:5000/GetContestInfo', {
@@ -83,74 +69,126 @@ class ContestDetails extends Component {
                     isParticipant: response.data.isParticipant
                 });
 
-                axios.post('http://127.0.0.1:5000/IsLoggedUserContestOwner', {
-                    contest_id: this.props.match.params.id
-                }, {withCredentials: true}).then(response => {
-                    if (response.data.status == 200){
-                        this.setState({ isOwner: true });
-                    }
-                    this.setState({ isValidated: true });
-                }).then( () => {
-                    if (this.props.isAdmin || this.state.isOwner) {
-                        axios.post('http://127.0.0.1:5000/GetSubmissionsInContest', {
+                if (response.data.contestInfo.status == 1) {
+                    axios.post('http://127.0.0.1:5000/IsLoggedUserContestOwner', {
+                        contest_id: this.props.match.params.id
+                    }, {withCredentials: true}).then(response => {
+                        if (response.data.status == 200) {
+                            console.log("isOwner received!")
+                            this.setState({isOwner: true});
+                        }
+                        this.setState({isValidated: true});
+                    }).then(() => {
+                        axios.post('http://127.0.0.1:5000/GetContestProblems', {
                             contest_id: this.props.match.params.id
                         }).then(response => {
-                            if (response.data.status == 200){
-                                this.setState({ submissionsData: response.data.submissionsList });
+                            if (response.data.status == 200) {
+                                this.setState({problemsData: response.data.problemList});
+                                let problemIDList = [];
+                                this.state.problemsData.forEach(problem => {
+                                    problemIDList.push(problem.problemID.toString());
+                                });
                             }
                         });
-                    } else {
-                        axios.post('http://127.0.0.1:5000/GetUserSubmissionsInContest', {
-                            contest_id: this.props.match.params.id
-                        }, {withCredentials: true}).then(response => {
-                            if (response.data.status == 200){
-                                this.setState({ submissionsData: response.data.userSubmissionsList });
-                            }
-                        });
-                    }
-                });
 
-                axios.post('http://127.0.0.1:5000/GetContestProblems', {
-                    contest_id: this.props.match.params.id
-                }).then(response => {
-                    if (response.data.status == 200){
-                        this.setState({ problemsData: response.data.problemList });
-                        let problemIDList = [];
-                        this.state.problemsData.forEach(problem => {
-                            problemIDList.push(problem.problemID.toString());
+                        axios.post('http://127.0.0.1:5000/GetOngoingContestIntermediateData', {
+                            contest_id: this.props.match.params.id,
+                            can_see_all: this.props.isAdmin || this.state.isOwner
+                        }, {withCredentials: true}).then(response => {
+                           if (response.data.status == 200) {
+                               this.setState({
+                                   submissionsData: response.data.submissionsList,
+                                   scoreData: response.data.scoresList,
+                                   standingsData: response.data.standingsList
+                               });
+                               this.setState({isValidated: true});
+                           }
                         });
-                        if (problemIDList.length > 0) {
-                            axios.post('http://127.0.0.1:5000/GetContestScoresPerProblem', {
-                                contest_id: this.props.match.params.id,
-                                problem_id_list: problemIDList
+                    });
+                } else {
+                    axios.post('http://127.0.0.1:5000/IsLoggedUserContestOwner', {
+                        contest_id: this.props.match.params.id
+                    }, {withCredentials: true}).then(response => {
+                        if (response.data.status == 200) {
+                            this.setState({isOwner: true});
+                        }
+                        this.setState({isValidated: true});
+                    }).then(() => {
+                        if (this.props.isAdmin || this.state.isOwner) {
+                            axios.post('http://127.0.0.1:5000/GetSubmissionsInContest', {
+                                contest_id: this.props.match.params.id
                             }).then(response => {
-                                this.setState({scoreData: response.data.scoreList});
+                                if (response.data.status == 200) {
+                                    this.setState({submissionsData: response.data.submissionsList});
+                                }
+                            });
+                        } else {
+                            axios.post('http://127.0.0.1:5000/GetUserSubmissionsInContest', {
+                                contest_id: this.props.match.params.id
+                            }, {withCredentials: true}).then(response => {
+                                if (response.data.status == 200) {
+                                    this.setState({submissionsData: response.data.userSubmissionsList});
+                                }
                             });
                         }
-                    }
-                });
+                    });
 
+                    axios.post('http://127.0.0.1:5000/GetContestProblems', {
+                        contest_id: this.props.match.params.id
+                    }, {withCredentials: true}).then(response => {
+                        if (response.data.status == 200) {
+                            this.setState({problemsData: response.data.problemList});
+                            let problemIDList = [];
+                            this.state.problemsData.forEach(problem => {
+                                problemIDList.push(problem.problemID.toString());
+                            });
+                            if (problemIDList.length > 0) {
+                                axios.post('http://127.0.0.1:5000/GetContestScoresPerProblem', {
+                                    contest_id: this.props.match.params.id,
+                                    problem_id_list: problemIDList
+                                }, {withCredentials: true}).then(response => {
+                                    this.setState({scoreData: response.data.scoreList});
+                                });
+                            }
+                        }
+                    });
+                }
+
+                // Query online judges problems only for upcoming contests
+                if (response.data.contestInfo.status == 0) {
+                    var onlineJudgesProblems = []
+
+                    axios.get('https://uhunt.onlinejudge.org/api/p').then(response => {
+                        var problemsSuggestions = response.data.map(function(problem) {
+                            var problemID = problem[0]
+                            var problemNumber = problem[1]
+                            var problemTitle = problem[2]
+                            var str = String(problemID) + " - " + String(problemNumber) + " - " + problemTitle + " (UVa)"
+                            return {value: str, label: str}
+                        })
+
+                        onlineJudgesProblems = onlineJudgesProblems.concat(problemsSuggestions)
+                        this.setState({onlineJudgesProblems: onlineJudgesProblems})
+                    })
+
+                    axios.get('https://icpcarchive.ecs.baylor.edu/uhunt/api/p').then(response => {
+                        var problemsSuggestions = response.data.map(function(problem) {
+                            var problemID = problem[0]
+                            var problemNumber = problem[1]
+                            var problemTitle = problem[2]
+                            var str = String(problemID) + " - " + String(problemNumber) + " - " + problemTitle + " (ICPC Live Archive)"
+                            return {value: str, label: str}
+                        })
+
+                        onlineJudgesProblems = onlineJudgesProblems.concat(problemsSuggestions)
+                        this.setState({onlineJudgesProblems: onlineJudgesProblems})
+                    })
+                }
             } else {
                 this.setState({ isValidated: true })
             }
         });
     };
-
-    contestNameChange (event) {
-        this.setState({contestName: event.target.value})
-    }
-
-    descriptionChange (event) {
-        this.setState({description: event.target.value})
-    }
-
-    startDateChange (event) {
-        this.setState({startDate: new Date(event.target.value)})
-    }
-
-    endDateChange (event) {
-        this.setState({endDate: new Date(event.target.value)})
-    }
 
     handleChange = (event, value) => {
         this.setState({
@@ -191,48 +229,14 @@ class ContestDetails extends Component {
         }
     }
 
-    handleEditContest= () => {
-        this.setState({attemptedRegister: true})
-        if(this.state.contestName !== "" && this.state.description !=="" && this.state.startDate !== "" && this.state.endDate !== "" && this.state.email !== "") {
-            // Parsing date times
-            const {contestName, description, ownerID} = this.state;
-            var {startDate, endDate} = this.state;
-            startDate = startDate
-            endDate = endDate
-
-            axios.post('http://127.0.0.1:5000/EditContest', {
-                contestName: contestName,
-                description: description,
-                startDate: startDate,
-                endDate: endDate,
-                status: 0,
-            }, {withCredentials: true})
-            .then(response => {
-                console.log(response)
-                if (response.status == 200) {
-                    //changes user to profile if login is successful
-                    this.handleClose(true, "Contest edited successfully")
-                }
-
-                if (response.status == 1000) {
-                    //Display error message
-                    this.handleClose(true, response.data.Message)
-                }
-            })
-            .catch((error) => {
-                console.log(error);
-            });
-        }
-    };
-
-    handleClickOpen = () => {
-        this.setState({ open: true });
-    };
-
     render()
     {
         const { classes } = this.props;
-        const { isOwner, isParticipant, isValidated, contestName, description, status, problemsData, submissionsData, scoreData, tabValue } = this.state;
+        const { isOwner, isParticipant, isValidated, contestName, description, status, problemsData, standingsData, submissionsData, scoreData, tabValue } = this.state;
+        var problemsForEdit = []
+        for (let problem in this.state.problemsData) {
+            problemsForEdit.push(this.state.problemsData[problem])
+        }
 
         if (isValidated)
             if (isOwner || isParticipant)
@@ -243,12 +247,23 @@ class ContestDetails extends Component {
                             <h1 className="contest-title">{contestName}</h1>
                             {(this.props.isAdmin || isOwner) && status <= 1 &&
                             <EditContestButton
-                                contestID={this.props.match.params.id}
-                                contestName={contestName}
-                                description= {description}
-                                startDate= {this.state.startDate}
-                                endDate= {this.state.endDate}
-                                status = {status}
+                                component={
+                                    <EditContest
+                                        contestID={this.props.match.params.id}
+                                        contestName={contestName}
+                                        description= {description}
+                                        startDate= {this.state.startDate}
+                                        endDate= {this.state.endDate}
+                                        status = {status}
+                                        onlineJudgesProblems = {this.state.onlineJudgesProblems}
+                                        addedProblems = {problemsForEdit} />
+                                }
+                                button={
+                                    <Button variant="fab" mini color="primary" aria-label="Edit Contest">
+                                        <EditIcon/>
+                                    </Button>
+                                }
+                                modalTitle={"Edit contest"}
                             />
                             }
                             {(this.props.isAdmin || isOwner) && status == 0 &&
@@ -261,81 +276,6 @@ class ContestDetails extends Component {
                                 contestID={this.props.match.params.id}
                             />
                             }
-                            <Dialog
-                                open={this.state.open}
-                                onClose={() => this.handleClose(false, "")}
-                                aria-labelledby="form-dialog-title"
-                            >
-                            <DialogTitle id="form-dialog-title">Create contest</DialogTitle>
-                            <DialogContent>
-                            <div>
-                                <TextField
-                                    id="contestName"
-                                    label="Contest Name"
-                                    margin="none"
-                                    error={this.state.contestName === "" && this.state.attemptedRegister}
-                                    helperText={!this.props.error ? "contestName is required" : ""}
-                                    style = {{width: '90%'}}
-                                    onChange={this.contestNameChange}
-                                    value={this.state.contestName}
-                                />
-                                <br/>
-                                <TextField
-                                    id="description"
-                                    type="description"
-                                    label="Description"
-                                    margin="none"
-                                    error={this.state.description === "" && this.state.attemptedRegister}
-                                    helperText={!this.props.error ? "description is required" : ""}
-                                    style = {{width: '90%'}}
-                                    onChange={this.descriptionChange}
-                                    value={this.state.description}
-                                />
-                                <br/><br/>
-                                <TextField
-                                    id="startDate"
-                                    label="Start Date"
-                                    margin="none"
-                                    type="datetime-local"
-                                    InputLabelProps={{
-                                    shrink: true,
-                                    }}
-                                    defaultValue={this.state.startDate}
-                                    error={(this.state.startDate === "" || this.state.startDate > this.state.endDate || this.state.startDate < this.state.currentDate) && this.state.attemptedRegister}
-                                    helperText={!this.props.error ? "Start date is required" : ""}
-                                    style = {{width: '90%'}}
-                                    onChange={this.startDateChange}
-                                />
-                                <br/><br/>
-                                <TextField
-                                    id="endDate"
-                                    label="End Date"
-                                    margin="none"
-                                    type="datetime-local"
-                                    InputLabelProps={{
-                                    shrink: true,
-                                    }}
-                                    defaultValue={this.state.endDate}
-                                    error={(this.state.endDate === "" || this.state.endDate < this.state.startDate || this.state.endDate == this.state.startDate) && this.state.attemptedRegister}
-                                    helperText={!this.props.error ? "End date is required" : ""}
-                                    style = {{width: '90%'}}
-                                    onChange={this.endDateChange}
-                                />
-                                <br/>
-                                <br/>
-                                <Button
-                                    variant="contained"
-                                    margin="normal"
-                                    color="primary"
-                                    type="submit"
-                                    style= {{width: '30%', backgroundColor: "#0F2027", titleColor: "#FFFFFF"}}
-                                    onClick={this.handleEditContest.bind()}
-                                >
-                                Create
-                                </Button>
-                                </div>
-                            </DialogContent>
-                            </Dialog>
                         </div>
                         <p className="contest-desc">{description}</p>
                         <Paper className={classes.root}>
@@ -357,8 +297,8 @@ class ContestDetails extends Component {
                                     contest_id={this.props.match.params.id}
                                     problemList={problemsData}
                                     scores={scoreData}
-                                    isOwner={isOwner}
-                                    isAdmin={this.props.isAdmin}
+                                    standingsData = {standingsData}
+                                    status = {status}
                                 />
                             </TabContainer>}
                             {tabValue === 1 &&

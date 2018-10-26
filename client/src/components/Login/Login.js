@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import {Link, withRouter} from 'react-router-dom';
+
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Card from '@material-ui/core/Card';
@@ -78,54 +80,58 @@ class Login extends Component {
         return (
             <center>
             <Card style={{raised: true, width: '25%', margin: '50px'}} >
-                <CardHeader
-                  style={{titleColor: "inherit", color: "inherit"}}
-                  title="Log in"
-                />
-                <CardContent>
-                    <TextField
-                        id="login"
-                        label="Username"
-                        margin="none"
-                        error={this.state.username === "" && this.state.attemptedLogin}
-                        helperText={this.state.username === "" && this.state.attemptedLogin ? "Username is required" : ""}
-                        style = {{width: '90%'}}
-                        onChange={this.loginChange}
+                <form onSubmit={(e) => { e.preventDefault();} }>
+                    <CardHeader
+                      style={{titleColor: "inherit", color: "inherit"}}
+                      title="Log in"
                     />
-                    <br/>
-                    <TextField
-                        id="password"
-                        type="password"
-                        label="Password"
-                        margin="none"
-                        error={this.state.password === "" && this.state.attemptedLogin}
-                        helperText={this.state.password === "" && this.state.attemptedLogin ? "Password is required" : ""}
-                        style = {{width: '90%'}}
-                        onChange={this.passwordChange}
-                    />
-                    <br/>
-                    <br/>
-                    
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            type="submit"
-                            style={{display:'block', width:'100%', margin:'3% 0%'}}
-                            onClick={this.handleLogin.bind()}
-                        >
-                        Log in
-                        </Button>
-                        
-                        <Button
-                            variant="outlined"
-                            color="primary"
-                            type="submit"
-                            style={{display:'block', width:'100%'}}
-                        >
-                        Sign up
-                        </Button>
-                    
-                </CardContent>
+                    <CardContent>
+                        <TextField
+                            id="login"
+                            label="Username"
+                            margin="none"
+                            error={this.state.username === "" && this.state.attemptedLogin}
+                            helperText={this.state.username === "" && this.state.attemptedLogin ? "Username is required" : ""}
+                            style = {{width: '90%'}}
+                            onChange={this.loginChange}
+                        />
+                        <br/>
+                        <TextField
+                            id="password"
+                            type="password"
+                            label="Password"
+                            margin="none"
+                            error={this.state.password === "" && this.state.attemptedLogin}
+                            helperText={this.state.password === "" && this.state.attemptedLogin ? "Password is required" : ""}
+                            style = {{width: '90%'}}
+                            onChange={this.passwordChange}
+                        />
+                        <br/>
+                        <br/>
+
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                type="submit"
+                                style={{display:'block', width:'100%', margin:'3% 0%'}}
+                                onClick={this.handleLogin.bind()}
+                            >
+                            Log in
+                            </Button>
+
+                            <Link to='/signup' style={{ textDecoration: 'none', color: 'inherit' }}>
+                                <Button
+                                    variant="outlined"
+                                    color="primary"
+                                    type="button"
+                                    style={{display:'block', width:'100%'}}
+                                >
+                                Sign up
+                                </Button>
+                            </Link>
+
+                    </CardContent>
+                </form>
             </Card>
             <Snackbar
                 open={this.state.openSnackbar}
@@ -141,4 +147,4 @@ class Login extends Component {
       }
 }
 
-export default Login;
+export default withRouter(Login);
