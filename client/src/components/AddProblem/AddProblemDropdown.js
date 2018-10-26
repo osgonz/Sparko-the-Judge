@@ -29,6 +29,7 @@ class AddProblemDropdown extends React.Component {
 
   constructor(props){
     super(props)
+    console.log(props)
   }
 
   state = {
@@ -50,13 +51,17 @@ class AddProblemDropdown extends React.Component {
 
     return (
       <div>
-        <Button mini color="primary" disabled={!this.state.selectedOption} aria-label="Add problem" onClick={this.handleSelectOption}> Add problem </Button>
-        <Select
-          value={selectedOption}
-          onChange={this.handleChange}
-          options={this.props.problems}
-        />
-        <ProblemsTable data={this.props.addedProblems} handleRemoveProblem={this.props.handleRemoveProblem}/>
+        {this.props.isEditable &&
+          <div>
+            <Button mini color="primary" disabled={!this.state.selectedOption} aria-label="Add problem" onClick={this.handleSelectOption}> Add problem </Button>
+            <Select
+              value={selectedOption}
+              onChange={this.handleChange}
+              options={this.props.problems}
+            />
+          </div>
+        }
+        <ProblemsTable isEditable={this.props.isEditable} data={this.props.addedProblems} handleRemoveProblem={this.props.handleRemoveProblem}/>
       </div>
     );
   }

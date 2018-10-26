@@ -72,8 +72,10 @@ class ContestDetails extends Component {
                         contest_id: this.props.match.params.id
                     }, {withCredentials: true}).then(response => {
                         if (response.data.status == 200) {
+                            console.log("isOwner received!")
                             this.setState({isOwner: true});
                         }
+                        this.setState({isValidated: true});
                     }).then(() => {
                         axios.post('http://127.0.0.1:5000/GetContestProblems', {
                             contest_id: this.props.match.params.id
@@ -149,33 +151,37 @@ class ContestDetails extends Component {
                         }
                     });
                 }
-                var onlineJudgesProblems = []
 
-                axios.get('https://uhunt.onlinejudge.org/api/p').then(response => {
-                    var problemsSuggestions = response.data.map(function(problem) {
-                        var problemID = problem[0]
-                        var problemNumber = problem[1]
-                        var problemTitle = problem[2]
-                        var str = String(problemID) + " - " + String(problemNumber) + " - " + problemTitle + " (UVa)"
-                        return {value: str, label: str}
+                // Query online judges problems only for upcoming contests
+                if (response.data.contestInfo.status == 0) {
+                    var onlineJudgesProblems = []
+
+                    axios.get('https://uhunt.onlinejudge.org/api/p').then(response => {
+                        var problemsSuggestions = response.data.map(function(problem) {
+                            var problemID = problem[0]
+                            var problemNumber = problem[1]
+                            var problemTitle = problem[2]
+                            var str = String(problemID) + " - " + String(problemNumber) + " - " + problemTitle + " (UVa)"
+                            return {value: str, label: str}
+                        })
+
+                        onlineJudgesProblems = onlineJudgesProblems.concat(problemsSuggestions)
+                        this.setState({onlineJudgesProblems: onlineJudgesProblems})
                     })
 
-                    onlineJudgesProblems = onlineJudgesProblems.concat(problemsSuggestions)
-                    this.setState({onlineJudgesProblems: onlineJudgesProblems})
-                })
+                    axios.get('https://icpcarchive.ecs.baylor.edu/uhunt/api/p').then(response => {
+                        var problemsSuggestions = response.data.map(function(problem) {
+                            var problemID = problem[0]
+                            var problemNumber = problem[1]
+                            var problemTitle = problem[2]
+                            var str = String(problemID) + " - " + String(problemNumber) + " - " + problemTitle + " (ICPC Live Archive)"
+                            return {value: str, label: str}
+                        })
 
-                axios.get('https://icpcarchive.ecs.baylor.edu/uhunt/api/p').then(response => {
-                    var problemsSuggestions = response.data.map(function(problem) {
-                        var problemID = problem[0]
-                        var problemNumber = problem[1]
-                        var problemTitle = problem[2]
-                        var str = String(problemID) + " - " + String(problemNumber) + " - " + problemTitle + " (ICPC Live Archive)"
-                        return {value: str, label: str}
+                        onlineJudgesProblems = onlineJudgesProblems.concat(problemsSuggestions)
+                        this.setState({onlineJudgesProblems: onlineJudgesProblems})
                     })
-
-                    onlineJudgesProblems = onlineJudgesProblems.concat(problemsSuggestions)
-                    this.setState({onlineJudgesProblems: onlineJudgesProblems})
-                })
+                }
             } else {
                 this.setState({ isValidated: true })
             }

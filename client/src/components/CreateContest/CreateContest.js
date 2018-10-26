@@ -232,7 +232,7 @@ class CreateContest extends Component {
                     />
                 </div>
                 <br/><br/>
-                <AddProblemDropdown problems={this.props.onlineJudgesProblems} handleAddProblem={this.handleAddProblem} handleRemoveProblem={this.handleRemoveProblem} addedProblems={this.state.selectedProblems} />
+                <AddProblemDropdown isEditable={true} problems={this.props.onlineJudgesProblems} handleAddProblem={this.handleAddProblem} handleRemoveProblem={this.handleRemoveProblem} addedProblems={this.state.selectedProblems} />
                 <Button
                     variant="contained"
                     margin="normal"
