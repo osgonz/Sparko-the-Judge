@@ -97,7 +97,7 @@ import CreateContestButton from '../CreateContest/FormDialog';
 
             axios.post('http://127.0.0.1:5000/GetRegularUsers', {
                 contest_id: this.props.match.params.id
-            }).then(response => {
+            }, {withCredentials: true}).then(response => {
                 if (response.data.StatusCode == 200) {
                     this.setState({users: response.data.users});
                 }

@@ -99,9 +99,9 @@ class ContestDetails extends Component {
                                this.setState({
                                    submissionsData: response.data.submissionsList,
                                    scoreData: response.data.scoresList,
-                                   standingsData: response.data.standingsList
+                                   standingsData: response.data.standingsList,
+                                   isValidated: true,
                                });
-                               this.setState({isValidated: true});
                            }
                         });
                     });

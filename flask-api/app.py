@@ -1514,9 +1514,13 @@ class GetRegularUsers(Resource):
 
             _contest = args['contest_id']
 
+            _loggedUser = session.get('loggedUser')
+
             cursor.callproc('spGetRegularUsers', (_contest,))
-            data = [dict((cursor.description[i][0], value)
-                         for i, value in enumerate(row)) for row in cursor.fetchall()]
+            data = []
+            for row in cursor.fetchall():
+                if row[0] != _loggedUser:
+                    data.append({cursor.description[0][0]: row[0]})
 
             if len(data) > 0:
                 return jsonify({'StatusCode': 200, 'users': data})
