@@ -40,6 +40,7 @@ DROP PROCEDURE IF EXISTS spGetAlmostFinishedContestInfo;
 Drop Procedure If Exists spUpdateContestOngoingToFinished;
 DROP PROCEDURE IF EXISTS spInsertSubmission;
 DROP PROCEDURE IF EXISTS spUpdateContestUser;
+DROP PROCEDURE IF EXISTS spGetRegularUsers;
 
 ################################################################################
 #                                                                              #
@@ -424,24 +425,30 @@ END //
 -- Add User to Contest
 DELIMITER //
 
-CREATE Procedure spAddUserToContest (IN username varchar(64), IN contestID varchar(64))
+CREATE Procedure spAddUserToContest (IN p_username varchar(64), IN p_contestID varchar(64))
 BEGIN
-    IF(SELECT EXISTS (SELECT ContestUser.userID, ContestUser.contestID from ContestUser INNER JOIN Users ON (SELECT Users.userID FROM Users where Users.username = username) = ContestUser.userID Where ContestUser.contestID = contestID)) THEN
-        SELECT CONCAT(username, ' already registered to Contest');
-    ELSE 
-        INSERT ContestUser VALUES(contestID,(SELECT userID FROM Users Where username = Users.username),0,0);
+    IF NOT EXISTS (SELECT 1 FROM ContestUser WHERE contestID = p_contestID AND userID = (SELECT userID FROM Users WHERE username = p_username)) THEN
+      INSERT INTO ContestUser
+
+      VALUES
+      (
+        p_contestID,
+        (SELECT userID FROM Users WHERE username = p_username),
+        0,
+        1
+      );
     END IF;
 END
 
 -- Remove User From Contest
 DELIMITER //
 
-CREATE Procedure spRemoveUserFromContest (IN username varchar(64), IN contestID varchar(64))
+CREATE Procedure spRemoveUserFromContest (IN p_username varchar(64), IN p_contestID varchar(64))
 BEGIN
-    IF(SELECT EXISTS (SELECT ContestUser.userID, ContestUser.contestID from ContestUser INNER JOIN Users ON (SELECT Users.userID FROM Users where Users.username = username) = ContestUser.userID Where ContestUser.contestID = contestID)) THEN
-        DELETE FROM ContestUser WHERE ContestUser.userID IN (SELECT Users.userID FROM Users WHERE username = Users.username) AND contestID = ContestUser.contestID;
-    ELSE 
-    	SELECT CONCAT(username, ' not registered to Contest');
+    IF EXISTS (SELECT 1 FROM ContestUser WHERE contestID = p_contestID AND userID = (SELECT userID FROM Users WHERE username = p_username)) THEN
+      DELETE FROM ContestUser
+      WHERE contestID = p_contestID
+      AND userID = (SELECT userID FROM Users WHERE username = p_username);
     END IF;
 END
 
@@ -518,4 +525,18 @@ BEGIN
   SET score = p_score, standing = p_standing
   WHERE contestID = p_contestID AND userID = p_userID;
 
+END //
+
+-- Get all regular users
+DELIMITER //
+
+CREATE Procedure spGetRegularUsers(IN p_contest INT)
+BEGIN
+      SELECT username
+      FROM Users
+      WHERE usertype = 1 AND userID NOT IN (
+        SELECT ownerID
+        FROM Contest
+        WHERE contestID = p_contest
+      );
 END //

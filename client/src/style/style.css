@@ -55,6 +55,15 @@ body{
     margin: 0% 4%;
 }
 
+.contest-form-tableset {
+    display: flex;
+    margin: 0% 2%;
+}
+
+.contest-form-dropdown-button {
+    display: flex;
+}
+
 .error-text {
     margin: 1% 2%;
 }

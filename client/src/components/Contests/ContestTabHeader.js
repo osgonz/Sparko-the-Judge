@@ -55,16 +55,11 @@ class ContestTabHeader extends Component {
     };
 
     render() {
-        const {order, orderBy, rows, isAdmin, isOwner} = this.props;
+        const {order, orderBy, rows } = this.props;
 
         return (
             <TableHead>
                 <TableRow>
-                    {(isAdmin || isOwner) &&
-                       (<TableCell style={{width:"11%"}}>                                        
-                        Remove user
-                        </TableCell>)
-                    }
                     {rows.map(row => {
                         return (
                             <TableCell

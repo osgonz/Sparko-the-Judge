@@ -1226,6 +1226,8 @@ class EditContest(Resource):
             parser.add_argument('status', type=int, help='status')
             parser.add_argument('problemsToAdd', type=dict, action='append', help='Problems to add to contest.')
             parser.add_argument('problemsToDelete', type=dict, action='append', help='Problems to delete from contest.')
+            parser.add_argument('usersToAdd', type=dict, action='append', help='Users to add to contest.')
+            parser.add_argument('usersToDelete', type=dict, action='append', help='Users to delete from contest.')
 
             args = parser.parse_args()
 
@@ -1237,6 +1239,8 @@ class EditContest(Resource):
             _status = args['status']
             _problemsToAdd = args['problemsToAdd']
             _problemsToDelete = args['problemsToDelete']
+            _usersToAdd = args['usersToAdd']
+            _usersToDelete = args['usersToDelete']
 
             cursor.callproc('spEditContest', (_contestID, _contestName, _description, _startDate, _endDate, _status))
             data = cursor.fetchall()
@@ -1251,6 +1255,14 @@ class EditContest(Resource):
                 if _problemsToDelete is not None:
                     for problem in _problemsToDelete:
                         cursor.callproc('spRemoveProblemFromContest', (_contestID, problem['problemName']))
+
+                if _usersToAdd is not None:
+                    for user in _usersToAdd:
+                        cursor.callproc('spAddUserToContest', (user['username'], _contestID))
+
+                if _usersToDelete is not None:
+                    for user in _usersToDelete:
+                        cursor.callproc('spRemoveUserFromContest', (user['username'], _contestID))
 
                 conn.commit()
                 return {'status': 200, 'message': 'Contest edit succesful'}
@@ -1294,46 +1306,6 @@ class GetContestInfoForEdit(Resource):
         except Exception as e:
             return {'error': str(e)}
 
-        finally:
-            cursor.close()
-            conn.close()
-
-class AddUsersToContest(Resource):
-    def post(self):
-        try:
-            # Open MySQL connection
-            conn = mysql.connect()
-            cursor = conn.cursor()
-
-            # Parse the arguments
-            parser = reqparse.RequestParser()
-            parser.add_argument('usernames', action='append', help='Users to add to contest')
-            parser.add_argument('contestID', type=str, help='Id to contest')
-
-            args = parser.parse_args()
-
-            if args['usernames'][0].find(','):
-                _usersAdded = args['usernames'][0].split(',')
-            else:
-                _usersAdded = args['usernames']
-            _contestID = args['contestID']
-
-            message = ""
-            for username in _usersAdded:
-                cursor.callproc('spAddUserToContest',(username, _contestID))
-                data = cursor.fetchall()
-                if (len(data) > 0):
-                    message += data[0][0]
-
-            conn.commit()
-            if (len(data) == 0 and message == ""):
-                return {'StatusCode':'200','Message': 'User(s) added to Contest'}
-            else:
-                return {'StatusCode':'100','Message': message}
-
-        except Exception as e:
-            return {'error': str(e)}
-        
         finally:
             cursor.close()
             conn.close()
@@ -1421,37 +1393,6 @@ class AddProblemsToContest(Resource):
         finally:
             cursor.close()
             conn.close()
-
-class RemoveUserFromContest(Resource):
-    def post(self):
-        try:
-            # Open MySQL connection
-            conn = mysql.connect()
-            cursor = conn.cursor()
-
-            # Parse request arguments
-            parser = reqparse.RequestParser()
-            parser.add_argument('username', type=str, help='Users to ban')
-            parser.add_argument('contestID', type=str, help='Id to contest')
-
-            args = parser.parse_args()
-            _username= args['username']
-            _contestID = args['contestID']
-
-            cursor.callproc('spRemoveUserFromContest',(_username, _contestID))
-            data = cursor.fetchall()
-            if(len(data) == 0):
-                conn.commit()
-                return {'status': 200, 'message': 'User removed from contest'}
-            else:
-                return {'status': 100, 'message': data[0][0]}
-        
-        except Exception as e:
-            raise e
-            
-        finally:
-            cursor.close()
-            conn.close()
         
 class CreateProblems(Resource):
     def __init__ (self):
@@ -1496,6 +1437,69 @@ class CreateProblems(Resource):
             cursor.close()
             conn.close()
 
+class GetContestUsers(Resource):
+    def post(self):
+        # Open MySQL connection
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
+        try:
+            # Parse request arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('contest_id', type=str, help="Contest's numerical identifier")
+
+            args = parser.parse_args()
+
+            _contest = args['contest_id']
+
+            cursor.callproc('spGetOngoingContestUsersInfo', (_contest,))
+            data = []
+            for row in cursor.fetchall():
+                data.append({cursor.description[1][0]: row[1]})
+
+            if len(data) > 0:
+                return jsonify({'StatusCode': 200, 'users': data})
+            else:
+                return jsonify({'StatusCode': 100, 'Message': 'No users in contest'})
+
+        except Exception as e:
+            return {'error': str(e)}
+
+        finally:
+            cursor.close()
+            conn.close()
+
+class GetRegularUsers(Resource):
+    def post(self):
+        # Open MySQL connection
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
+        try:
+            # Parse request arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('contest_id', type=str, help="Contest's numerical identifier")
+
+            args = parser.parse_args()
+
+            _contest = args['contest_id']
+
+            cursor.callproc('spGetRegularUsers', (_contest,))
+            data = [dict((cursor.description[i][0], value)
+                         for i, value in enumerate(row)) for row in cursor.fetchall()]
+
+            if len(data) > 0:
+                return jsonify({'StatusCode': 200, 'users': data})
+            else:
+                return jsonify({'StatusCode': 100, 'Message': 'No users'})
+
+        except Exception as e:
+            return {'error': str(e)}
+
+        finally:
+            cursor.close()
+            conn.close()
+
 api.add_resource(CreateUser, '/CreateUser')
 api.add_resource(AuthenticateUser, '/AuthenticateUser')
 api.add_resource(EditUserJudgesUsernames, '/EditUserJudgesUsernames')
@@ -1518,11 +1522,11 @@ api.add_resource(ViewOwnedContestList, '/ViewOwnedContestList')
 api.add_resource(ViewInvitedContestList, '/ViewInvitedContestList')
 api.add_resource(EditContest, '/EditContest')
 api.add_resource(GetContestInfoForEdit, '/GetContestInfoForEdit')
-api.add_resource(AddUsersToContest, '/AddUsersToContest')
-api.add_resource(RemoveUserFromContest, '/RemoveUserFromContest')
 api.add_resource(GetOngoingContestIntermediateData, '/GetOngoingContestIntermediateData')
 api.add_resource(AddProblemsToContest, '/AddProblemsToContest')
 api.add_resource(CreateProblems, '/CreateProblems')
+api.add_resource(GetContestUsers, '/GetContestUsers')
+api.add_resource(GetRegularUsers, '/GetRegularUsers')
 
 @app.route('/')
 def hello():

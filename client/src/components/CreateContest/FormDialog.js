@@ -49,6 +49,7 @@ export default class FormDialog extends React.Component {
           open={this.state.open}
           onClose={() => this.handleClose(false, "")}
           aria-labelledby="form-dialog-title"
+          maxWidth="lg"
         >
           <center>
             <DialogTitle id="form-dialog-title">{this.props.modalTitle}</DialogTitle>

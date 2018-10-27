@@ -10,7 +10,6 @@ import Tab from '@material-ui/core/Tab';
 import Typography from '@material-ui/core/Typography';
 
 import DeleteIcon from '@material-ui/icons/Delete';
-import AddIcon from '@material-ui/icons/Add';
 import EditIcon from '@material-ui/icons/Edit';
 import '../../style/style.css';
 import axios from 'axios'
@@ -21,7 +20,6 @@ import SubmissionsTab from './SubmissionsTab';
 import Error404 from '../Error404/Error404';
 import EditContestButton from '../CreateContest/FormDialog';
 import EditContest from '../EditContest/EditContest';
-import InviteUsersButton from '../InviteUsers/FormDialog';
 
 const styles = {
     root: {
@@ -49,6 +47,8 @@ class ContestDetails extends Component {
         submissionsData: [],
         scoreData: [],
         standingsData: [],
+        users: [],
+        contestUsers: [],
         isOwner: null,
         isParticipant: null,
         isValidated: null,
@@ -183,7 +183,24 @@ class ContestDetails extends Component {
                         onlineJudgesProblems = onlineJudgesProblems.concat(problemsSuggestions)
                         this.setState({onlineJudgesProblems: onlineJudgesProblems})
                     })
+
+                    axios.post('http://127.0.0.1:5000/GetRegularUsers', {
+                        contest_id: this.props.match.params.id
+                    }).then(response => {
+                        if (response.data.StatusCode == 200) {
+                            this.setState({users: response.data.users});
+                        }
+                    });
                 }
+
+                axios.post('http://127.0.0.1:5000/GetContestUsers', {
+                    contest_id: this.props.match.params.id
+                }).then(response => {
+                    if (response.data.StatusCode == 200) {
+                        this.setState({contestUsers: response.data.users});
+                    }
+                });
+
             } else {
                 this.setState({ isValidated: true })
             }
@@ -195,13 +212,6 @@ class ContestDetails extends Component {
             tabValue: value
         });
     };
-
-    handleClose = (showFeedback, feedbackMessage) => {
-        this.setState({ open: false });
-        if (showFeedback){
-          this.setState({openSnackbar: true, snackbarMessage: feedbackMessage})
-        }
-      };
 
     handleStatusCode = status => {
         switch(status) {
@@ -256,7 +266,10 @@ class ContestDetails extends Component {
                                         endDate= {this.state.endDate}
                                         status = {status}
                                         onlineJudgesProblems = {this.state.onlineJudgesProblems}
-                                        addedProblems = {problemsForEdit} />
+                                        addedProblems = {problemsForEdit}
+                                        users = {this.state.users}
+                                        contestUsers = {this.state.contestUsers}
+                                    />
                                 }
                                 button={
                                     <Button variant="fab" mini color="primary" aria-label="Edit Contest">
@@ -270,11 +283,6 @@ class ContestDetails extends Component {
                             <Button variant="fab" mini color="primary" aria-label="Delete" style={{margin:'0.5% 0.5%'}}>
                                 <DeleteIcon />
                             </Button>
-                            }
-                            {(this.props.isAdmin || isOwner) && status <= 1 &&
-                            <InviteUsersButton 
-                                contestID={this.props.match.params.id}
-                            />
                             }
                         </div>
                         <p className="contest-desc">{description}</p>
@@ -292,13 +300,14 @@ class ContestDetails extends Component {
                             </Tabs>
                             {tabValue === 0 &&
                             <TabContainer>
-                                {console.log(this.props.isAdmin)}
                                 <StandingsTab
                                     contest_id={this.props.match.params.id}
                                     problemList={problemsData}
                                     scores={scoreData}
                                     standingsData = {standingsData}
                                     status = {status}
+                                    isOwner={isOwner}
+                                    isAdmin={this.props.isAdmin}
                                 />
                             </TabContainer>}
                             {tabValue === 1 &&

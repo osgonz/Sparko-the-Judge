@@ -1,9 +1,7 @@
 import React from 'react';
-import classNames from 'classnames';
-import PropTypes from 'prop-types';
 import Select from 'react-select';
-import FormControl from '@material-ui/core/FormControl';
-import Button from '@material-ui/core/Button';
+import IconButton from "@material-ui/core/IconButton";
+import AddIcon from '@material-ui/icons/Add';
 
 import ProblemsTable from './ProblemsTable'
 
@@ -50,15 +48,21 @@ class AddProblemDropdown extends React.Component {
     const { selectedOption } = this.state;
 
     return (
-      <div>
+      <div style={{marginRight: '1%', width:'49%'}}>
         {this.props.isEditable &&
-          <div>
-            <Button mini color="primary" disabled={!this.state.selectedOption} aria-label="Add problem" onClick={this.handleSelectOption}> Add problem </Button>
-            <Select
-              value={selectedOption}
-              onChange={this.handleChange}
-              options={this.props.problems}
-            />
+          <div className="contest-form-dropdown-button">
+              <div style={{marginRight: '1%', width:'91%'}}>
+                <Select
+                  value={selectedOption}
+                  onChange={this.handleChange}
+                  options={this.props.problems}
+                />
+              </div>
+              <div style={{width:'8%'}}>
+                  <IconButton disabled={!this.state.selectedOption} aria-label="Add Problem" onClick={this.handleSelectOption}>
+                      <AddIcon />
+                  </IconButton>
+              </div>
           </div>
         }
         <ProblemsTable isEditable={this.props.isEditable} data={this.props.addedProblems} handleRemoveProblem={this.props.handleRemoveProblem}/>
