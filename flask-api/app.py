@@ -1364,6 +1364,36 @@ class GetOngoingContestIntermediateData(Resource):
             cursor.close()
             conn.close()
 
+class AddUserstoContest(Resource):
+    def post(self):
+        # Open MySQL connection
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
+        try:
+            # Parse the arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('contestID', type=str, help='List of dictionaries of problems to add')
+            parser.add_argument('users', type=dict, action='append', help='List of dictionaries of problems to users')
+
+            args = parser.parse_args()
+
+            _contestID = args['contestID']
+            _users = args['users']
+
+            for _user in _users:
+                cursor.callproc('spAddUserToContest', (_user['username'], _contestID))
+
+            conn.commit()
+            return {'StatusCode': 200}
+
+        except Exception as e:
+            return {'error': str(e)}
+
+        finally:
+            cursor.close()
+            conn.close()
+
 class AddProblemsToContest(Resource):
     def post(self):
         # Open MySQL connection
@@ -1524,6 +1554,7 @@ api.add_resource(EditContest, '/EditContest')
 api.add_resource(GetContestInfoForEdit, '/GetContestInfoForEdit')
 api.add_resource(GetOngoingContestIntermediateData, '/GetOngoingContestIntermediateData')
 api.add_resource(AddProblemsToContest, '/AddProblemsToContest')
+api.add_resource(AddUserstoContest, '/AddUsersToContest')
 api.add_resource(CreateProblems, '/CreateProblems')
 api.add_resource(GetContestUsers, '/GetContestUsers')
 api.add_resource(GetRegularUsers, '/GetRegularUsers')

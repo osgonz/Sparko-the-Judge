@@ -5,6 +5,7 @@ import TextField from '@material-ui/core/TextField';
 import axios from 'axios'
 
 import AddProblemDropdown from '../AddProblem/AddProblemDropdown'
+import AddUserDropdown from "../InviteUsers/AddUserDropdown";
 
 function formatDate(date)
 {
@@ -45,18 +46,22 @@ class CreateContest extends Component {
 			ownerID: '',
             attemptedCreate: false,
             selectedProblems: [],
+            selectedUsers: [],
         }
 
-        this.selectedProblems = new Set() // Problems in the Add Problem table, prevents having duplicar problems
+        this.selectedProblems = new Set(); // Problems in the Add Problem table, prevents having duplicate problems
+        this.selectedUsers = new Set();
 
-        this.handleCreateContest = this.handleCreateContest.bind(this)
-        this.contestNameChange = this.contestNameChange.bind(this)
-        this.descriptionChange = this.descriptionChange.bind(this)
-        this.startDateChange = this.startDateChange.bind(this)
-        this.endDateChange = this.endDateChange.bind(this)
-        this.handleModalClose = this.props.handleClose.bind(this)
-        this.handleAddProblem = this.handleAddProblem.bind(this)
-        this.handleRemoveProblem = this.handleRemoveProblem.bind(this)
+        this.handleCreateContest = this.handleCreateContest.bind(this);
+        this.contestNameChange = this.contestNameChange.bind(this);
+        this.descriptionChange = this.descriptionChange.bind(this);
+        this.startDateChange = this.startDateChange.bind(this);
+        this.endDateChange = this.endDateChange.bind(this);
+        this.handleModalClose = this.props.handleClose.bind(this);
+        this.handleAddProblem = this.handleAddProblem.bind(this);
+        this.handleRemoveProblem = this.handleRemoveProblem.bind(this);
+        this.handleAddUser = this.handleAddUser.bind(this);
+        this.handleRemoveUser = this.handleRemoveUser.bind(this);
     }
 
     handleAddProblem (problem) {
@@ -82,8 +87,29 @@ class CreateContest extends Component {
         this.setState({selectedProblems: currentSelectedProblems}) // Update state
     }
 
-    handleCreateContest () {
+    handleAddUser (user) {
+        // Handle users in the user table shown in the edit modal
+        var currentUsers = this.state.selectedUsers;
 
+        if (!this.selectedUsers.has(user.username)){
+            currentUsers.push(user);
+            this.selectedUsers.add(user.username)
+            this.setState({selectedUsers: currentUsers});
+        }
+    }
+
+    handleRemoveUser (user) {
+        // Handle users in the user table shown in the edit modal
+        var currentUsers = this.state.selectedUsers;
+
+        var index = currentUsers.indexOf(user);
+        currentUsers.splice(index, 1);
+        this.selectedUsers.delete(user.username);
+
+        this.setState({selectedUsers: currentUsers});
+    }
+
+    handleCreateContest () {
 		this.setState({attemptedCreate: true})
 
         // Removing seconds and milliseconds from dates
@@ -94,7 +120,7 @@ class CreateContest extends Component {
         if(this.state.contestName !== "" && this.state.description !=="" && this.state.startDate < this.state.endDate &&
             this.state.startDate >= this.state.currentDate) {
             // Parsing date times
-            const {contestName, description, ownerID, selectedProblems} = this.state;
+            const {contestName, description, selectedProblems, selectedUsers} = this.state;
             let {startDate, endDate} = this.state;
             startDate = formatDate(startDate)
             endDate = formatDate(endDate)
@@ -108,7 +134,7 @@ class CreateContest extends Component {
             }, {withCredentials: true})
             .then(response => {
                 if (response.data.StatusCode == 200) {
-                    var contestID = response.data.contestID
+                    var contestID = response.data.contestID;
                     axios.post('http://127.0.0.1:5000/CreateProblems', {
                         problems: selectedProblems,
                     }, {withCredentials: true})
@@ -117,9 +143,15 @@ class CreateContest extends Component {
                             contestID: contestID,
                             problems: selectedProblems,
                         }, {withCredentials: true})
+                        .then(response => {
+                            axios.post('http://127.0.0.1:5000/AddUsersToContest', {
+                                contestID: contestID,
+                                users: selectedUsers,
+                            }, {withCredentials: true});
 
-                        this.handleModalClose(true, "Contest created successfully")
-                        window.location.reload();
+                            this.handleModalClose(true, "Contest created successfully")
+                            window.location.reload();
+                        });
                     })
                 }
 
@@ -231,8 +263,24 @@ class CreateContest extends Component {
                         onChange={this.endDateChange}
                     />
                 </div>
-                <br/><br/>
-                <AddProblemDropdown isEditable={true} problems={this.props.onlineJudgesProblems} handleAddProblem={this.handleAddProblem} handleRemoveProblem={this.handleRemoveProblem} addedProblems={this.state.selectedProblems} />
+                <br/>
+                <div className='contest-form-tableset'>
+                    <AddProblemDropdown
+                        isEditable={true}
+                        problems={this.props.onlineJudgesProblems}
+                        handleAddProblem={this.handleAddProblem}
+                        handleRemoveProblem={this.handleRemoveProblem}
+                        addedProblems={this.state.selectedProblems}
+                    />
+                    <AddUserDropdown
+                        isEditable={true}
+                        users={this.props.users}
+                        handleAddUser={this.handleAddUser}
+                        handleRemoveUser={this.handleRemoveUser}
+                        addedUsers={this.state.selectedUsers}
+                    />
+                </div>
+                <br/>
                 <Button
                     variant="contained"
                     margin="normal"
