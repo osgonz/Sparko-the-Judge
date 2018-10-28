@@ -5,39 +5,39 @@ USE CoProManager;
 #                             DROP ALL PROCEDURES                              #
 #                                                                              #
 ################################################################################
-Drop Procedure If Exists spCreateUser;
-Drop Procedure If Exists spAuthentication;
-Drop Procedure If Exists spGetUserType;
-Drop Procedure If Exists spEditUser;
-Drop Procedure If Exists spEditJudgesUsernames;
-Drop Procedure If Exists spEditPassword;
-Drop Procedure If Exists spGetCountries;
-Drop Procedure If Exists spGetOwnedContests;
-Drop Procedure If Exists spGetInvitedContests;
-Drop Procedure If Exists spGetContestProblems;
-Drop Procedure If Exists spGetUserSubmissionsInContest;
-Drop Procedure If Exists spGetSubmissionsInContest;
-Drop Procedure If Exists spGetContestStandings;
-Drop Procedure If Exists spGetContestOwner;
-Drop Procedure If Exists spGetUserID;
-Drop Procedure If Exists spCreateContest;
-Drop Procedure If Exists spGetContestInformation;
-Drop Procedure If Exists spGetContestUserUsername;
-Drop Procedure If Exists spGetContestScoresPerProblem;
-Drop Procedure If Exists spCreateProblem;
-Drop Procedure If Exists spGetUserList;
-Drop Procedure If Exists spAddProblemToContest;
-Drop Procedure If Exists spRemoveProblemFromContest;
-Drop Procedure If Exists spGetLastInsertedID;
-Drop Procedure If Exists spBanUser;
-Drop Procedure If Exists spEditContest;
-Drop Procedure If Exists spRemoveUserFromContest;
-Drop Procedure If Exists spAddUserToContest;
+DROP PROCEDURE If Exists spCreateUser;
+DROP PROCEDURE If Exists spAuthentication;
+DROP PROCEDURE If Exists spGetUserType;
+DROP PROCEDURE If Exists spEditUser;
+DROP PROCEDURE If Exists spEditJudgesUsernames;
+DROP PROCEDURE If Exists spEditPassword;
+DROP PROCEDURE If Exists spGetCountries;
+DROP PROCEDURE If Exists spGetOwnedContests;
+DROP PROCEDURE If Exists spGetInvitedContests;
+DROP PROCEDURE If Exists spGetContestProblems;
+DROP PROCEDURE If Exists spGetUserSubmissionsInContest;
+DROP PROCEDURE If Exists spGetSubmissionsInContest;
+DROP PROCEDURE If Exists spGetContestStandings;
+DROP PROCEDURE If Exists spGetContestOwner;
+DROP PROCEDURE If Exists spGetUserID;
+DROP PROCEDURE If Exists spCreateContest;
+DROP PROCEDURE If Exists spGetContestInformation;
+DROP PROCEDURE If Exists spGetContestUserUsername;
+DROP PROCEDURE If Exists spGetContestScoresPerProblem;
+DROP PROCEDURE If Exists spCreateProblem;
+DROP PROCEDURE If Exists spGetUserList;
+DROP PROCEDURE If Exists spAddProblemToContest;
+DROP PROCEDURE If Exists spRemoveProblemFromContest;
+DROP PROCEDURE If Exists spGetLastInsertedID;
+DROP PROCEDURE If Exists spBanUser;
+DROP PROCEDURE If Exists spEditContest;
+DROP PROCEDURE If Exists spRemoveUserFromContest;
+DROP PROCEDURE If Exists spAddUserToContest;
 DROP PROCEDURE IF EXISTS spGetOngoingContestInfo;
-Drop Procedure If Exists spGetOngoingContestUsersInfo;
-Drop Procedure If Exists spUpdateContestUpcomingToOngoing;
+DROP PROCEDURE If Exists spGetOngoingContestUsersInfo;
+DROP PROCEDURE If Exists spUpdateContestUpcomingToOngoing;
 DROP PROCEDURE IF EXISTS spGetAlmostFinishedContestInfo;
-Drop Procedure If Exists spUpdateContestOngoingToFinished;
+DROP PROCEDURE If Exists spUpdateContestOngoingToFinished;
 DROP PROCEDURE IF EXISTS spInsertSubmission;
 DROP PROCEDURE IF EXISTS spUpdateContestUser;
 DROP PROCEDURE IF EXISTS spGetRegularUsers;
@@ -82,7 +82,7 @@ END //
 -- Authentication
 DELIMITER //
 
-CREATE Procedure spAuthentication (IN p_username varchar(64))
+CREATE PROCEDURE spAuthentication (IN p_username varchar(64))
 BEGIN
     SELECT * from Users where p_username = username;
 END //
@@ -91,7 +91,7 @@ END //
 
 DELIMITER //
 
-CREATE Procedure spGetUserType (IN p_username varchar(64))
+CREATE PROCEDURE spGetUserType (IN p_username varchar(64))
 BEGIN
     SELECT userType from Users where p_username = username;
 END //
@@ -99,7 +99,7 @@ END //
 -- Edit user information
 DELIMITER //
 
-CREATE Procedure spEditUser (IN p_curr_username varchar(64), IN p_new_username varchar(64), IN p_fname varchar(32), IN p_lname varchar(32), IN p_email varchar(64), IN p_country INT)
+CREATE PROCEDURE spEditUser (IN p_curr_username varchar(64), IN p_new_username varchar(64), IN p_fname varchar(32), IN p_lname varchar(32), IN p_email varchar(64), IN p_country INT)
 BEGIN
   IF(SELECT exists (SELECT username from Users where p_new_username = username) AND p_curr_username != p_new_username) THEN
       SELECT CONCAT(p_new_username, ' already registered');
@@ -120,7 +120,7 @@ END //
 -- Edit user online judges usernames
 DELIMITER //
 
-CREATE Procedure spEditJudgesUsernames (IN p_username varchar(64), IN p_username_uva varchar(64), IN p_username_icpc varchar(64))
+CREATE PROCEDURE spEditJudgesUsernames (IN p_username varchar(64), IN p_username_uva varchar(64), IN p_username_icpc varchar(64))
 BEGIN
   IF(p_username != (SELECT username from Users where p_username_uva = iduva)) THEN
       SELECT CONCAT(p_username_uva, ' already registered (UVA)');
@@ -148,7 +148,7 @@ END //
 -- Get Countries
 DELIMITER //
 
-CREATE Procedure spGetCountries ()
+CREATE PROCEDURE spGetCountries ()
 BEGIN
     SELECT country_name from Countries;
 END //
@@ -156,7 +156,7 @@ END //
 -- Get owned Contests
 DELIMITER //
 
-CREATE Procedure spGetOwnedContests (IN p_ownerusername varchar(64))
+CREATE PROCEDURE spGetOwnedContests (IN p_ownerusername varchar(64))
 BEGIN
     SELECT contestID, contestName, description, startDate, endDate, status from Contest where (SELECT userID FROM Users WHERE username = p_ownerusername) = ownerID;
 END //
@@ -164,7 +164,7 @@ END //
 ---- Get invited Contests
 DELIMITER //
 
-CREATE Procedure spGetInvitedContests (IN p_username varchar(64))
+CREATE PROCEDURE spGetInvitedContests (IN p_username varchar(64))
 BEGIN
     SELECT contestID, contestName, description, startDate, endDate, status from Contest where contestID in (SELECT contestID from Contestuser where userID = (SELECT userID FROM Users WHERE username = p_username));
 END //
@@ -341,7 +341,7 @@ END //
 
 DELIMITER //
 
-CREATE Procedure spGetUserList (IN p_userType INT)
+CREATE PROCEDURE spGetUserList (IN p_userType INT)
 BEGIN
     IF(p_userType = 0) THEN
         SELECT userID AS id, username, CONCAT(fname, " ",lname) AS fullName, usertype AS userType, iduva AS uvaUsername, idicpc AS icpcUsername 
@@ -394,7 +394,7 @@ END //
 -- Ban a user
 DELIMITER //
 
-CREATE Procedure spBanUser (IN p_userID varchar(64))
+CREATE PROCEDURE spBanUser (IN p_userID varchar(64))
 BEGIN
     IF(SELECT exists (SELECT * FROM Users WHERE userID=p_userID AND usertype=0)) THEN
         SELECT 'You cant ban an administrator';
@@ -411,7 +411,7 @@ END //
 -- Edit contest information
 DELIMITER //
 
-CREATE Procedure spEditContest (IN p_contestID INT, IN p_new_contestName varchar(255), IN p_new_description varchar(255), IN p_new_startDate DATETIME, IN p_new_endDate DATETIME, IN p_new_status INT)
+CREATE PROCEDURE spEditContest (IN p_contestID INT, IN p_new_contestName varchar(255), IN p_new_description varchar(255), IN p_new_startDate DATETIME, IN p_new_endDate DATETIME, IN p_new_status INT)
 BEGIN
     UPDATE contest
     SET contestName = p_new_contestName,
@@ -425,7 +425,7 @@ END //
 -- Add User to Contest
 DELIMITER //
 
-CREATE Procedure spAddUserToContest (IN p_username varchar(64), IN p_contestID varchar(64))
+CREATE PROCEDURE spAddUserToContest (IN p_username varchar(64), IN p_contestID varchar(64))
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM ContestUser WHERE contestID = p_contestID AND userID = (SELECT userID FROM Users WHERE username = p_username)) THEN
       INSERT INTO ContestUser
@@ -438,19 +438,19 @@ BEGIN
         1
       );
     END IF;
-END
+END //
 
 -- Remove User From Contest
 DELIMITER //
 
-CREATE Procedure spRemoveUserFromContest (IN p_username varchar(64), IN p_contestID varchar(64))
+CREATE PROCEDURE spRemoveUserFromContest (IN p_username varchar(64), IN p_contestID varchar(64))
 BEGIN
     IF EXISTS (SELECT 1 FROM ContestUser WHERE contestID = p_contestID AND userID = (SELECT userID FROM Users WHERE username = p_username)) THEN
       DELETE FROM ContestUser
       WHERE contestID = p_contestID
       AND userID = (SELECT userID FROM Users WHERE username = p_username);
     END IF;
-END
+END //
 
 -- Get Ongoing Contest Info
 DELIMITER //
@@ -530,7 +530,7 @@ END //
 -- Get all regular users
 DELIMITER //
 
-CREATE Procedure spGetRegularUsers(IN p_contest INT)
+CREATE PROCEDURE spGetRegularUsers(IN p_contest INT)
 BEGIN
       SELECT username
       FROM Users

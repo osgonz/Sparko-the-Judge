@@ -1,9 +1,17 @@
+/*******************************************************************************/
+/*                                E X P O R T S                                */
+/*******************************************************************************/
+/*--------------------------------- R E A C T ---------------------------------*/
 import React from 'react';
 import Select from 'react-select';
+
+/*--------------------------- M A T E R I A L   U I ---------------------------*/
 import IconButton from "@material-ui/core/IconButton";
 import AddIcon from '@material-ui/icons/Add';
-
+import Button from '@material-ui/core/Button';
 import ProblemsTable from './ProblemsTable'
+/*******************************************************************************/
+
 
 /*******************************************************************************/
 /*                                                                             */
@@ -59,13 +67,19 @@ class AddProblemDropdown extends React.Component {
                 />
               </div>
               <div style={{width:'8%'}}>
-                  <IconButton disabled={!this.state.selectedOption} aria-label="Add Problem" onClick={this.handleSelectOption}>
+                  <IconButton  variant="outlined" disabled={!this.state.selectedOption} aria-label="Add Problem" onClick={this.handleSelectOption}>
                       <AddIcon />
                   </IconButton>
               </div>
           </div>
         }
-        <ProblemsTable isEditable={this.props.isEditable} data={this.props.addedProblems} handleRemoveProblem={this.props.handleRemoveProblem}/>
+
+        <ProblemsTable 
+          style={{margin: '50%'}}
+          isEditable={this.props.isEditable} 
+          data={this.props.addedProblems} 
+          handleRemoveProblem={this.props.handleRemoveProblem}
+        />
       </div>
     );
   }

@@ -1,3 +1,7 @@
+/*******************************************************************************/
+/*                                E X P O R T S                                */
+/*******************************************************************************/
+/*--------------------------------- R E A C T ---------------------------------*/
 import React from 'react';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
@@ -21,6 +25,8 @@ import LockOpenIcon from '@material-ui/icons/LockOpen';
 import LockIcon from '@material-ui/icons/Lock';
 import FilterListIcon from '@material-ui/icons/FilterList';
 import { lighten } from '@material-ui/core/styles/colorManipulator';
+/*******************************************************************************/
+
 
 function desc(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -157,13 +163,7 @@ let EnhancedTableToolbar = props => {
       </div>
       <div className={classes.spacer} />
       <div className={classes.actions}>
-        {
-          <Tooltip title="Filter list">
-            <IconButton aria-label="Filter list">
-              <FilterListIcon />
-            </IconButton>
-          </Tooltip>
-        }
+        
       </div>
     </Toolbar>
   );
@@ -248,7 +248,7 @@ class ProblemsTable extends React.Component {
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
 
     return (
-      <Paper className={classes.root}>
+      <Paper className={classes.root} style={{margin: '0%'}}>
         <EnhancedTableToolbar numSelected={selected.length} usersSelected={selected}/>
         <div className={classes.tableWrapper}>
           <Table className={classes.table} aria-labelledby="tableTitle">

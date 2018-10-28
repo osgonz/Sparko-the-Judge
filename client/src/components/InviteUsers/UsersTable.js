@@ -154,13 +154,7 @@ let EnhancedTableToolbar = props => {
       </div>
       <div className={classes.spacer} />
       <div className={classes.actions}>
-        {
-          <Tooltip title="Filter list">
-            <IconButton aria-label="Filter list">
-              <FilterListIcon />
-            </IconButton>
-          </Tooltip>
-        }
+        
       </div>
     </Toolbar>
   );
@@ -236,7 +230,7 @@ class UsersTable extends React.Component {
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
 
     return (
-      <Paper className={classes.root}>
+      <Paper className={classes.root} style={{margin: '0%'}}>
         <EnhancedTableToolbar numSelected={selected.length} usersSelected={selected}/>
         <div className={classes.tableWrapper}>
           <Table className={classes.table} aria-labelledby="tableTitle">
