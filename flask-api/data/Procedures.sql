@@ -495,10 +495,8 @@ END //
 
 DELIMITER //
 
-CREATE PROCEDURE spDeleteContest(IN contestID INT)
+CREATE PROCEDURE spDeleteContest(IN p_contestID INT)
 BEGIN
-  UPDATE ContestUser
-  SET score = p_score, standing = p_standing
-  WHERE contestID = p_contestID AND userID = p_userID;
-
+  DELETE FROM Contest
+  Where contestID = p_contestID;
 END //

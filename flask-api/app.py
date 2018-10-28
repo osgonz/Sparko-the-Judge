@@ -1430,26 +1430,21 @@ class DeleteContest(Resource):
         # Open MySQL connection
         conn = mysql.connect()
         cursor = conn.cursor()
-
         try:
             # Parse the arguments
             parser = reqparse.RequestParser()
-            parser.add_argument('contest_id', type=int, help='Contest identifier number')
+            parser.add_argument('contestID', type=int, help='Contest identifier number')
 
             args = parser.parse_args()
+            _contestID = args['contestID']
 
-            _contestID = args['contest_id']
-             
-            if (len(data) == 0):
-                cursor.callproc('spDeleteContest', _contestID)
-
-                conn.commit()
-                return {'status': 200, 'message': 'Contest edit succesful'}
-            else:
-                return {'status': 100, 'message': data[0][0]}
+            cursor.callproc('spDeleteContest', (_contestID,))
+            data = cursor.fetchall()
+            conn.commit()
+            return {'status': 200, 'message': 'Contest delete succesful'}
 
         except Exception as e:
-            try:  # empty exception handler in case rollback fails
+            try:  # empty exception handler in case rollback fails}
                 conn.rollback ()
             except:
                 pass
