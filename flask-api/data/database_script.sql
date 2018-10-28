@@ -404,3 +404,15 @@ INSERT INTO `Countries` VALUES (null, 'YE', 'Yemen');
 INSERT INTO `Countries` VALUES (null, 'ZR', 'Zaire');
 INSERT INTO `Countries` VALUES (null, 'ZM', 'Zambia');
 INSERT INTO `Countries` VALUES (null, 'ZW', 'Zimbabwe');
+
+ALTER TABLE contestproblem
+  ADD CONSTRAINT FK_KeyContestProblem FOREIGN KEY (`contestID`) 
+  REFERENCES contest(`contestID`) ON UPDATE CASCADE ON DELETE CASCADE
+
+ALTER TABLE contestuser
+  ADD CONSTRAINT FK_KeyContestUser FOREIGN KEY (`contestID`) 
+  REFERENCES contest(`contestID`) ON UPDATE CASCADE ON DELETE CASCADE
+
+ALTER TABLE submission
+  ADD CONSTRAINT FK_KeySubmission FOREIGN KEY (`contestID`) 
+  REFERENCES contest(`contestID`) ON UPDATE CASCADE ON DELETE CASCADE

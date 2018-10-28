@@ -1424,6 +1424,40 @@ class CreateProblems(Resource):
             cursor.close()
             conn.close()
 
+class DeleteContest(Resource):
+
+    def post(self):
+        # Open MySQL connection
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
+        try:
+            # Parse the arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('contest_id', type=int, help='Contest identifier number')
+
+            args = parser.parse_args()
+
+            _contestID = args['contest_id']
+             
+            if (len(data) == 0):
+                cursor.callproc('spDeleteContest', _contestID)
+
+                conn.commit()
+                return {'status': 200, 'message': 'Contest edit succesful'}
+            else:
+                return {'status': 100, 'message': data[0][0]}
+
+        except Exception as e:
+            try:  # empty exception handler in case rollback fails
+                conn.rollback ()
+            except:
+                pass
+
+        finally:
+            cursor.close()
+            conn.close()
+
 api.add_resource(CreateUser, '/CreateUser')
 api.add_resource(AuthenticateUser, '/AuthenticateUser')
 api.add_resource(EditUserJudgesUsernames, '/EditUserJudgesUsernames')
@@ -1449,6 +1483,7 @@ api.add_resource(GetContestInfoForEdit, '/GetContestInfoForEdit')
 api.add_resource(GetOngoingContestIntermediateData, '/GetOngoingContestIntermediateData')
 api.add_resource(AddProblemsToContest, '/AddProblemsToContest')
 api.add_resource(CreateProblems, '/CreateProblems')
+api.add_resource(DeleteContest, '/DeleteContest')
 
 @app.route('/')
 def hello():
