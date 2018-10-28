@@ -3,6 +3,7 @@ import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 
 import AddProblemDropdown from '../AddProblem/AddProblemDropdown'
+import AddUserDropdown from '../InviteUsers/AddUserDropdown'
 
 import axios from 'axios'
 
@@ -67,13 +68,19 @@ class EditContest extends Component {
 			contestID: -1,
             status: -1,
             attemptedEdit: false,
-            contestProblems: props.addedProblems,
+            contestProblems: [],
+            contestUsers: [],
         };
 
         this.originalContestProblems = new Set()
         this.contestProblemsInEditTable = new Set()
         this.problemsToAdd = new Set()
         this.problemsToDelete = new Set()
+
+        this.originalContestUsers = new Set();
+        this.usersInEditTable = new Set();
+        this.usersToAdd = new Set();
+        this.usersToDelete = new Set();
 
         this.handleEditContest = this.handleEditContest.bind(this);
         this.contestNameChange = this.contestNameChange.bind(this);
@@ -83,6 +90,8 @@ class EditContest extends Component {
         this.handleModalClose = this.props.handleClose.bind(this);
         this.handleAddProblem = this.handleAddProblem.bind(this)
         this.handleRemoveProblem = this.handleRemoveProblem.bind(this)
+        this.handleAddUser = this.handleAddUser.bind(this);
+        this.handleRemoveUser = this.handleRemoveUser.bind(this);
     }
 
     componentWillMount() {
@@ -101,21 +110,27 @@ class EditContest extends Component {
             startDate: startDate,
             endDate: endDate,
             status: this.props.status,
-            selectedProblems: this.props.addedProblems
+            contestProblems: this.props.addedProblems,
+            contestUsers: this.props.contestUsers
         });
 
         for (let problem of this.props.addedProblems) {
             this.originalContestProblems.add(problem)
             this.contestProblemsInEditTable.add(problem)
         }
+
+        for (let user of this.props.contestUsers) {
+            this.originalContestUsers.add(user.username);
+            this.usersInEditTable.add(user.username);
+        }
     }
 
     handleAddProblem (problem) {
         // Handle problems in the problem table shown in the edit modal
-        var currentSelectedProblems = this.state.contestProblems
+        var currentSelectedProblems = this.state.contestProblems;
         if (!this.contestProblemsInEditTable.has(problem)){
-          currentSelectedProblems.push(problem)
-          this.contestProblemsInEditTable.add(problem)
+          currentSelectedProblems.push(problem);
+          this.contestProblemsInEditTable.add(problem);
           this.setState({contestProblems: currentSelectedProblems})
         }
 
@@ -124,33 +139,62 @@ class EditContest extends Component {
             this.problemsToAdd.add(problem)
         }
 
-        this.problemsToDelete.delete(problem)
+        this.problemsToDelete.delete(problem);
     }
 
     handleRemoveProblem (problem) {
-
         // Handle problems in the problem table shown in the edit modal
-        var currentSelectedProblems = this.state.contestProblems
-        var index = currentSelectedProblems.indexOf(problem)
-        currentSelectedProblems.splice(index, 1)
-        this.contestProblemsInEditTable.delete(problem)
-        this.setState({contestProblems: currentSelectedProblems})
+        var currentSelectedProblems = this.state.contestProblems;
+        var index = currentSelectedProblems.indexOf(problem);
+        currentSelectedProblems.splice(index, 1);
+        this.contestProblemsInEditTable.delete(problem);
+        this.setState({contestProblems: currentSelectedProblems});
 
         // Handle problems to delete when done editing
         if (this.originalContestProblems.has(problem)){
             this.problemsToDelete.add(problem)
         }
 
-        this.problemsToAdd.delete(problem)
+        this.problemsToAdd.delete(problem);
+    }
+
+    handleAddUser (user) {
+        // Handle users in the user table shown in the edit modal
+        var currentUsers = this.state.contestUsers;
+        if (!this.usersInEditTable.has(user.username)){
+            currentUsers.push(user);
+            this.usersInEditTable.add(user.username);
+            this.setState({contestUsers: currentUsers});
+            // Handle problems to add when done editing
+            if (!this.originalContestUsers.has(user.username)){
+                this.usersToAdd.add(user);
+            }
+        }
+
+        this.usersToDelete.delete(user);
+    }
+
+    handleRemoveUser (user) {
+        // Handle users in the user table shown in the edit modal
+        var currentUsers = this.state.contestUsers;
+        var index = currentUsers.indexOf(user);
+        currentUsers.splice(index, 1);
+        this.usersInEditTable.delete(user.username);
+        this.setState({contestUsers: currentUsers});
+
+        // Handle problems to delete when done editing
+        if (this.originalContestUsers.has(user.username)){
+            this.usersToDelete.add(user)
+        }
+
+        this.usersToAdd.delete(user)
     }
 
     handleEditContest () {
-
-        let problemsToAdd = Array.from(this.problemsToAdd)
-        let problemsToDelete = Array.from(this.problemsToDelete)
-
-        console.log(problemsToAdd)
-        console.log(problemsToDelete)
+        let problemsToAdd = Array.from(this.problemsToAdd);
+        let problemsToDelete = Array.from(this.problemsToDelete);
+        let usersToAdd = Array.from(this.usersToAdd);
+        let usersToDelete = Array.from(this.usersToDelete);
 
 		this.setState({attemptedEdit: true})
 
@@ -181,7 +225,9 @@ class EditContest extends Component {
                         endDate: endDate,
                         status: status,
                         problemsToAdd: problemsToAdd,
-                        problemsToDelete: problemsToDelete
+                        problemsToDelete: problemsToDelete,
+                        usersToAdd: usersToAdd,
+                        usersToDelete: usersToDelete,
                     }, {withCredentials: true})
                     .then(response => {
                         if (response.data.status == 200) {
@@ -248,75 +294,90 @@ class EditContest extends Component {
 
         return (
             <div>
+                <TextField
+                    id="contestName"
+                    label="Contest Name"
+                    margin="none"
+                    defaultValue={this.state.contestName}
+                    error={this.state.contestName === "" && this.state.attemptedEdit}
+                    helperText={this.state.contestName === "" && this.state.attemptedEdit ? "Name is required" : ""}
+                    style = {{width: '92%'}}
+                    onChange={this.contestNameChange}
+                />
+                <br/>
+                <TextField
+                    id="description"
+                    type="description"
+                    label="Description"
+                    margin="none"
+                    defaultValue={this.state.description}
+                    error={this.state.description === "" && this.state.attemptedEdit}
+                    helperText={this.state.description === "" && this.state.attemptedEdit ? "Description is required" : ""}
+                    style = {{width: '92%'}}
+                    onChange={this.descriptionChange}
+                />
+                <br/><br/>
+                <div className='contest-form-content'>
                     <TextField
-                        id="contestName"
-                        label="Contest Name"
+                        id="startDate"
+                        label="Start Date"
                         margin="none"
-                        defaultValue={this.state.contestName}
-                        error={this.state.contestName === "" && this.state.attemptedEdit}
-                        helperText={this.state.contestName === "" && this.state.attemptedEdit ? "Name is required" : ""}
-                        style = {{width: '92%'}}
-                        onChange={this.contestNameChange}
+                        type="datetime-local"
+                        InputLabelProps={{
+                          shrink: true,
+                        }}
+                        defaultValue={formatDate(this.state.startDate)}
+                        disabled={this.state.status > 0}
+                        error={this.state.status == 0 && (isNaN(startDate.getTime()) || startDate >= endDate || startDate < todayDate) && this.state.attemptedEdit}
+                        helperText={startDateErrorText}
+                        style = {{width: '50%'}}
+                        onChange={this.startDateChange}
                     />
-                    <br/>
+
                     <TextField
-                        id="description"
-                        type="description"
-                        label="Description"
+                        id="endDate"
+                        label="End Date"
                         margin="none"
-                        defaultValue={this.state.description}
-                        error={this.state.description === "" && this.state.attemptedEdit}
-                        helperText={this.state.description === "" && this.state.attemptedEdit ? "Description is required" : ""}
-                        style = {{width: '92%'}}
-                        onChange={this.descriptionChange}
+                        type="datetime-local"
+                        InputLabelProps={{
+                          shrink: true,
+                        }}
+                        defaultValue={formatDate(this.state.endDate)}
+                        disabled={this.state.status > 0}
+                        error={(isNaN(endDate.getTime()) || endDate <= startDate) && this.state.attemptedEdit}
+                        helperText={endDateErrorText}
+                        style={{marginLeft: '3%', width:'50%'}}
+                        onChange={this.endDateChange}
                     />
-                    <br/><br/>
-                    <div className='contest-form-content'>
-                        <TextField
-                            id="startDate"
-                            label="Start Date"
-                            margin="none"
-                            type="datetime-local"
-                            InputLabelProps={{
-                              shrink: true,
-                            }}
-                            defaultValue={formatDate(this.state.startDate)}
-                            disabled={this.state.status > 0}
-                            error={this.state.status == 0 && (isNaN(startDate.getTime()) || startDate >= endDate || startDate < todayDate) && this.state.attemptedEdit}
-                            helperText={startDateErrorText}
-                            style = {{width: '50%'}}
-                            onChange={this.startDateChange}
-                        />
-
-                        <TextField
-                            id="endDate"
-                            label="End Date"
-                            margin="none"
-                            type="datetime-local"
-                            InputLabelProps={{
-                              shrink: true,
-                            }}
-                            defaultValue={formatDate(this.state.endDate)}
-                            disabled={this.state.status > 0}
-                            error={(isNaN(endDate.getTime()) || endDate <= startDate) && this.state.attemptedEdit}
-                            helperText={endDateErrorText}
-                            style={{marginLeft: '3%', width:'50%'}}
-                            onChange={this.endDateChange}
-                        />
-                    </div>
-                    <br/><br/>
-                    <AddProblemDropdown isEditable={this.state.status === 0} problems={this.props.onlineJudgesProblems} handleAddProblem={this.handleAddProblem} handleRemoveProblem={this.handleRemoveProblem} addedProblems={this.state.contestProblems} />
-                    <Button
-                        variant="contained"
-                        margin="normal"
-                        color="primary"
-                        type="submit"
-                        style={{display:'block', width:'100%'}}
-                        onClick={this.handleEditContest.bind()}
-                    >
-                    Edit
-                    </Button>
-
+                </div>
+                <br/>
+                <div className='contest-form-tableset'>
+                    <AddProblemDropdown
+                        isEditable={this.state.status === 0}
+                        problems={this.props.onlineJudgesProblems}
+                        handleAddProblem={this.handleAddProblem}
+                        handleRemoveProblem={this.handleRemoveProblem}
+                        addedProblems={this.state.contestProblems}
+                    />
+                    <AddUserDropdown
+                        isEditable={this.state.status === 0}
+                        users={this.props.users}
+                        handleAddUser={this.handleAddUser}
+                        handleRemoveUser={this.handleRemoveUser}
+                        addedUsers={this.state.contestUsers}
+                    />
+                </div>
+                <br/>
+                <Button
+                    variant="contained"
+                    margin="normal"
+                    color="primary"
+                    type="submit"
+                    style={{display:'block', width:'100%'}}
+                    onClick={this.handleEditContest.bind()}
+                >
+                Edit
+                </Button>
             </div>
         );
       }

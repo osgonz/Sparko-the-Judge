@@ -469,7 +469,7 @@ class Users extends Component {
                       title={this.getTableRowTitle(this.props.isAdmin, n.username)}
                     >
                       <TableCell padding="checkbox">
-                      {   this.props.isAdmin &&
+                      { this.props.isAdmin &&
                               <Checkbox checked={isSelected} />
                       }
                       </TableCell>

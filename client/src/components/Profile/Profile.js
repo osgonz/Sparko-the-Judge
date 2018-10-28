@@ -159,7 +159,6 @@ class Profile extends Component {
         {/*--------Personal Information!---------*/}
         <div className="PersonalInfo"> 
           <div className='lineContent'>
-            <h3 className="subheader">Personal Information</h3>
             {!isEditingPersonalInfo ? (
               <Button variant="fab" mini color="primary" aria-label="Edit" onClick={this.handleEditingPersonalInfo} style={{margin:'1% 1%'}}>
                 <EditIcon />
@@ -167,6 +166,7 @@ class Profile extends Component {
                 <div></div>
               )
             }
+            <h3 className="subheader">Personal Information</h3>
           </div>
           <div className='lineContent'>
             <TextField
@@ -247,7 +247,6 @@ class Profile extends Component {
         {/*-------- Password Information ---------*/}
         <div className='UsernameInformation'>
           <div className='lineContent'>
-            <h3 className="subheader">Password</h3>
             {!isEditingPassword ? (
               <Button variant="fab" mini color="primary" aria-label="Edit" onClick={this.handleEditingPassword} style={{margin:'1% 1%'}}>
                 <EditIcon />
@@ -255,6 +254,7 @@ class Profile extends Component {
                 <div></div>
               )
             }
+            <h3 className="subheader">Password</h3>
           </div>
           <div className='lineContent' style={{marginTop:'-10'}}>
             <TextField
@@ -304,7 +304,7 @@ class Profile extends Component {
         {/*-------- Username Information ---------*/}
         <div className='UsernameInformation'>
           <div className='lineContent'>
-            <h3 className="subheader">Usernames</h3>
+            
             {!isEditingUsernameInfo ? (
               <Button variant="fab" mini color="primary" aria-label="Edit" onClick={this.handleEditingUsernameInfo} style={{margin:'1% 1%'}}>
                 <EditIcon />
@@ -312,6 +312,7 @@ class Profile extends Component {
                 <div></div>
               )
             }
+            <h3 className="subheader">Usernames</h3>
           </div>
           <div className='lineContent'>
             <TextField

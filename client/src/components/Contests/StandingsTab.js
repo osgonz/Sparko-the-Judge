@@ -9,7 +9,6 @@ import TableBody from "@material-ui/core/TableBody/TableBody";
 import TableCell from "@material-ui/core/TableCell/TableCell";
 import TablePagination from "@material-ui/core/TablePagination/TablePagination";
 import TableRow from "@material-ui/core/TableRow/TableRow";
-
 import '../../style/style.css';
 import axios from 'axios'
 
@@ -59,6 +58,13 @@ class StandingsTab extends Component {
         }
     };
 
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (this.props.standingsData != prevProps.standingsData) {
+            if (this.props.standingsData.length > 0)
+                this.setState({data: this.props.standingsData})
+        }
+    }
+
     handleRequestSort = (event, property, date) => {
         const orderBy = property;
         let order = 'desc';
@@ -82,7 +88,7 @@ class StandingsTab extends Component {
         if (entryDict.result == '90')
             return entryDict.submissionCount + '/' + (entryDict.TimeDifference);
         return entryDict.submissionCount + '/--';
-    }
+    };
 
     render() {
         const { classes, problemList, scores } = this.props;
