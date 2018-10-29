@@ -267,7 +267,7 @@ class ContestDetails extends Component {
                                         contestName={contestName} />
                                 }
                                 button={
-                                    <Button variant="fab" mini color="primary" aria-label="Delete" style={{margin:'0.5% 0.5%'}}>
+                                    <Button variant="fab" mini color="primary" aria-label="Delete" style={{margin:'10% 10%'}}>
                                         <DeleteIcon/>
                                     </Button>
                                 }
