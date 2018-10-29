@@ -52,7 +52,10 @@ class DeleteContest extends Component {
 
         return (
             <div>
+                <div>
                 Are you sure you want to delete {contestName}?
+                </div>
+                <br/>
                 <Button
                     variant="contained"
                     margin="normal"
