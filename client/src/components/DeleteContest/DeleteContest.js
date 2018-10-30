@@ -32,6 +32,7 @@ class DeleteContest extends Component {
         console.log(response);
         if (response.data.status == 200) {
             console.log(200);
+            window.location.replace("/contests");
         }
 
         if (response.data.status == 100) {
@@ -61,7 +62,6 @@ class DeleteContest extends Component {
                     margin="normal"
                     color="primary"
                     type="submit"
-                    href={"/contests/"}
                     style={{display:'block', width:'100%'}}
                     onClick={this.handleDeleteContest.bind()}
                 >

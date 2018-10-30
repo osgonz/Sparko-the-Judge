@@ -41,6 +41,7 @@ DROP PROCEDURE If Exists spUpdateContestOngoingToFinished;
 DROP PROCEDURE IF EXISTS spInsertSubmission;
 DROP PROCEDURE IF EXISTS spUpdateContestUser;
 DROP PROCEDURE IF EXISTS spGetRegularUsers;
+DROP PROCEDURE IF EXISTS spDeleteContest;
 
 ################################################################################
 #                                                                              #
