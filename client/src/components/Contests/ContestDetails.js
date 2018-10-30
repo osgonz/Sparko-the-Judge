@@ -49,6 +49,8 @@ class ContestDetails extends Component {
         submissionsData: [],
         scoreData: [],
         standingsData: [],
+        users: [],
+        contestUsers: [],
         isOwner: null,
         isParticipant: null,
         isValidated: null,
@@ -99,9 +101,9 @@ class ContestDetails extends Component {
                                this.setState({
                                    submissionsData: response.data.submissionsList,
                                    scoreData: response.data.scoresList,
-                                   standingsData: response.data.standingsList
+                                   standingsData: response.data.standingsList,
+                                   isValidated: true,
                                });
-                               this.setState({isValidated: true});
                            }
                         });
                     });
@@ -183,7 +185,24 @@ class ContestDetails extends Component {
                         onlineJudgesProblems = onlineJudgesProblems.concat(problemsSuggestions)
                         this.setState({onlineJudgesProblems: onlineJudgesProblems})
                     })
+
+                    axios.post('http://127.0.0.1:5000/GetRegularUsers', {
+                        contest_id: this.props.match.params.id
+                    }).then(response => {
+                        if (response.data.StatusCode == 200) {
+                            this.setState({users: response.data.users});
+                        }
+                    });
                 }
+
+                axios.post('http://127.0.0.1:5000/GetContestUsers', {
+                    contest_id: this.props.match.params.id
+                }).then(response => {
+                    if (response.data.StatusCode == 200) {
+                        this.setState({contestUsers: response.data.users});
+                    }
+                });
+
             } else {
                 this.setState({ isValidated: true })
             }
@@ -249,7 +268,10 @@ class ContestDetails extends Component {
                                         endDate= {this.state.endDate}
                                         status = {status}
                                         onlineJudgesProblems = {this.state.onlineJudgesProblems}
-                                        addedProblems = {problemsForEdit} />
+                                        addedProblems = {problemsForEdit}
+                                        users = {this.state.users}
+                                        contestUsers = {this.state.contestUsers}
+                                    />
                                 }
                                 button={
                                     <Button variant="fab" mini color="primary" aria-label="Edit Contest">
@@ -296,6 +318,8 @@ class ContestDetails extends Component {
                                     scores={scoreData}
                                     standingsData = {standingsData}
                                     status = {status}
+                                    isOwner={isOwner}
+                                    isAdmin={this.props.isAdmin}
                                 />
                             </TabContainer>}
                             {tabValue === 1 &&

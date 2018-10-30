@@ -1,11 +1,17 @@
+/*******************************************************************************/
+/*                                E X P O R T S                                */
+/*******************************************************************************/
+/*--------------------------------- R E A C T ---------------------------------*/
 import React from 'react';
-import classNames from 'classnames';
-import PropTypes from 'prop-types';
 import Select from 'react-select';
-import FormControl from '@material-ui/core/FormControl';
-import Button from '@material-ui/core/Button';
 
+/*--------------------------- M A T E R I A L   U I ---------------------------*/
+import IconButton from "@material-ui/core/IconButton";
+import AddIcon from '@material-ui/icons/Add';
+import Button from '@material-ui/core/Button';
 import ProblemsTable from './ProblemsTable'
+/*******************************************************************************/
+
 
 /*******************************************************************************/
 /*                                                                             */
@@ -50,18 +56,30 @@ class AddProblemDropdown extends React.Component {
     const { selectedOption } = this.state;
 
     return (
-      <div>
+      <div style={{marginRight: '1%', width:'49%'}}>
         {this.props.isEditable &&
-          <div>
-            <Button mini color="primary" disabled={!this.state.selectedOption} aria-label="Add problem" onClick={this.handleSelectOption}> Add problem </Button>
-            <Select
-              value={selectedOption}
-              onChange={this.handleChange}
-              options={this.props.problems}
-            />
+          <div className="contest-form-dropdown-button">
+              <div style={{marginRight: '1%', width:'91%'}}>
+                <Select
+                  value={selectedOption}
+                  onChange={this.handleChange}
+                  options={this.props.problems}
+                />
+              </div>
+              <div style={{width:'8%'}}>
+                  <IconButton  variant="outlined" disabled={!this.state.selectedOption} aria-label="Add Problem" onClick={this.handleSelectOption}>
+                      <AddIcon />
+                  </IconButton>
+              </div>
           </div>
         }
-        <ProblemsTable isEditable={this.props.isEditable} data={this.props.addedProblems} handleRemoveProblem={this.props.handleRemoveProblem}/>
+
+        <ProblemsTable 
+          style={{margin: '50%'}}
+          isEditable={this.props.isEditable} 
+          data={this.props.addedProblems} 
+          handleRemoveProblem={this.props.handleRemoveProblem}
+        />
       </div>
     );
   }

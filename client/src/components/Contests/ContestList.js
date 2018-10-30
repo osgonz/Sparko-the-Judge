@@ -35,7 +35,8 @@ import CreateContestButton from '../CreateContest/FormDialog';
 		username: '',
 		ownedContestData: [],
 		invitedContestData: [],
-		onlineJudgesProblems: []
+		onlineJudgesProblems: [],
+		users: []
 	};
 
 	 componentDidMount(){
@@ -49,10 +50,9 @@ import CreateContestButton from '../CreateContest/FormDialog';
 					if (response.status === 200) {
 						this.setState({ownedContestData: response.data.ownedContestList})
 					}
-
 				})
 				.then(() =>{
-					axios.post('http://127.0.0.1:5000/ViewInvitedContestList', {username: this.state.username}, {withCredentials: true})
+					axios.post('http://127.0.0.1:5000/ViewInvitedContestList', {username: response.data.username}, {withCredentials: true})
 					.then(response => {
 						if (response.status === 200) {
 							this.setState({invitedContestData: response.data.invitedContestList})
@@ -76,11 +76,11 @@ import CreateContestButton from '../CreateContest/FormDialog';
 					var problemTitle = problem[2]
 					var str = String(problemID) + " - " + String(problemNumber) + " - " + problemTitle + " (UVa)"
 					return {value: str, label: str}
-				})
+				});
 
-				onlineJudgesProblems = onlineJudgesProblems.concat(problemsSuggestions)
+				onlineJudgesProblems = onlineJudgesProblems.concat(problemsSuggestions);
 				this.setState({onlineJudgesProblems: onlineJudgesProblems})
-			})
+			});
 
 			axios.get('https://icpcarchive.ecs.baylor.edu/uhunt/api/p').then(response => {
 				var problemsSuggestions = response.data.map(function(problem) {
@@ -89,11 +89,19 @@ import CreateContestButton from '../CreateContest/FormDialog';
 					var problemTitle = problem[2]
 					var str = String(problemID) + " - " + String(problemNumber) + " - " + problemTitle + " (ICPC Live Archive)"
 					return {value: str, label: str}
-				})
+				});
 
-				onlineJudgesProblems = onlineJudgesProblems.concat(problemsSuggestions)
+				onlineJudgesProblems = onlineJudgesProblems.concat(problemsSuggestions);
 				this.setState({onlineJudgesProblems: onlineJudgesProblems})
-			})
+			});
+
+            axios.post('http://127.0.0.1:5000/GetRegularUsers', {
+                contest_id: this.props.match.params.id
+            }, {withCredentials: true}).then(response => {
+                if (response.data.StatusCode == 200) {
+                    this.setState({users: response.data.users});
+                }
+            });
 		})
 	}
 
@@ -115,6 +123,7 @@ import CreateContestButton from '../CreateContest/FormDialog';
 						component={
 							<CreateContest
 								onlineJudgesProblems={this.state.onlineJudgesProblems}
+								users={this.state.users}
 							/>
 						}
 						button={

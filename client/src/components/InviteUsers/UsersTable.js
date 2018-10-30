@@ -1,7 +1,3 @@
-/*******************************************************************************/
-/*                                E X P O R T S                                */
-/*******************************************************************************/
-/*--------------------------------- R E A C T ---------------------------------*/
 import React from 'react';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
@@ -21,12 +17,8 @@ import Paper from '@material-ui/core/Paper';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
 import DeleteIcon from '@material-ui/icons/Delete';
-import LockOpenIcon from '@material-ui/icons/LockOpen';
-import LockIcon from '@material-ui/icons/Lock';
 import FilterListIcon from '@material-ui/icons/FilterList';
 import { lighten } from '@material-ui/core/styles/colorManipulator';
-/*******************************************************************************/
-
 
 function desc(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -53,8 +45,7 @@ function getSorting(order, orderBy) {
 }
 
 const rows = [
-  { id: 'Problem', numeric: false, disablePadding: false, label: 'Problem', sortable: true },
-  { id: 'Online Judge', numeric: false, disablePadding: false, label: 'Online Judge', sortable: true },
+  { id: 'Username', numeric: false, disablePadding: false, label: 'User', sortable: true },
 ];
 
 const removeRow = { id: 'Remove', numeric: false, disablePadding: false, label: 'Remove', sortable: false }
@@ -64,13 +55,13 @@ const removeRow = { id: 'Remove', numeric: false, disablePadding: false, label: 
 /*                           T A B L E   H E A D E R                           */
 /*                                                                             */
 /*******************************************************************************/
-class ProblemsTableHead extends React.Component {
+class UsersTableHead extends React.Component {
  createSortHandler = property => event => {
     this.props.onRequestSort(event, property);
   };
 
   render() {
-    const { onSelectAllClick, order, orderBy, numSelected, rowCount } = this.props;
+    const { order, orderBy} = this.props;
 
     if (this.props.isEditable && !rows.includes(removeRow)) {
       rows.push(removeRow)
@@ -113,7 +104,7 @@ class ProblemsTableHead extends React.Component {
   }
 }
 
-ProblemsTableHead.propTypes = {
+UsersTableHead.propTypes = {
   numSelected: PropTypes.number.isRequired,
   onRequestSort: PropTypes.func.isRequired,
   order: PropTypes.string.isRequired,
@@ -158,7 +149,7 @@ let EnhancedTableToolbar = props => {
     >
       <div className={classes.title}>
         <Typography variant="title" id="tableTitle">
-          Problem List
+          User List
         </Typography>
       </div>
       <div className={classes.spacer} />
@@ -194,13 +185,13 @@ const styles = theme => ({
 /*                         T A B L E   C O N T E N T S                         */
 /*                                                                             */
 /*******************************************************************************/
-class ProblemsTable extends React.Component {
+class UsersTable extends React.Component {
 
   constructor(props) {
       super(props)
       this.state = {
         order: 'asc',
-        orderBy: 'fullName',
+        orderBy: 'username',
         selected: [],
         data: [],
         page: 0,
@@ -231,15 +222,6 @@ class ProblemsTable extends React.Component {
     this.setState({ rowsPerPage: event.target.value });
   };
 
-  handleJudgeCode = judge => {
-      switch(judge) {
-          case 0:
-              return 'ICPC Live Archive';
-          case 1:
-              return 'UVa';
-      }
-  }
-
   isSelected = id => this.state.selected.indexOf(id) !== -1;
 
   render() {
@@ -252,7 +234,7 @@ class ProblemsTable extends React.Component {
         <EnhancedTableToolbar numSelected={selected.length} usersSelected={selected}/>
         <div className={classes.tableWrapper}>
           <Table className={classes.table} aria-labelledby="tableTitle">
-            <ProblemsTableHead
+            <UsersTableHead
               numSelected={selected.length}
               order={order}
               orderBy={orderBy}
@@ -264,25 +246,19 @@ class ProblemsTable extends React.Component {
               {stableSort(data, getSorting(order, orderBy))
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map(n => {
-                  var judge = n.judge
-                  if(Number.isInteger(n.judge)){
-                    judge = this.handleJudgeCode(n.judge)
-                  }
-
                   return (
                     <TableRow
                       tabIndex={-1}
-                      key={n.problemName}
+                      key={n.username}
                       style={{cursor: 'pointer'}}
                     >
                       <TableCell component="th" scope="row" padding="default">
-                        {n.problemName}
+                        {n.username}
                       </TableCell>
-                      <TableCell numeric={rows[1].numeric}>{judge}</TableCell>
                       {this.props.isEditable &&
                         <TableCell>
                           <IconButton
-                            onClick={() => this.props.handleRemoveProblem(n)}
+                            onClick={() => this.props.handleRemoveUser(n)}
                           >
                             <DeleteIcon />
                           </IconButton>
@@ -318,8 +294,8 @@ class ProblemsTable extends React.Component {
   }
 }
 
-ProblemsTable.propTypes = {
+UsersTable.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(ProblemsTable);
+export default withStyles(styles)(UsersTable);
