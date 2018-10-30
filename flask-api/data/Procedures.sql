@@ -527,6 +527,15 @@ BEGIN
 
 END //
 
+-- Delete Contest 
+DELIMITER //
+
+CREATE PROCEDURE spDeleteContest(IN p_contestID INT)
+BEGIN
+  DELETE FROM Contest
+  Where contestID = p_contestID;
+END //
+
 -- Get all regular users
 DELIMITER //
 

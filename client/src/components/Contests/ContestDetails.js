@@ -20,6 +20,8 @@ import SubmissionsTab from './SubmissionsTab';
 import Error404 from '../Error404/Error404';
 import EditContestButton from '../CreateContest/FormDialog';
 import EditContest from '../EditContest/EditContest';
+import DeleteContestButton from '../CreateContest/FormDialog';
+import DeleteContest from '../DeleteContest/DeleteContest';
 
 const styles = {
     root: {
@@ -280,9 +282,19 @@ class ContestDetails extends Component {
                             />
                             }
                             {(this.props.isAdmin || isOwner) && status == 0 &&
-                            <Button variant="fab" mini color="primary" aria-label="Delete" style={{margin:'0.5% 0.5%'}}>
-                                <DeleteIcon />
-                            </Button>
+                            <DeleteContestButton
+                                component={
+                                    <DeleteContest
+                                        contestID={this.props.match.params.id}
+                                        contestName={contestName} />
+                                }
+                                button={
+                                    <Button variant="fab" mini color="primary" aria-label="Delete" style={{margin:'10% 10%'}}>
+                                        <DeleteIcon/>
+                                    </Button>
+                                }
+                                modalTitle={"Delete contest"}
+                            />    
                             }
                         </div>
                         <p className="contest-desc">{description}</p>
