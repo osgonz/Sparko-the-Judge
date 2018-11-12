@@ -1632,4 +1632,5 @@ if __name__ == '__main__':
     sched.start()
     update_ongoing_contest_data()
 
-    app.run(debug=True, use_reloader=False)
+    #app.run(debug=True, use_reloader=False)
+    os.system('gunicorn -c gunicorn.conf.py web.jobboard:app --debug')
