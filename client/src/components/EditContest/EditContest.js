@@ -212,12 +212,12 @@ class EditContest extends Component {
             endDate = formatDate(endDate)
 
             // Add any missing problems to the database
-            axios.post('http://127.0.0.1:5000/CreateProblems', {
+            axios.post('https://copromanager-api.herokuapp.com/CreateProblems', {
                 problems: problemsToAdd,
             }, {withCredentials: true})
             .then(() => {
                     // Edit contest details (also adds and removes any needed problems)
-                    axios.post('http://127.0.0.1:5000/EditContest', {
+                    axios.post('https://copromanager-api.herokuapp.com/EditContest', {
                         contestID: contestID,
                         contestName: contestName,
                         description: description,

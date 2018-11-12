@@ -125,7 +125,7 @@ class CreateContest extends Component {
             startDate = formatDate(startDate)
             endDate = formatDate(endDate)
 
-            axios.post('http://127.0.0.1:5000/CreateContest', {
+            axios.post('https://copromanager-api.herokuapp.com/CreateContest', {
                 contestName: contestName,
                 description: description,
                 startDate: startDate,
@@ -135,16 +135,16 @@ class CreateContest extends Component {
             .then(response => {
                 if (response.data.StatusCode == 200) {
                     var contestID = response.data.contestID;
-                    axios.post('http://127.0.0.1:5000/CreateProblems', {
+                    axios.post('https://copromanager-api.herokuapp.com/CreateProblems', {
                         problems: selectedProblems,
                     }, {withCredentials: true})
                     .then(response => {
-                        axios.post('http://127.0.0.1:5000/AddProblemsToContest', {
+                        axios.post('https://copromanager-api.herokuapp.com/AddProblemsToContest', {
                             contestID: contestID,
                             problems: selectedProblems,
                         }, {withCredentials: true})
                         .then(response => {
-                            axios.post('http://127.0.0.1:5000/AddUsersToContest', {
+                            axios.post('https://copromanager-api.herokuapp.com/AddUsersToContest', {
                                 contestID: contestID,
                                 users: selectedUsers,
                             }, {withCredentials: true});

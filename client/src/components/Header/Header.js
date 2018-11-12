@@ -55,7 +55,7 @@ class Header extends Component {
 
     handleLogout = () => {
 		if (this.props.isLogged) {
-			axios.get('http://127.0.0.1:5000/Logout', {withCredentials: true})
+			axios.get('https://copromanager-api.herokuapp.com/Logout', {withCredentials: true})
 			.then(response => {
 				this.handleMenuToggleClose();
 				// Call handleLogout() inherited from App.js

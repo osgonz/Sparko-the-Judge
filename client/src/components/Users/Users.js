@@ -207,7 +207,7 @@ var EnhancedTableToolbar = props => {
 
     function handleBanUser(usersBanned) {
         console.log("BANNED!")
-        axios.post('http://127.0.0.1:5000/BanUsers', {
+        axios.post('https://copromanager-api.herokuapp.com/BanUsers', {
           usernames: usersBanned
         }, {withCredentials: true})
         .then(response => {
@@ -217,7 +217,7 @@ var EnhancedTableToolbar = props => {
 
     function handleUnbanUser(usersUnbanned) {
         console.log(usersUnbanned);
-        axios.post('http://127.0.0.1:5000/UnbanUsers', {
+        axios.post('https://copromanager-api.herokuapp.com/UnbanUsers', {
           usernames: usersUnbanned
         }, {withCredentials: true})
         .then(response => {
@@ -318,7 +318,7 @@ class Users extends Component {
 
     componentDidMount(){
       var username = ''
-        axios.get('http://127.0.0.1:5000/GetActiveSession', {withCredentials: true})
+        axios.get('https://copromanager-api.herokuapp.com/GetActiveSession', {withCredentials: true})
         .then(response => {
           if (response.data.username != 'Session not found'){
             username = response.data
@@ -326,7 +326,7 @@ class Users extends Component {
         })
         .then(response => {
           if(this.props.isAdmin) {
-              axios.post('http://127.0.0.1:5000/GetUserList', {usertype: '0'}, {withCredentials: true})
+              axios.post('https://copromanager-api.herokuapp.com/GetUserList', {usertype: '0'}, {withCredentials: true})
               .then(response => {
                 console.log(response)
                   if (response.data.status == 'SUCCESS'){
@@ -335,7 +335,7 @@ class Users extends Component {
               })
           }
           else {
-              axios.post('http://127.0.0.1:5000/GetUserList', {usertype: '1'}, {withCredentials: true})
+              axios.post('https://copromanager-api.herokuapp.com/GetUserList', {usertype: '1'}, {withCredentials: true})
               .then(response => {
                 console.log(response)
                   if (response.data.status == 'SUCCESS'){

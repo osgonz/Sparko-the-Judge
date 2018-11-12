@@ -25,7 +25,7 @@ class DeleteContest extends Component {
     handleDeleteContest () {
     const {contestID} = this.state;
     // Delete Contest
-    axios.post('http://127.0.0.1:5000/DeleteContest', {
+    axios.post('https://copromanager-api.herokuapp.com/DeleteContest', {
         contestID: contestID,
     }, {withCredentials: true})
     .then(response => {

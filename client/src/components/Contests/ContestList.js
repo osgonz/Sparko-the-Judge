@@ -41,18 +41,18 @@ import CreateContestButton from '../CreateContest/FormDialog';
 
 	 componentDidMount(){
 		var onlineJudgesProblems = []
-		axios.get('http://127.0.0.1:5000/GetActiveSession', {withCredentials: true})
+		axios.get('https://copromanager-api.herokuapp.com/GetActiveSession', {withCredentials: true})
 		.then(response => {
 			if (response.data != 'Session not found') {
 				this.setState({username: response.data.username})
-				axios.post('http://127.0.0.1:5000/ViewOwnedContestList', {username: this.state.username}, {withCredentials: true})
+				axios.post('https://copromanager-api.herokuapp.com/ViewOwnedContestList', {username: this.state.username}, {withCredentials: true})
 				.then(response => {
 					if (response.status === 200) {
 						this.setState({ownedContestData: response.data.ownedContestList})
 					}
 				})
 				.then(() =>{
-					axios.post('http://127.0.0.1:5000/ViewInvitedContestList', {username: response.data.username}, {withCredentials: true})
+					axios.post('https://copromanager-api.herokuapp.com/ViewInvitedContestList', {username: response.data.username}, {withCredentials: true})
 					.then(response => {
 						if (response.status === 200) {
 							this.setState({invitedContestData: response.data.invitedContestList})
@@ -95,7 +95,7 @@ import CreateContestButton from '../CreateContest/FormDialog';
 				this.setState({onlineJudgesProblems: onlineJudgesProblems})
 			});
 
-            axios.post('http://127.0.0.1:5000/GetRegularUsers', {
+            axios.post('https://copromanager-api.herokuapp.com/GetRegularUsers', {
                 contest_id: this.props.match.params.id
             }, {withCredentials: true}).then(response => {
                 if (response.data.StatusCode == 200) {
