@@ -1626,7 +1626,7 @@ def logout():
 
 if __name__ == '__main__':
     # Scheduler object
-    sched = BackgroundScheduler(daemon=True)
+    sched = BackgroundScheduler()
     sched.add_job(update_ongoing_contest_data, 'interval', minutes=5)
 
     sched.start()
