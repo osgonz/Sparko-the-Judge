@@ -1633,4 +1633,4 @@ if __name__ == '__main__':
     update_ongoing_contest_data()
 
     #app.run(debug=True, use_reloader=False)
-    os.system('gunicorn -c gunicorn.conf.py web.jobboard:app')
+    os.system('gunicorn -c gunicorn.conf.py app:app')
