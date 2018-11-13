@@ -6,8 +6,10 @@ import React, { Component } from 'react';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import axios from 'axios'
-import AlertDialog from '../AlertDialog/AlertDialog';
 import ReactDOM from 'react-dom'
+
+import AlertDialog from '../AlertDialog/AlertDialog';
+import CompareDialog from '../AlertDialog/CompareDialog';
 
 /*--------------------------- M A T E R I A L   U I ---------------------------*/
 import { withStyles } from '@material-ui/core/styles';
@@ -37,6 +39,7 @@ import FaceIcon from '@material-ui/icons/Face';
 import BanIcon from '@material-ui/icons/Gavel';
 import AdminIcon from '@material-ui/icons/Pets';
 import AdminIcon2 from '@material-ui/icons/StarRate';
+import CompareIcon from '@material-ui/icons/SupervisedUserCircle';
 /*******************************************************************************/
 
 function desc(a, b, orderBy) {
@@ -93,7 +96,8 @@ class UsersTableHead extends Component {
         <TableRow>
           <TableCell padding="checkbox">
             {
-                this.props.isAdmin &&
+                //this.props.isAdmin &&
+                true && 
                 <Checkbox
                   indeterminate={numSelected > 0 && numSelected < rowCount}
                   checked={numSelected === rowCount}
@@ -205,6 +209,43 @@ var EnhancedTableToolbar = props => {
         ReactDOM.render(dialog, document.getElementById('myDialog'));
     }
 
+    function dialogCompareUsers(event, usersCompared) {
+
+      // Llamada a Axios, retrieve the list of common contests. ID y ContestName
+      const ejemploDeContests = [{
+                                  id: 2,
+                                  name: "Hello There"
+                                  },
+                                  {
+                                  id: 7,
+                                  name: "Super Hard Contest"
+                                  },
+                                  {
+                                  id: 19,
+                                  name: "2 Easy 4 U contest"
+                                  },
+                                ];
+
+      // Modal should still open but with a message and only a close button
+      const ejemploDeContestsVacio = [];
+
+      const dialog = (
+          <CompareDialog 
+            open={true}
+            title="Comparing Users" 
+            description="Select a contest to compare the selected users"
+            contestList={ejemploDeContests}
+            btnAcceptTitle="Compare"
+            btnCancelTitle="Cancel"
+            acceptFunc={ () => {
+                handleCompareUsers(usersCompared)
+              }
+            }/>
+        );
+
+        ReactDOM.render(dialog, document.getElementById('myDialog'));
+    }
+
     function handleBanUser(usersBanned) {
         console.log("BANNED!")
         axios.post('http://127.0.0.1:5000/BanUsers', {
@@ -225,6 +266,12 @@ var EnhancedTableToolbar = props => {
             window.location.reload();
         })
     }
+
+    function handleCompareUsers(usersCompared) {
+        console.log("COMPARE!")
+        console.log(usersCompared);
+    }
+
 
   return (
 
@@ -249,19 +296,30 @@ var EnhancedTableToolbar = props => {
         {numSelected > 0 ? (
           <div style={{display: "flex"}}>
             
-            <Tooltip title="Ban Users">
-              <IconButton aria-label="Ban" onClick={event => dialogBanUser(event, props.usersSelected)}>
-                <LockIcon />
-              </IconButton>
-            </Tooltip>
+            { props.isAdmin &&
+              <Tooltip title="Ban Users">
+                <IconButton aria-label="Ban" onClick={event => dialogBanUser(event, props.usersSelected)}>
+                  <LockIcon />
+                </IconButton>
+              </Tooltip>
+            }
 
             <div id="myDialog"></div>           
 
-            <Tooltip title="Unban Users">
-              <IconButton aria-label="Unban" onClick={event => dialogUnbanUser(event, props.usersSelected)}>
-                <LockOpenIcon />
+            { props.isAdmin &&
+              <Tooltip title="Unban Users">
+                <IconButton aria-label="Unban" onClick={event => dialogUnbanUser(event, props.usersSelected)}>
+                  <LockOpenIcon />
+                </IconButton>
+              </Tooltip>
+            }
+
+            <Tooltip title="Compare User Stats">
+              <IconButton aria-label="Compare" onClick={event => dialogCompareUsers(event, props.usersSelected)}>
+                <CompareIcon/>
               </IconButton>
             </Tooltip>
+
           </div>
         ) : (
           <Tooltip title="Filter list">
@@ -279,7 +337,8 @@ EnhancedTableToolbar.propTypes = {
   classes: PropTypes.object.isRequired,
   numSelected: PropTypes.number.isRequired,
   usersSelected: PropTypes.array.isRequired,
-  openDialog: PropTypes.bool.isRequired
+  openDialog: PropTypes.bool.isRequired,
+  isAdmin: PropTypes.bool.isRequired
 };
 
 EnhancedTableToolbar = withStyles(toolbarStyles)(EnhancedTableToolbar);
@@ -431,7 +490,7 @@ class Users extends Component {
 
     return (
       <Paper className={classes.root}>
-        <EnhancedTableToolbar numSelected={selected.length} usersSelected={selected} openDialog={true}/>
+        <EnhancedTableToolbar numSelected={selected.length} usersSelected={selected} openDialog={true} isAdmin={this.props.isAdmin} />
         <div className={classes.tableWrapper}>
           <Table className={classes.table} aria-labelledby="tableTitle">
             <UsersTableHead
@@ -452,7 +511,8 @@ class Users extends Component {
                     <TableRow
                       hover
                       onClick={event => {
-                          if (this.props.isAdmin){
+                          if(true) {
+                          //if (this.props.isAdmin){
                             this.handleClick(event, n.id)
                           }
                           else{
@@ -469,7 +529,8 @@ class Users extends Component {
                       title={this.getTableRowTitle(this.props.isAdmin, n.username)}
                     >
                       <TableCell padding="checkbox">
-                      { this.props.isAdmin &&
+                      { true &&
+                        //this.props.isAdmin &&
                               <Checkbox checked={isSelected} />
                       }
                       </TableCell>
