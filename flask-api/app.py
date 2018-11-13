@@ -1624,7 +1624,7 @@ def logout():
     session.pop('loggedUser', None)
     return 'You were logged out'
 
-if __name__ == '__main__':
+def setup_scheduler(app):
     # Scheduler object
     sched = BackgroundScheduler()
     sched.add_job(update_ongoing_contest_data, 'interval', minutes=5)
@@ -1632,5 +1632,9 @@ if __name__ == '__main__':
     sched.start()
     update_ongoing_contest_data()
 
-    #app.run(debug=True, use_reloader=False)
-    os.system('gunicorn -c gunicorn.conf.py app:app')
+
+setup_scheduler(app)
+
+if __name__ == '__main__':
+    app.run(debug=True, use_reloader=False)
+
