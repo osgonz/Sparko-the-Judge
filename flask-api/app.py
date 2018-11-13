@@ -1563,6 +1563,134 @@ class DeleteContest(Resource):
             cursor.close()
             conn.close()
 
+class GetContestStats(Resource):
+
+    def handleResultCode(self, resultCode):
+        if resultCode == 10:
+            return 'Submission error'
+        elif resultCode == 15:
+            return "Can't be judged"
+        elif resultCode == 20:
+            return 'In queue'
+        elif resultCode == 30:
+            return 'Compile error'
+        elif resultCode == 35:
+            return 'Restricted function'
+        elif resultCode == 40:
+            return 'Runtime error'
+        elif resultCode == 45:
+            return 'Output limit'
+        elif resultCode == 50:
+            return 'Time limit'
+        elif resultCode == 60:
+            return 'Memory limit'
+        elif resultCode == 70:
+            return 'Wrong answer'
+        elif resultCode == 80:
+            return 'PresentationE'
+
+        return 'Accepted'
+
+    def post(self):
+        # Open MySQL connection
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        
+        try:
+            # Parse the arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('contestID', type=int, help='Contest identifier number')
+
+            args = parser.parse_args()
+            _contestID = args['contestID']
+
+            charts = []
+
+            cursor.callproc('spGetSubmissionsCountPerProblemPerResult', (_contestID,))
+            submissionsResultCount = cursor.fetchall()
+
+            resultStatuses = [10, 15, 20, 30, 35, 40, 45, 50, 60, 70, 80, 90]
+            handledStatuses = ['Problem']
+            handledStatuses.extend([self.handleResultCode(status) for status in resultStatuses])
+
+            submissionsPerProblemChart = {
+                'chartType': 'pie',
+                'options': {
+                    'title': 'Submissions per problem',
+                },
+                'data': [
+                    ['Problem', 'Submissions per Problem'],
+                ]
+            }
+
+            submissionsResultCountChart = {
+                'chartType': 'column-stacked',
+                'options': {
+                    'title': 'Submission results per problem',
+                    'axisTitles': {
+                        'vertical': 'Problem name',
+                        'horizontal': 'Number of Submissions'
+                    }
+                },
+                'data': [
+                    handledStatuses,
+                ]
+            }
+
+            submissionsPerLanguageChart = {
+                'chartType': 'pie',
+                'options': {
+                    'title': 'Programming languages used',
+                },
+                'data': [
+                    ['Programming Language', 'Submissions per programming Language'],
+                ]
+            }
+
+            submissionsPerProblemDict = dict()
+            problemResultCountDict = dict()
+            for problemResultCount in submissionsResultCount:
+                submissionsPerProblem = submissionsPerProblemDict.setdefault(problemResultCount[0], 0)
+                submissionsPerProblem = submissionsPerProblem + problemResultCount[2]
+                submissionsPerProblemDict[problemResultCount[0]] = submissionsPerProblem
+
+                resultsPerProblem = problemResultCountDict.setdefault(problemResultCount[0], dict((status, 0) for status in resultStatuses))
+                resultsPerProblem[problemResultCount[1]] = problemResultCount[2]
+                problemResultCountDict[problemResultCount[0]] = resultsPerProblem
+
+            for problem, results in problemResultCountDict.items():
+                problemResultsList = [problem]
+                submissionsPerProblemList = [problem, submissionsPerProblemDict[problem]]
+                for status in resultStatuses:
+                    problemResultsList.append(results[status])
+
+                submissionsPerProblemChart['data'].append(submissionsPerProblemList)
+                submissionsResultCountChart['data'].append(problemResultsList)
+
+            cursor.callproc('spGetSubmissionsCountPerLanguage', (_contestID,))
+            submissionsLanguageCount = cursor.fetchall()
+
+            for languageCount in submissionsLanguageCount:
+                cnt = [languageCount[0], languageCount[1]]
+                submissionsPerLanguageChart['data'].append(cnt)
+
+            charts.append(submissionsResultCountChart)
+            charts.append(submissionsPerProblemChart)
+            charts.append(submissionsPerLanguageChart)
+
+            return jsonify({'status': 200, 'charts': charts})
+
+        except Exception as e:
+            try:  # empty exception handler in case rollback fails}
+                print(str(e))
+                conn.rollback ()
+            except:
+                pass
+
+        finally:
+            cursor.close()
+            conn.close()
+
 api.add_resource(CreateUser, '/CreateUser')
 api.add_resource(AuthenticateUser, '/AuthenticateUser')
 api.add_resource(EditUserJudgesUsernames, '/EditUserJudgesUsernames')
@@ -1592,6 +1720,7 @@ api.add_resource(CreateProblems, '/CreateProblems')
 api.add_resource(DeleteContest, '/DeleteContest')
 api.add_resource(GetContestUsers, '/GetContestUsers')
 api.add_resource(GetRegularUsers, '/GetRegularUsers')
+api.add_resource(GetContestStats, '/GetContestStats')
 
 @app.route('/')
 def hello():

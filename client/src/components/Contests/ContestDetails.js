@@ -352,7 +352,7 @@ class ContestDetails extends Component {
 
                             {(isOwner) && tabValue === 3 &&
                             <TabContainer>
-                                <Statistics type='contest'>
+                                <Statistics isContestFinished={this.state.status === 2} contestID={this.props.match.params.id} type='contest'>
                                 </Statistics>
                             </TabContainer>
                             }
