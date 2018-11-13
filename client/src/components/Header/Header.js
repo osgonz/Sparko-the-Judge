@@ -97,7 +97,7 @@ class Header extends Component {
                     <Toolbar>
                         <Typography variant="title" color="inherit" className={classes.titleFlex}>
                             <Link to='/' style={{ textDecoration: 'none', color: 'inherit' }}>
-                                CoProManager
+                                Sparko the Judge
                             </Link>
                         </Typography>
                         { /* If logged in, show user and admin buttons respectively */ }
