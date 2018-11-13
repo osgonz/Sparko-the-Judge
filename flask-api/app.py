@@ -1601,7 +1601,42 @@ class FindCommonContest(Resource):
             cursor.close()
             conn.close()
 
-#PENDING
+class FindNumberContestProblems(Resource):
+    def post(self):
+        # Open MySQL connection
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
+        try:
+            # Parse request arguments
+            parser = reqparse.RequestParser()
+            parser.add_argument('usernames', action='append', help="UserIDList")
+
+            args = parser.parse_args()
+
+            results = []
+            _users = args['usernames']
+
+            for user in _users:
+                cursor.callproc('spUserNumberSolvedProblems', (user,))
+                data = cursor.fetchall()
+                if data[0][0]:
+                    results.append(data)
+                else:
+                    cursor.callproc('spSelectUserName', (user,))
+                    username = cursor.fetchall()
+                    results.append([[username[0][0], 0, 0]])
+
+            conn.commit()
+            return jsonify({'status': 200, 'contests': results})
+
+        except Exception as e:
+            return {'error': str(e)}
+
+        finally:
+            cursor.close()
+            conn.close()
+
 class FindContestProblems(Resource):
     def post(self):
         # Open MySQL connection
@@ -1634,7 +1669,7 @@ class FindContestProblems(Resource):
             conn.close()
 
 #PENDING
-class FindContestSubmissionRatio(Resource):
+class FindUsersSubmissionRatio(Resource):
     def post(self):
         # Open MySQL connection
         conn = mysql.connect()
@@ -1643,20 +1678,24 @@ class FindContestSubmissionRatio(Resource):
         try:
             # Parse request arguments
             parser = reqparse.RequestParser()
-            parser.add_argument('usernames',  help="UserIDList")
+            parser.add_argument('usernames', action='append', help="UserIDList")
 
             args = parser.parse_args()
 
-
-            print("WHATSAPP")
+            subRate = []
             _users = args['usernames']
-            print(_users)
-            print("DUDE")
+            for user in _users:
+                cursor.callproc('spSubmissionRateByUser', (user,))
+                data = cursor.fetchall()
+                if data[0][0]:
+                    subRate.append(data)
+                else:
+                    cursor.callproc('spSelectUserName', (user,))
+                    username = cursor.fetchall()
+                    subRate.append([[username[0][0], 0]])
 
-            cursor.callproc('spCommonContest', (_users,))
-            data = cursor.fetchall()
             conn.commit()
-            return jsonify({'status': 200, 'contests': data})
+            return jsonify({'status': 200, 'contests': subRate})
 
         except Exception as e:
             return {'error': str(e)}
@@ -1665,7 +1704,6 @@ class FindContestSubmissionRatio(Resource):
             cursor.close()
             conn.close()
 
-#PENDING
 class FindFastestSolution(Resource):
     def post(self):
         # Open MySQL connection
@@ -1675,18 +1713,18 @@ class FindFastestSolution(Resource):
         try:
             # Parse request arguments
             parser = reqparse.RequestParser()
-            parser.add_argument('usernames', help="UserIDList")
-
+            parser.add_argument('usernames', action='append', help="UserIDList")
             args = parser.parse_args()
-            print("WHATSAPP")
+            results = []
             _users = args['usernames']
-            print(_users)
-            print("DUDE")
+            for user in _users:
+                cursor.callproc('spFastestSubmissionByUser', (user,))
+                data = cursor.fetchall()
+                if len(data):
+                    results.append(data)
 
-            cursor.callproc('spCommonContest', (_users,))
-            data = cursor.fetchall()
             conn.commit()
-            return jsonify({'status': 200, 'contests': data})
+            return jsonify({'status': 200, 'contests': results})
 
         except Exception as e:
             return {'error': str(e)}
@@ -1726,8 +1764,9 @@ api.add_resource(GetContestUsers, '/GetContestUsers')
 api.add_resource(GetRegularUsers, '/GetRegularUsers')
 api.add_resource(FindCommonContest, '/FindCommonContest')
 api.add_resource(FindFastestSolution, '/FindFastestSolution')
-api.add_resource(FindContestSubmissionRatio, '/FindContestSubmissionRatio')
+api.add_resource(FindUsersSubmissionRatio, '/FindUsersSubmissionRatio')
 api.add_resource(FindContestProblems, '/FindContestProblems')
+api.add_resource(FindNumberContestProblems, '/FindNumberContestProblems')
 
 @app.route('/')
 def hello():

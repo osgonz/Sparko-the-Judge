@@ -554,14 +554,35 @@ BEGIN
       );
 END //
 
+-- Get amount of problems solved by a user
+DELIMITER //
+
+CREATE PROCEDURE spUserNumberSolvedProblems (p_userID int)
+BEGIN
+  SELECT u.username as uName, COUNT(s.problemID) as pSolved
+  FROM copromanager.submission s, copromanager.users u
+  WHERE s.result = 90 AND s.submitter = p_userID AND u.userID = p_userID;
+END//
+
+
 -- Get all problems solved by a user
 DELIMITER //
 
 CREATE PROCEDURE spUserSolvedProblems (p_userID int)
 BEGIN
-SELECT p.problemID as pID, problemName as pName, u.userID as uID, u.username as uName
-FROM problems p, submission, users u
-WHERE p.problemID IN (SELECT problemID FROM submission WHERE result = 90 AND submitter = p_userID);
+SELECT u.username as uName, p.problemID as pID, p.problemName as pName
+FROM problems p, submission s, users u
+WHERE s.result = 90 AND s.submitter = p_userID AND u.userID = p_userID AND p.problemID = s.problemID;
+END//
+
+-- Get all problems by a user
+DELIMITER //
+
+CREATE PROCEDURE spUserProblems (p_userID int)
+BEGIN
+SELECT p.problemName as pName, u.userID as uID, u.username as uName
+FROM problems p, users u
+WHERE s.result = 90 AND s.submitter = p_userID AND u.userID = p_userID;
 END//
 
 -- Get fastest problem solved problem
@@ -569,9 +590,9 @@ DELIMITER //
 
 CREATE PROCEDURE spFastestSubmissionByUser (p_userID int)
 BEGIN
-  Select p.problemID, p.problemName, s.submissionTime
-    FROM problems p, submission s
-    WHERE MIN(submissionTime) AND p.problemID = s.problemID AND p.problemID IN (SELECT s.problemID FROM submission s WHERE result = 90 AND contestID IN (SELECT contestID FROM contestuser WHERE userID = p_userID));
+  Select u.username as uName, p.problemName as pName, MIN(s.submissionTime) as pTime  
+    FROM problems p, submission s, users u
+    WHERE p.problemID = s.problemID AND s.submitter = u.userID AND s.submitter = p_userID;
 END//
 
 -- Get contest by id
@@ -581,5 +602,15 @@ CREATE PROCEDURE spSelectContestUser (p_userID int)
 BEGIN
   SELECT contestID AS id, contestName AS name
   FROM contest
-  WHERE contestID IN (SELECT contestID FROM contestuser WHERE userID=idUser);
+  WHERE contestID IN (SELECT contestID FROM contestuser WHERE userID=p_userID);
+END
+
+-- Get username by id
+DELIMITER //
+
+CREATE PROCEDURE spSelectUserName (p_userID int)
+BEGIN
+  SELECT userName AS name
+  FROM users
+  WHERE userID=p_userID;
 END

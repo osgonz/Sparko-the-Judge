@@ -211,7 +211,7 @@ var EnhancedTableToolbar = props => {
 
     function dialogCompareUsers(event, usersCompared) {
       
-        axios.post('http://127.0.0.1:5000/FindContestProblems', {
+        axios.post('http://127.0.0.1:5000/FindUsersSubmissionRatio', {
           usernames: usersCompared
         }, {withCredentials: true})
         .then(response => {
