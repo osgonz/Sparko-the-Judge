@@ -1566,7 +1566,7 @@ class DeleteContest(Resource):
 class GetUserStats(Resource):
     def post(self):
         conn = mysql.connect()
-        cursos = conn.cursor()
+        cursor = conn.cursor()
 
         try:
             parser = reqparse.RequestParser()
@@ -1646,6 +1646,8 @@ class GetUserStats(Resource):
                 submissionsSucFailRatioChart['data'].append([value[0][0], value[0][1], values[0][2]])
 
             #fastest submission time
+            #NOT INCLUDED
+            #la columna de valores no puede ser string.
             submissionsSpeedChart = {
                 'chartType': 'column',
                 'options': {
@@ -1663,16 +1665,22 @@ class GetUserStats(Resource):
             for user in _users:
                 cursor.callproc('spFastestSubmissionByUser', (user, _contestID))
                 data = cursor.fetchall()
-                if len(data):
+                if data[0][0]:
                     results.append(data)
-
+                else:
+                    cursor.callproc('spSelectUserName', (user,))
+                    username = cursor.fetchall()
+                    subRate.append([[username[0][0], 0, 0]])
             resultDictArr = []
             for values in results:
+                print(values)
                 submissionsSpeedChart['data'].append([value[0][0], value[0][2]])
+
+            #END NOT INCLUDED
 
             charts.append(submissionsResultCountChart)
             charts.append(submissionsSucFailRatioChart)
-            charts.append(submissionsSpeedChart)
+            #charts.append(submissionsSpeedChart)
 
             return jsonify({'status': 200, 'charts': charts})
         except Exception as e:

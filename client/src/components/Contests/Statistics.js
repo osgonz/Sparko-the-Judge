@@ -82,9 +82,10 @@ class Statistics extends Component {
   	fetchUserData(){
   		console.log("Requested to see user stats");
   		axios.post('http://127.0.0.1:5000/GetUserStats', {
-  			username: this.props.username,
+  			usernames: this.props.usernames,
   			contestID: this.props.contestID
   		}, {withCredentials: true}).then(response => {
+  			console.log(response)
   			if (response.data.status == 200) {
 		  		this.setState(state => ({
 			    	fetchedData: response.data.charts
