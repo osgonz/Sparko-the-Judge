@@ -564,6 +564,23 @@ BEGIN
   WHERE s.result = 90 AND s.submitter = p_userID AND u.userID = p_userID;
 END//
 
+-- Get submission rate by user
+DELIMITER //
+
+CREATE PROCEDURE spSubmissionRateByUser (p_userID int)
+BEGIN
+  SELECT t1.username, COALESCE(t1.pSolved,0) as pSolved, COALESCE(t2.pNotSolved,0) as pNotSolved
+  FROM
+    (SELECT username, COUNT(s.problemID) as pSolved 
+      FROM copromanager.submission s, copromanager.users u 
+          WHERE s.result = 90 AND s.submitter = p_userID AND u.userID = p_userID) t1
+  LEFT JOIN
+    (SELECT username, COUNT(s.problemID) as pNotSolved
+      FROM copromanager.submission s, copromanager.users u
+      WHERE s.result != 90 AND s.submitter = p_userID AND u.userID = p_userID) t2
+  ON t1.username = t2.username;
+END//
+
 
 -- Get all problems solved by a user
 DELIMITER //
@@ -575,24 +592,14 @@ FROM problems p, submission s, users u
 WHERE s.result = 90 AND s.submitter = p_userID AND u.userID = p_userID AND p.problemID = s.problemID;
 END//
 
--- Get all problems by a user
-DELIMITER //
-
-CREATE PROCEDURE spUserProblems (p_userID int)
-BEGIN
-SELECT p.problemName as pName, u.userID as uID, u.username as uName
-FROM problems p, users u
-WHERE s.result = 90 AND s.submitter = p_userID AND u.userID = p_userID;
-END//
-
 -- Get fastest problem solved problem
 DELIMITER //
 
-CREATE PROCEDURE spFastestSubmissionByUser (p_userID int)
+CREATE PROCEDURE spFastestSubmissionByUser (p_userID int, p_contestID int)
 BEGIN
   Select u.username as uName, p.problemName as pName, MIN(s.submissionTime) as pTime  
     FROM problems p, submission s, users u
-    WHERE p.problemID = s.problemID AND s.submitter = u.userID AND s.submitter = p_userID;
+    WHERE p.problemID = s.problemID AND s.submitter = u.userID AND s.submitter = p_userID AND s.contestID = p_contestID;
 END//
 
 -- Get contest by id

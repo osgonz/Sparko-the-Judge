@@ -1570,7 +1570,7 @@ class FindCommonContest(Resource):
         cursor = conn.cursor()
 
         try:
-            # Parse request arguments
+            # Parse request arguments 
             parser = reqparse.RequestParser()
             parser.add_argument('usernames', action='append', help="UserIDList")
 
@@ -1590,9 +1590,16 @@ class FindCommonContest(Resource):
                             results.append(data[j])
                         
                 data = results
-                    
+            
+            resultDictArr = []
+            for value in results:
+                valueDict = dict()
+                valueDict["id"] = value[0]
+                valueDict["name"] = value[1]
+                resultDictArr.append(valueDict)
+
             conn.commit()
-            return jsonify({'status': 200, 'contests': results})
+            return jsonify({'status': 200, 'contests': resultDictArr})
 
         except Exception as e:
             return {'error': str(e)}
@@ -1625,10 +1632,17 @@ class FindNumberContestProblems(Resource):
                 else:
                     cursor.callproc('spSelectUserName', (user,))
                     username = cursor.fetchall()
-                    results.append([[username[0][0], 0, 0]])
+                    results.append([[username[0][0], 0]])
+
+            resultDictArr = []
+            for value in results:
+                valueDict = dict()
+                valueDict["username"] = value[0][0]
+                valueDict["pSolved"] = value[0][1]
+                resultDictArr.append(valueDict)
 
             conn.commit()
-            return jsonify({'status': 200, 'contests': results})
+            return jsonify({'status': 200, 'contests': resultDictArr})
 
         except Exception as e:
             return {'error': str(e)}
@@ -1658,8 +1672,17 @@ class FindContestProblems(Resource):
                 if len(data):
                     results.append(data)
 
+            resultDictArr = []
+            for values in results:
+                for result in values:
+                    valueDict = dict()
+                    valueDict["username"] = result[0]
+                    valueDict["problemID"] = result[1]
+                    valueDict["problemName"] = result[2]
+                    resultDictArr.append(valueDict)
+
             conn.commit()
-            return jsonify({'status': 200, 'contests': results})
+            return jsonify({'status': 200, 'contests': resultDictArr})
 
         except Exception as e:
             return {'error': str(e)}
@@ -1668,7 +1691,6 @@ class FindContestProblems(Resource):
             cursor.close()
             conn.close()
 
-#PENDING
 class FindUsersSubmissionRatio(Resource):
     def post(self):
         # Open MySQL connection
@@ -1692,10 +1714,18 @@ class FindUsersSubmissionRatio(Resource):
                 else:
                     cursor.callproc('spSelectUserName', (user,))
                     username = cursor.fetchall()
-                    subRate.append([[username[0][0], 0]])
+                    subRate.append([[username[0][0], 0, 0]])
+
+            resultDictArr = []
+            for values in subRate:
+                valueDict = dict()
+                valueDict["username"] = values[0][0]
+                valueDict["problemAccepted"] = values[0][1]
+                valueDict["problemFailed"] = values[0][2]
+                resultDictArr.append(valueDict)
 
             conn.commit()
-            return jsonify({'status': 200, 'contests': subRate})
+            return jsonify({'status': 200, 'contests': resultDictArr})
 
         except Exception as e:
             return {'error': str(e)}
@@ -1714,17 +1744,27 @@ class FindFastestSolution(Resource):
             # Parse request arguments
             parser = reqparse.RequestParser()
             parser.add_argument('usernames', action='append', help="UserIDList")
+            parser.add_argument('contestID', type=int, help="contestID")
             args = parser.parse_args()
             results = []
             _users = args['usernames']
+            _contestID = args['contestID']
             for user in _users:
-                cursor.callproc('spFastestSubmissionByUser', (user,))
+                cursor.callproc('spFastestSubmissionByUser', (user, _contestID))
                 data = cursor.fetchall()
                 if len(data):
                     results.append(data)
 
+            resultDictArr = []
+            for values in results:
+                valueDict = dict()
+                valueDict["username"] = values[0][0]
+                valueDict["problemName"] = values[0][1]
+                valueDict["timestamp"] = values[0][2]
+                resultDictArr.append(valueDict)
+
             conn.commit()
-            return jsonify({'status': 200, 'contests': results})
+            return jsonify({'status': 200, 'contests': resultDictArr})
 
         except Exception as e:
             return {'error': str(e)}
