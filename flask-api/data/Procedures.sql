@@ -42,6 +42,9 @@ DROP PROCEDURE IF EXISTS spInsertSubmission;
 DROP PROCEDURE IF EXISTS spUpdateContestUser;
 DROP PROCEDURE IF EXISTS spGetRegularUsers;
 DROP PROCEDURE IF EXISTS spDeleteContest;
+DROP PROCEDURE IF EXISTS spUserSolvedProblems;
+DROP PROCEDURE IF EXISTS spFastestSubmissionByUser;
+DROP PROCEDURE IF EXISTS spSelectContestUser;
 
 ################################################################################
 #                                                                              #
@@ -550,3 +553,33 @@ BEGIN
         WHERE contestID = p_contest
       );
 END //
+
+-- Get all problems solved by a user
+DELIMITER //
+
+CREATE PROCEDURE spUserSolvedProblems (p_userID int)
+BEGIN
+SELECT p.problemID as pID, problemName as pName, u.userID as uID, u.username as uName
+FROM problems p, submission, users u
+WHERE p.problemID IN (SELECT problemID FROM submission WHERE result = 90 AND submitter = p_userID);
+END//
+
+-- Get fastest problem solved problem
+DELIMITER //
+
+CREATE PROCEDURE spFastestSubmissionByUser (p_userID int)
+BEGIN
+  Select p.problemID, p.problemName, s.submissionTime
+    FROM problems p, submission s
+    WHERE MIN(submissionTime) AND p.problemID = s.problemID AND p.problemID IN (SELECT s.problemID FROM submission s WHERE result = 90 AND contestID IN (SELECT contestID FROM contestuser WHERE userID = p_userID));
+END//
+
+-- Get contest by id
+DELIMITER //
+
+CREATE PROCEDURE spSelectContestUser (p_userID int)
+BEGIN
+  SELECT contestID AS id, contestName AS name
+  FROM contest
+  WHERE contestID IN (SELECT contestID FROM contestuser WHERE userID=idUser);
+END

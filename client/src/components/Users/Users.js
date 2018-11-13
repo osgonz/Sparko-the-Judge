@@ -210,8 +210,17 @@ var EnhancedTableToolbar = props => {
     }
 
     function dialogCompareUsers(event, usersCompared) {
+      
+        axios.post('http://127.0.0.1:5000/FindContestProblems', {
+          usernames: usersCompared
+        }, {withCredentials: true})
+        .then(response => {
+            console.log(response)
+            if (response.data.status == 200) {
+              ejemploDeContests: response.data.contests
+          }
+        })      
 
-      // Llamada a Axios, retrieve the list of common contests. ID y ContestName
       const ejemploDeContests = [{
                                   id: 2,
                                   name: "Hello There"
@@ -225,10 +234,7 @@ var EnhancedTableToolbar = props => {
                                   name: "2 Easy 4 U contest"
                                   },
                                 ];
-
-      // Modal should still open but with a message and only a close button
-      const ejemploDeContestsVacio = [];
-
+      
       const dialog = (
           <CompareDialog 
             open={true}
