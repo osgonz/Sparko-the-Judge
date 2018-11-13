@@ -210,47 +210,31 @@ var EnhancedTableToolbar = props => {
     }
 
     function dialogCompareUsers(event, usersCompared) {
-      
-        axios.post('http://127.0.0.1:5000/FindFastestSolution', {
-          usernames: usersCompared,
-          contestID: 2
+      var ejemploDeContests = []
+        axios.post('http://127.0.0.1:5000/FindCommonContest', {
+          usernames: usersCompared
         }, {withCredentials: true})
         .then(response => {
             console.log(response)
             if (response.data.status == 200) {
-              ejemploDeContests: response.data.contests
+              ejemploDeContests = response.data.contests
           }
-        })      
 
-      const ejemploDeContests = [{
-                                  id: 2,
-                                  name: "Hello There"
-                                  },
-                                  {
-                                  id: 7,
-                                  name: "Super Hard Contest"
-                                  },
-                                  {
-                                  id: 19,
-                                  name: "2 Easy 4 U contest"
-                                  },
-                                ];
-      
-      const dialog = (
-          <CompareDialog 
-            open={true}
-            title="Comparing Users" 
-            description="Select a contest to compare the selected users"
-            contestList={ejemploDeContests}
-            btnAcceptTitle="Compare"
-            btnCancelTitle="Cancel"
-            acceptFunc={ () => {
-                handleCompareUsers(usersCompared)
-              }
-            }/>
-        );
-
-        ReactDOM.render(dialog, document.getElementById('myDialog'));
+          const dialog = (
+            <CompareDialog 
+              open={true}
+              title="Comparing Users" 
+              description="Select a contest to compare the selected users"
+              contestList={ejemploDeContests}
+              btnAcceptTitle="Compare"
+              btnCancelTitle="Cancel"
+              acceptFunc={ () => {
+                  handleCompareUsers(usersCompared)
+                }
+              }/>
+          );
+          ReactDOM.render(dialog, document.getElementById('myDialog'));
+        })          
     }
 
     function handleBanUser(usersBanned) {

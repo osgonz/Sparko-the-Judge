@@ -1563,6 +1563,129 @@ class DeleteContest(Resource):
             cursor.close()
             conn.close()
 
+class GetUserStats(Resource):
+    def post(self):
+        conn = mysql.connect()
+        cursos = conn.cursor()
+
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('usernames', action='append', help="UserIDList")
+            parser.add_argument('contestID', type=int, help="contestID")
+            args = parser.parse_args()
+
+            
+            _users = args['usernames']
+            _contestID = args['contestID']
+
+            charts = []
+
+            #Find number of solved problems statistics
+            SolvedProblems = []
+
+            submissionsResultCountChart = {
+                'chartType': 'column',
+                'options': {
+                    'title': 'Submission results per problem',
+                    'axisTitles': {
+                        'vertical': 'username',
+                        'horizontal': 'Number of Problems Solved'
+                    }
+                },
+                'data': [
+                    ['Username', 'Problems Solved']
+                ]
+            }
+
+            for user in _users:
+                cursor.callproc('spUserNumberSolvedProblems', (user,))
+                data = cursor.fetchall()
+                if data[0][0]:
+                    SolvedProblems.append(data)
+                else:
+                    cursor.callproc('spSelectUserName', (user,))
+                    username = cursor.fetchall()
+                    SolvedProblems.append([[username[0][0], 0]])
+
+            for value in SolvedProblems:
+                submissionsResultCountChart['data'].append([value[0][0], value[0][1]])
+
+            #Find solved problems statistics
+            #PENDING
+            #----------------------
+            #----------------------
+
+            #Submission Ratio
+
+            submissionsSucFailRatioChart = {
+                'chartType': 'column-stacked',
+                'options': {
+                    'title': 'Submission results per problem',
+                    'axisTitles': {
+                        'vertical': 'username',
+                        'horizontal': 'Number of Problems Solved'
+                    }
+                },
+                'data': [
+                    ['Username', 'Problems Accepted', 'Problems Failed']
+                ]
+            }
+
+            subRate = []
+            for user in _users:
+                cursor.callproc('spSubmissionRateByUser', (user,))
+                data = cursor.fetchall()
+                if data[0][0]:
+                    subRate.append(data)
+                else:
+                    cursor.callproc('spSelectUserName', (user,))
+                    username = cursor.fetchall()
+                    subRate.append([[username[0][0], 0, 0]])
+
+            for values in subRate:
+                submissionsSucFailRatioChart['data'].append([value[0][0], value[0][1], values[0][2]])
+
+            #fastest submission time
+            submissionsSpeedChart = {
+                'chartType': 'column',
+                'options': {
+                    'title': 'Submission results per problem',
+                    'axisTitles': {
+                        'vertical': 'username',
+                        'horizontal': 'Number of Problems Solved'
+                    }
+                },
+                'data': [
+                    ['Username', 'Time']
+                ]
+            }
+            results = []
+            for user in _users:
+                cursor.callproc('spFastestSubmissionByUser', (user, _contestID))
+                data = cursor.fetchall()
+                if len(data):
+                    results.append(data)
+
+            resultDictArr = []
+            for values in results:
+                submissionsSpeedChart['data'].append([value[0][0], value[0][2]])
+
+            charts.append(submissionsResultCountChart)
+            charts.append(submissionsSucFailRatioChart)
+            charts.append(submissionsSpeedChart)
+
+            return jsonify({'status': 200, 'charts': charts})
+        except Exception as e:
+            try:  # empty exception handler in case rollback fails}
+                print(str(e))
+                conn.rollback ()
+            except:
+                pass
+        finally:
+            cursor.close()
+            conn.close()
+
+
 class FindCommonContest(Resource):
     def post(self):
         # Open MySQL connection
@@ -1576,30 +1699,30 @@ class FindCommonContest(Resource):
 
             args = parser.parse_args()
 
-            results = []
+            commonContest = []
             _users = args['usernames']
             cursor.callproc('spSelectContestUser', (_users[0],))
             data = cursor.fetchall()
             for i in range (1, len(_users)):
-                results = []
+                commonContest = []
                 cursor.callproc('spSelectContestUser', (_users[i],))
                 dataCompare = cursor.fetchall()
                 for j in range(0, len(data)):
                     for i in range(0, len(dataCompare)):
                         if(data[j][0] == dataCompare[i][0]):
-                            results.append(data[j])
+                            commonContest.append(data[j])
                         
-                data = results
+                data = commonContest
             
-            resultDictArr = []
-            for value in results:
+            commonContestDictArr = []
+            for value in commonContest:
                 valueDict = dict()
                 valueDict["id"] = value[0]
                 valueDict["name"] = value[1]
-                resultDictArr.append(valueDict)
+                commonContestDictArr.append(valueDict)
 
             conn.commit()
-            return jsonify({'status': 200, 'contests': resultDictArr})
+            return jsonify({'status': 200, 'contests': commonContestDictArr})
 
         except Exception as e:
             return {'error': str(e)}
@@ -1651,6 +1774,7 @@ class FindNumberContestProblems(Resource):
             cursor.close()
             conn.close()
 
+#No se cual es el formato para la tabla.
 class FindContestProblems(Resource):
     def post(self):
         # Open MySQL connection
@@ -1803,10 +1927,13 @@ api.add_resource(DeleteContest, '/DeleteContest')
 api.add_resource(GetContestUsers, '/GetContestUsers')
 api.add_resource(GetRegularUsers, '/GetRegularUsers')
 api.add_resource(FindCommonContest, '/FindCommonContest')
+#NOT USED
 api.add_resource(FindFastestSolution, '/FindFastestSolution')
 api.add_resource(FindUsersSubmissionRatio, '/FindUsersSubmissionRatio')
 api.add_resource(FindContestProblems, '/FindContestProblems')
 api.add_resource(FindNumberContestProblems, '/FindNumberContestProblems')
+#ENDS NOT USED
+api.add_resource(GetUserStats, '/GetUserStats')
 
 @app.route('/')
 def hello():

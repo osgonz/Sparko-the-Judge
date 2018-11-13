@@ -45,6 +45,7 @@ DROP PROCEDURE IF EXISTS spDeleteContest;
 DROP PROCEDURE IF EXISTS spUserSolvedProblems;
 DROP PROCEDURE IF EXISTS spFastestSubmissionByUser;
 DROP PROCEDURE IF EXISTS spSelectContestUser;
+DROP PROCEDURE IF EXISTS spSelectUserName;
 
 ################################################################################
 #                                                                              #
@@ -599,7 +600,7 @@ CREATE PROCEDURE spFastestSubmissionByUser (p_userID int, p_contestID int)
 BEGIN
   Select u.username as uName, p.problemName as pName, MIN(s.submissionTime) as pTime  
     FROM problems p, submission s, users u
-    WHERE p.problemID = s.problemID AND s.submitter = u.userID AND s.submitter = p_userID AND s.contestID = p_contestID;
+    WHERE s.result = 90 AND p.problemID = s.problemID AND s.submitter = u.userID AND s.submitter = p_userID AND s.contestID = p_contestID;
 END//
 
 -- Get contest by id
