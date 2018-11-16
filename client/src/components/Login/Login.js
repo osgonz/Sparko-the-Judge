@@ -34,7 +34,7 @@ class Login extends Component {
         this.setState({attemptedLogin: true})
 
 		if (username !== '' && password !== '') {
-			axios.post('http://127.0.0.1:5000/AuthenticateUser',{
+			axios.post('https://copromanager-api.herokuapp.com/AuthenticateUser',{
 				username: username,
 				password: password
 			}, {withCredentials: true})

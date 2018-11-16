@@ -52,7 +52,7 @@ class Profile extends Component {
   getData () {
     const { userId, username } = this.state;
 
-		axios.post('http://127.0.0.1:5000/GetUser',{}, {withCredentials: true})
+		axios.post('https://copromanager-api.herokuapp.com/GetUser',{}, {withCredentials: true})
 		.then(response => {
 			if (response.data.status === 200){
         let _countries = response.data.countries.map((country, index)=>{return {value:index, display:country}})
@@ -88,7 +88,7 @@ class Profile extends Component {
 
   handlePersonalInfoUpdate () {
     const {username, fname, lname, email, countryInt, country} = this.state;
-    axios.post('http://127.0.0.1:5000/EditUser',{
+    axios.post('https://copromanager-api.herokuapp.com/EditUser',{
       new_username: username,
       fname: fname,
       lname: lname,
@@ -111,7 +111,7 @@ class Profile extends Component {
 
   handleUsernameInfoUpdate () {
     const {username, iduva, idicpc} = this.state;
-    axios.post('http://127.0.0.1:5000/EditUserJudgesUsernames',{
+    axios.post('https://copromanager-api.herokuapp.com/EditUserJudgesUsernames',{
       username: username,
       username_UVA: iduva,
       username_ICPC: idicpc,
@@ -131,7 +131,7 @@ class Profile extends Component {
 
   handlePasswordUpdate () {
     const {password, new_password} = this.state;
-    axios.post('http://127.0.0.1:5000/EditPassword',{
+    axios.post('https://copromanager-api.herokuapp.com/EditPassword',{
       newPassword: new_password,
       password: password
     }, {withCredentials: true})

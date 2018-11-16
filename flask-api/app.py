@@ -40,9 +40,6 @@ mysql.init_app(app)
 
 ongoing_contest_data = dict()
 
-# Scheduler object
-sched = BackgroundScheduler(daemon=True)
-
 def get_new_ongoing_contest_data(contest, cursor):
     try:
         _contestID = contest[0]
@@ -492,10 +489,6 @@ def update_ongoing_contest_data():
         conn.close()
         print('Bye Job! The time is: %s' % datetime.now())
 
-sched.add_job(update_ongoing_contest_data, 'interval', minutes=5)
-
-sched.start()
-update_ongoing_contest_data()
 
 class CreateUser(Resource):
     def post(self):
@@ -1760,5 +1753,17 @@ def logout():
     session.pop('loggedUser', None)
     return 'You were logged out'
 
+def setup_scheduler(app):
+    # Scheduler object
+    sched = BackgroundScheduler()
+    sched.add_job(update_ongoing_contest_data, 'interval', minutes=5)
+
+    sched.start()
+    update_ongoing_contest_data()
+
+
+setup_scheduler(app)
+
 if __name__ == '__main__':
     app.run(debug=True, use_reloader=False)
+

@@ -37,7 +37,7 @@ class SignUp extends Component {
             const {username, password, fname, lname, email /*country*/} = this.state;
             this.setState({attemptedRegister: true})
         if(this.state.username !== "" && this.state.password !=="" && this.state.fname !== "" && this.state.lname !== "" && this.state.email !== "") {
-            axios.post('http://127.0.0.1:5000/CreateUser', {
+            axios.post('https://copromanager-api.herokuapp.com/CreateUser', {
                 username: username,
                 password: password,
                 fname: fname,

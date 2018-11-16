@@ -48,7 +48,7 @@ class StandingsTab extends Component {
         if (this.props.status == 1) {
             this.setState({data: this.props.standingsData})
         } else {
-            axios.post('http://127.0.0.1:5000/GetContestStandings', {
+            axios.post('https://copromanager-api.herokuapp.com/GetContestStandings', {
                 contest_id: this.props.contest_id
             }).then(response => {
                 if (response.data.status == 200) {

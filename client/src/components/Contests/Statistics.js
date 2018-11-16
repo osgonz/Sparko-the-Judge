@@ -68,7 +68,7 @@ class Statistics extends Component {
 
   	fetchContestData(){
   		console.log("Requested to see contest stats");
-  		axios.post('http://127.0.0.1:5000/GetContestStats', {
+  		axios.post('https://copromanager-api.herokuapp.com/GetContestStats', {
   			contestID: this.props.contestID
   		}, {withCredentials: true}).then(response => {
   			if (response.data.status == 200) {

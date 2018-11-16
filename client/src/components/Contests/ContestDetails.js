@@ -67,7 +67,7 @@ class ContestDetails extends Component {
     };
 
     componentDidMount(){
-        axios.post('http://127.0.0.1:5000/GetContestInfo', {
+        axios.post('https://copromanager-api.herokuapp.com/GetContestInfo', {
             contest_id: this.props.match.params.id
         }, {withCredentials: true}).then(response => {
             if (response.data.status == 200){
@@ -81,7 +81,7 @@ class ContestDetails extends Component {
                 });
 
                 if (response.data.contestInfo.status == 1) {
-                    axios.post('http://127.0.0.1:5000/IsLoggedUserContestOwner', {
+                    axios.post('https://copromanager-api.herokuapp.com/IsLoggedUserContestOwner', {
                         contest_id: this.props.match.params.id
                     }, {withCredentials: true}).then(response => {
                         if (response.data.status == 200) {
@@ -90,7 +90,7 @@ class ContestDetails extends Component {
                         }
                         this.setState({isValidated: true});
                     }).then(() => {
-                        axios.post('http://127.0.0.1:5000/GetContestProblems', {
+                        axios.post('https://copromanager-api.herokuapp.com/GetContestProblems', {
                             contest_id: this.props.match.params.id
                         }).then(response => {
                             if (response.data.status == 200) {
@@ -102,7 +102,7 @@ class ContestDetails extends Component {
                             }
                         });
 
-                        axios.post('http://127.0.0.1:5000/GetOngoingContestIntermediateData', {
+                        axios.post('https://copromanager-api.herokuapp.com/GetOngoingContestIntermediateData', {
                             contest_id: this.props.match.params.id,
                             can_see_all: this.props.isAdmin || this.state.isOwner
                         }, {withCredentials: true}).then(response => {
@@ -117,7 +117,7 @@ class ContestDetails extends Component {
                         });
                     });
                 } else {
-                    axios.post('http://127.0.0.1:5000/IsLoggedUserContestOwner', {
+                    axios.post('https://copromanager-api.herokuapp.com/IsLoggedUserContestOwner', {
                         contest_id: this.props.match.params.id
                     }, {withCredentials: true}).then(response => {
                         if (response.data.status == 200) {
@@ -126,7 +126,7 @@ class ContestDetails extends Component {
                         this.setState({isValidated: true});
                     }).then(() => {
                         if (this.props.isAdmin || this.state.isOwner) {
-                            axios.post('http://127.0.0.1:5000/GetSubmissionsInContest', {
+                            axios.post('https://copromanager-api.herokuapp.com/GetSubmissionsInContest', {
                                 contest_id: this.props.match.params.id
                             }).then(response => {
                                 if (response.data.status == 200) {
@@ -134,7 +134,7 @@ class ContestDetails extends Component {
                                 }
                             });
                         } else {
-                            axios.post('http://127.0.0.1:5000/GetUserSubmissionsInContest', {
+                            axios.post('https://copromanager-api.herokuapp.com/GetUserSubmissionsInContest', {
                                 contest_id: this.props.match.params.id
                             }, {withCredentials: true}).then(response => {
                                 if (response.data.status == 200) {
@@ -144,7 +144,7 @@ class ContestDetails extends Component {
                         }
                     });
 
-                    axios.post('http://127.0.0.1:5000/GetContestProblems', {
+                    axios.post('https://copromanager-api.herokuapp.com/GetContestProblems', {
                         contest_id: this.props.match.params.id
                     }, {withCredentials: true}).then(response => {
                         if (response.data.status == 200) {
@@ -154,7 +154,7 @@ class ContestDetails extends Component {
                                 problemIDList.push(problem.problemID.toString());
                             });
                             if (problemIDList.length > 0) {
-                                axios.post('http://127.0.0.1:5000/GetContestScoresPerProblem', {
+                                axios.post('https://copromanager-api.herokuapp.com/GetContestScoresPerProblem', {
                                     contest_id: this.props.match.params.id,
                                     problem_id_list: problemIDList
                                 }, {withCredentials: true}).then(response => {
@@ -195,7 +195,7 @@ class ContestDetails extends Component {
                         this.setState({onlineJudgesProblems: onlineJudgesProblems})
                     })
 
-                    axios.post('http://127.0.0.1:5000/GetRegularUsers', {
+                    axios.post('https://copromanager-api.herokuapp.com/GetRegularUsers', {
                         contest_id: this.props.match.params.id
                     }).then(response => {
                         if (response.data.StatusCode == 200) {
@@ -204,7 +204,7 @@ class ContestDetails extends Component {
                     });
                 }
 
-                axios.post('http://127.0.0.1:5000/GetContestUsers', {
+                axios.post('https://copromanager-api.herokuapp.com/GetContestUsers', {
                     contest_id: this.props.match.params.id
                 }).then(response => {
                     if (response.data.StatusCode == 200) {

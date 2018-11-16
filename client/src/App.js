@@ -33,7 +33,7 @@ class App extends Component {
     };
 
     componentDidMount(){
-		axios.get('http://127.0.0.1:5000/GetActiveSession', {withCredentials: true})
+		axios.get('https://copromanager-api.herokuapp.com/GetActiveSession', {withCredentials: true})
         .then(response => {
             if (!response.data.error){
                 if (response.data.username != 'Session not found'){
