@@ -1,5 +1,11 @@
+/*******************************************************************************/
+/*                                E X P O R T S                                */
+/*******************************************************************************/
+/*--------------------------------- R E A C T ---------------------------------*/
 import React, { Component } from 'react';
+import axios from 'axios'
 
+/*--------------------------- M A T E R I A L   U I ---------------------------*/
 import { withStyles } from '@material-ui/core/styles';
 
 import Button from '@material-ui/core/Button';
@@ -12,16 +18,19 @@ import Typography from '@material-ui/core/Typography';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import '../../style/style.css';
-import axios from 'axios'
 
+/*---------------------------- C O M P O N E N T S ----------------------------*/
 import StandingsTab from './StandingsTab';
 import ProblemsTab from './ProblemsTab';
 import SubmissionsTab from './SubmissionsTab';
+import Statistics from './Statistics';
 import Error404 from '../Error404/Error404';
 import EditContestButton from '../CreateContest/FormDialog';
 import EditContest from '../EditContest/EditContest';
 import DeleteContestButton from '../CreateContest/FormDialog';
 import DeleteContest from '../DeleteContest/DeleteContest';
+/*******************************************************************************/
+
 
 const styles = {
     root: {
@@ -309,7 +318,9 @@ class ContestDetails extends Component {
                                 <Tab label="Standings" />
                                 <Tab label="Problem List" />
                                 <Tab label="Submissions" />
+                                {(isOwner) && <Tab label="Statistics" />}
                             </Tabs>
+                            
                             {tabValue === 0 &&
                             <TabContainer>
                                 <StandingsTab
@@ -322,6 +333,7 @@ class ContestDetails extends Component {
                                     isAdmin={this.props.isAdmin}
                                 />
                             </TabContainer>}
+                            
                             {tabValue === 1 &&
                             <TabContainer>
                                 <ProblemsTab
@@ -329,6 +341,7 @@ class ContestDetails extends Component {
                                     handleJudgeCode = {this.handleJudgeCode}
                                 />
                             </TabContainer>}
+                            
                             {this.state.tabValue === 2 &&
                             <TabContainer>
                                 <SubmissionsTab
@@ -336,6 +349,13 @@ class ContestDetails extends Component {
                                     handleJudgeCode = {this.handleJudgeCode}
                                 />
                             </TabContainer>}
+
+                            {(isOwner) && tabValue === 3 &&
+                            <TabContainer>
+                                <Statistics isContestFinished={this.state.status === 2} contestID={this.props.match.params.id} type='contest'>
+                                </Statistics>
+                            </TabContainer>
+                            }
                         </Paper>
                     </div>
                 );

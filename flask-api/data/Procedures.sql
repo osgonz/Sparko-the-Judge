@@ -42,6 +42,8 @@ DROP PROCEDURE IF EXISTS spInsertSubmission;
 DROP PROCEDURE IF EXISTS spUpdateContestUser;
 DROP PROCEDURE IF EXISTS spGetRegularUsers;
 DROP PROCEDURE IF EXISTS spDeleteContest;
+DROP PROCEDURE IF EXISTS spGetSubmissionsCountPerProblemPerResult;
+DROP PROCEDURE IF EXISTS spGetSubmissionsCountPerLanguage;
 
 ################################################################################
 #                                                                              #
@@ -549,4 +551,20 @@ BEGIN
         FROM Contest
         WHERE contestID = p_contest
       );
+END //
+
+-- Get count of submissions for each problem for each result in a contest
+DELIMITER //
+
+CREATE PROCEDURE spGetSubmissionsCountPerProblemPerResult(IN p_contestID INT)
+BEGIN
+  SELECT problemName, result, COUNT(*) AS resultCount FROM Problems, submission WHERE contestID = p_contestID AND Problems.problemID = submission.problemID GROUP BY problemName, result;
+END //
+
+-- Get count of submissions for each language in a contest
+DELIMITER //
+
+CREATE PROCEDURE spGetSubmissionsCountPerLanguage(IN p_contestID INT)
+BEGIN
+  SELECT language, COUNT(*) AS languageCount FROM Problems, submission WHERE contestID = p_contestID AND Problems.problemID = submission.problemID GROUP BY language;
 END //
