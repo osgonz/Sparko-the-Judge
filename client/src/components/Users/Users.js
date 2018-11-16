@@ -255,7 +255,7 @@ var EnhancedTableToolbar = props => {
               </IconButton>
             </Tooltip>
 
-            <div id="myDialog"></div>           
+            <div id="myDialog"></div>
 
             <Tooltip title="Unban Users">
               <IconButton aria-label="Unban" onClick={event => dialogUnbanUser(event, props.usersSelected)}>

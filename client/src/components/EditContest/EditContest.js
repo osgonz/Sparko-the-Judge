@@ -1,11 +1,18 @@
+/*******************************************************************************/
+/*                                E X P O R T S                                */
+/*******************************************************************************/
+/*--------------------------------- R E A C T ---------------------------------*/
 import React, { Component } from "react";
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
+import AlertDialog from '../AlertDialog/AlertDialog';
+import ReactDOM from 'react-dom'
 
 import AddProblemDropdown from '../AddProblem/AddProblemDropdown'
 import AddUserDropdown from '../InviteUsers/AddUserDropdown'
 
 import axios from 'axios'
+/*******************************************************************************/
 
 function formatDate(date)
 {
@@ -190,11 +197,17 @@ class EditContest extends Component {
         this.usersToAdd.delete(user)
     }
 
+
+    handleThis() {
+
+    }
+
     handleEditContest () {
         let problemsToAdd = Array.from(this.problemsToAdd);
         let problemsToDelete = Array.from(this.problemsToDelete);
         let usersToAdd = Array.from(this.usersToAdd);
         let usersToDelete = Array.from(this.usersToDelete);
+        var alertDescription = "";
 
 		this.setState({attemptedEdit: true})
 
@@ -205,49 +218,79 @@ class EditContest extends Component {
 
         if(this.state.contestName !== "" && this.state.description !=="" && this.state.startDate < this.state.endDate &&
             (this.state.startDate >= this.state.currentDate || this.state.status == 1)) {
-            // Parsing date times
-            const {contestName, description, contestID, status} = this.state;
-            let {startDate, endDate} = this.state;
-            startDate = formatDate(startDate)
-            endDate = formatDate(endDate)
+            if (problemsToDelete.length > 0) {
+                alertDescription = problemsToDelete.length + " problems were removed from the contest.";
+            }
 
-            // Add any missing problems to the database
-            axios.post('https://copromanager-api.herokuapp.com/CreateProblems', {
-                problems: problemsToAdd,
-            }, {withCredentials: true})
-            .then(() => {
-                    // Edit contest details (also adds and removes any needed problems)
-                    axios.post('https://copromanager-api.herokuapp.com/EditContest', {
-                        contestID: contestID,
-                        contestName: contestName,
-                        description: description,
-                        startDate: startDate,
-                        endDate: endDate,
-                        status: status,
-                        problemsToAdd: problemsToAdd,
-                        problemsToDelete: problemsToDelete,
-                        usersToAdd: usersToAdd,
-                        usersToDelete: usersToDelete,
-                    }, {withCredentials: true})
-                    .then(response => {
-                        if (response.data.status == 200) {
-                            console.log(200);
-                            this.handleModalClose(true, "Contest edited successfully")
-                            window.location.reload();
-                        }
+            if (usersToDelete.length > 0) {
+                alertDescription += usersToDelete.length + " users were removed from the contest.";
+            }
 
-                        if (response.data.status == 100) {
-                            //Display error message
-                            console.log(100);
-                            this.handleModalClose(true, response.data.message)
+            alertDescription += " Do you want to proceed with these changes?";
+
+            console.log(alertDescription);
+
+            const dialog = (
+                <AlertDialog 
+                    open={true}
+                    title="Hey!" 
+                    description= {alertDescription}
+                    btnAcceptTitle="Accept"
+                    btnCancelTitle="Cancel"
+                    acceptFunc={ () => {
+                            this.editContest(problemsToAdd, problemsToDelete, usersToAdd, usersToDelete)
                         }
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                    });
-                }
-            )
+                    }
+                />
+            );
+
+            ReactDOM.render(dialog, document.getElementById('myAlert'));
         }
+    }
+
+    editContest(problemsToAdd, problemsToDelete, usersToAdd, usersToDelete) {
+        // Parsing date times
+        const {contestName, description, contestID, status} = this.state;
+        let {startDate, endDate} = this.state;
+        startDate = formatDate(startDate)
+        endDate = formatDate(endDate)
+
+        // Add any missing problems to the database
+        axios.post('https://copromanager-api.herokuapp.com/CreateProblems', {
+            problems: problemsToAdd,
+        }, {withCredentials: true})
+        .then(() => {
+                // Edit contest details (also adds and removes any needed problems)
+                axios.post('https://copromanager-api.herokuapp.com/EditContest', {
+                    contestID: contestID,
+                    contestName: contestName,
+                    description: description,
+                    startDate: startDate,
+                    endDate: endDate,
+                    status: status,
+                    problemsToAdd: problemsToAdd,
+                    problemsToDelete: problemsToDelete,
+                    usersToAdd: usersToAdd,
+                    usersToDelete: usersToDelete,
+                }, {withCredentials: true})
+                .then(response => {
+                    if (response.data.status == 200) {
+                        console.log(200);
+                        this.handleModalClose(true, "Contest edited successfully")
+                        window.location.reload();
+                    }
+
+                    if (response.data.status == 100) {
+                        //Display error message
+                        console.log(100);
+                        this.handleModalClose(true, response.data.message)
+                    }
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+            }
+        )
     }
 
     contestNameChange (event) {
@@ -294,6 +337,7 @@ class EditContest extends Component {
 
         return (
             <div>
+                <div id="myAlert"></div>
                 <TextField
                     id="contestName"
                     label="Contest Name"
