@@ -12,6 +12,7 @@ DROP PROCEDURE If Exists spEditUser;
 DROP PROCEDURE If Exists spEditJudgesUsernames;
 DROP PROCEDURE If Exists spEditPassword;
 DROP PROCEDURE If Exists spGetCountries;
+DROP PROCEDURE If Exists spGetContests;
 DROP PROCEDURE If Exists spGetOwnedContests;
 DROP PROCEDURE If Exists spGetInvitedContests;
 DROP PROCEDURE If Exists spGetContestProblems;
@@ -154,6 +155,14 @@ DELIMITER //
 CREATE PROCEDURE spGetCountries ()
 BEGIN
     SELECT country_name from Countries;
+END //
+
+-- Get Contests
+DELIMITER //
+
+CREATE PROCEDURE spGetContests ()
+BEGIN
+    SELECT contestID, contestName, description, startDate, endDate, status from Contest;
 END //
 
 -- Get owned Contests

@@ -35,6 +35,7 @@ import CreateContestButton from '../CreateContest/FormDialog';
 		username: '',
 		ownedContestData: [],
 		invitedContestData: [],
+		allContestData: [],
 		onlineJudgesProblems: [],
 		users: []
 	};
@@ -45,27 +46,39 @@ import CreateContestButton from '../CreateContest/FormDialog';
 		.then(response => {
 			if (response.data != 'Session not found') {
 				this.setState({username: response.data.username})
-				axios.post('https://copromanager-api.herokuapp.com/ViewOwnedContestList', {username: this.state.username}, {withCredentials: true})
-				.then(response => {
-					if (response.status === 200) {
-						this.setState({ownedContestData: response.data.ownedContestList})
-					}
-				})
-				.then(() =>{
-					axios.post('https://copromanager-api.herokuapp.com/ViewInvitedContestList', {username: response.data.username}, {withCredentials: true})
-					.then(response => {
-						if (response.status === 200) {
-							this.setState({invitedContestData: response.data.invitedContestList})
-						}
+				if (this.props.isAdmin) {
+                    axios.post('https://copromanager-api.herokuapp.com/ViewContestList', {withCredentials: true})
+						.then(response => {
+                            if (response.status === 200) {
+                                this.setState({allContestData: response.data.contestList})
+                            }
+						})
+                        .catch((error) => {
+                            console.log(error);
+                        });
+				} else {
+                    axios.post('https://copromanager-api.herokuapp.com/ViewOwnedContestList', {username: this.state.username}, {withCredentials: true})
+                        .then(response => {
+                            if (response.status === 200) {
+                                this.setState({ownedContestData: response.data.ownedContestList})
+                            }
+                        })
+                        .then(() => {
+                            axios.post('https://copromanager-api.herokuapp.com/ViewInvitedContestList', {username: response.data.username}, {withCredentials: true})
+                                .then(response => {
+                                    if (response.status === 200) {
+                                        this.setState({invitedContestData: response.data.invitedContestList})
+                                    }
 
-					})
-					.catch((error) => {
-						console.log(error);
-					});
-				})
-				.catch((error) => {
-					console.log(error);
-				});
+                                })
+                                .catch((error) => {
+                                    console.log(error);
+                                });
+                        })
+                        .catch((error) => {
+                            console.log(error);
+                        });
+                }
 			}
 		})
 		.then(() => {
@@ -114,7 +127,7 @@ import CreateContestButton from '../CreateContest/FormDialog';
 	 render()
 	{
 		const { classes } = this.props;
-		const {  invitedContestData, ownedContestData, tabValue } = this.state;
+		const {  invitedContestData, ownedContestData, allContestData, tabValue } = this.state;
 		return (
 			<div>
 				<div className="contest-list-header">
@@ -141,21 +154,34 @@ import CreateContestButton from '../CreateContest/FormDialog';
 						textColor="primary"
 						centered
 					>
-						<Tab label="Owned" />
-						<Tab label="Invited" />
+                        {!this.props.isAdmin &&
+							<Tab label="Owned"/>
+						}
+                        {!this.props.isAdmin &&
+                        	<Tab label="Invited"/>
+                        }
+                        {this.props.isAdmin &&
+                        	<Tab label="All"/>
+                        }
 					</Tabs>
-					{tabValue === 0 &&
+					{tabValue === 0 && !this.props.isAdmin &&
 					<TabContainer>
 						<OwnedContestListTab
 							data={ownedContestData}
 						/>
 					</TabContainer>}
-					{tabValue === 1 &&
+					{tabValue === 1 && !this.props.isAdmin &&
 					<TabContainer>
 						<InvitedContestListTab
 							data={invitedContestData}
 						/>
 					</TabContainer>}
+                    {tabValue === 0 && this.props.isAdmin &&
+                    <TabContainer>
+                        <OwnedContestListTab
+                            data={allContestData}
+                        />
+                    </TabContainer>}
 				</Paper>
 			</div>
 		);
