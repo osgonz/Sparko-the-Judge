@@ -45,27 +45,37 @@ import CreateContestButton from '../CreateContest/FormDialog';
 		.then(response => {
 			if (response.data != 'Session not found') {
 				this.setState({username: response.data.username})
-				axios.post('http://127.0.0.1:5000/ViewOwnedContestList', {username: this.state.username}, {withCredentials: true})
-				.then(response => {
-					if (response.status === 200) {
-						this.setState({ownedContestData: response.data.ownedContestList})
-					}
-				})
-				.then(() =>{
-					axios.post('http://127.0.0.1:5000/ViewInvitedContestList', {username: response.data.username}, {withCredentials: true})
+				if (this.props.isAdmin){
+					axios.post('http://127.0.0.1:5000/ViewContestList', {withCredentials: true})
 					.then(response => {
 						if (response.status === 200) {
-							this.setState({invitedContestData: response.data.invitedContestList})
+							this.setState({allContestData: response.data.contestList})
 						}
+					})
+				}
+				else{
+					axios.post('http://127.0.0.1:5000/ViewOwnedContestList', {username: this.state.username}, {withCredentials: true})
+					.then(response => {
+						if (response.status === 200) {
+							this.setState({ownedContestData: response.data.ownedContestList})
+						}
+					})
+					.then(() =>{
+						axios.post('http://127.0.0.1:5000/ViewInvitedContestList', {username: response.data.username}, {withCredentials: true})
+						.then(response => {
+							if (response.status === 200) {
+								this.setState({invitedContestData: response.data.invitedContestList})
+							}
 
+						})
+						.catch((error) => {
+							console.log(error);
+						});
 					})
 					.catch((error) => {
 						console.log(error);
 					});
-				})
-				.catch((error) => {
-					console.log(error);
-				});
+				}
 			}
 		})
 		.then(() => {
@@ -141,6 +151,8 @@ import CreateContestButton from '../CreateContest/FormDialog';
 						textColor="primary"
 						centered
 					>
+						{this.props.isAdmin &&
+							<Tab label="All" />}
 						<Tab label="Owned" />
 						<Tab label="Invited" />
 					</Tabs>

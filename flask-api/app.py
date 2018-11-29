@@ -1145,6 +1145,30 @@ class GetUserID(Resource):
             cursor.close()
             conn.close()
 
+class ViewContestList(Resource):
+    def post(self):
+        # Open MySQL connection
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
+        try:
+            cursor.callproc('spGetContests')
+            data = [dict((cursor.description[i][0], value)
+                         for i, value in enumerate(row)) for row in cursor.fetchall()]
+
+            if len(data) >= 0:
+                return jsonify({'StatusCode': 200, 'contestList': data})
+            else:
+                return jsonify({'StatusCode': 1000, 'Message': 'No owned contests'})
+
+        except Exception as e:
+            print(str(e))
+            return {'error': str(e)}
+       
+        finally:
+            cursor.close()
+            conn.close()
+
 class ViewOwnedContestList(Resource):
     def post(self):
         # Open MySQL connection
@@ -1709,6 +1733,7 @@ api.add_resource(BanUsers, '/BanUsers')
 api.add_resource(UnbanUsers, '/UnbanUsers')
 api.add_resource(CreateContest, '/CreateContest')
 api.add_resource(GetUserID, '/GetUserID')
+api.add_resource(ViewContestList, '/ViewContestList')
 api.add_resource(ViewOwnedContestList, '/ViewOwnedContestList')
 api.add_resource(ViewInvitedContestList, '/ViewInvitedContestList')
 api.add_resource(EditContest, '/EditContest')
