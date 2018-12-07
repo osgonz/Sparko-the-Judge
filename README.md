@@ -1,8 +1,8 @@
-# CoProManager
+# Sparko the Judge
 
 ## Getting started with Flask, MySQL and React
 ### Flask
-1. Set up Flask environment, go to 'CoProManager/flask api' subfolder.
+1. Set up Flask environment, go to 'Sparko-the-Judge/flask api' subfolder.
 2. Make sure you have 'pip' installed. Using Python 3.6 for now, but we can switch to another version.
 3. Open your terminal, and execute:
 ```
@@ -26,12 +26,12 @@ $ python app.py
 ### React
 1. Set up React environment. Go back to your main project directory.
 2 Make sure you have Node.js and 'npm' installed.
-3. Go to your 'CoProManager/client' subfolder. Open a new terminal and execute:
+3. Go to your 'Sparko-the-Judge/client' subfolder. Open a new terminal and execute:
 ```
 $ npm start
 ```
 4. Check everything's working as expected.
-5. Go to your 'CoProManager/client/src' subfolder.
+5. Go to your 'Sparko-the-Judge/client/src' subfolder.
 6. Open 'App.js', modify ComponentDidMount() to match a specific Flask API route. Feel free to test the fetched information to understand how the information is retrieved.
 7. Go back to your opened React client tab on your browser from steps 3 and 4. See the new info?
 
